@@ -68,3 +68,34 @@ export async function getCurrentUser() {
     return null;
   }
 }
+
+export async function requireRole(
+  allowedRoles: string[]
+) {
+  const user = await getCurrentUser();
+
+  // User is not logged in
+  if (!user) {
+    return {
+      user: null,
+      error: "Not authenticated",
+      status: 401,
+    };
+  }
+
+  // User is logged in but doesn't have permission
+  if (!allowedRoles.includes(user.role)) {
+    return {
+      user: null,
+      error: "Forbidden",
+      status: 403,
+    };
+  }
+
+  // User is authenticated and authorized
+  return {
+    user,
+    error: null,
+    status: 200,
+  };
+}
