@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
+import { createToken } from "@/lib/auth";
 
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+const signupSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 export async function POST(request: Request) {
@@ -14,7 +16,7 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     // Validate input
-    const result = loginSchema.safeParse(body);
+    const result = signupSchema.safeParse(body);
 
     if (!result.success) {
       return NextResponse.json(
@@ -27,49 +29,46 @@ export async function POST(request: Request) {
       );
     }
 
-    const { email, password } = result.data;
+    const { name, email, password } = result.data;
 
-    // Find user by email
-    const user = await prisma.user.findUnique({
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
       where: {
         email,
       },
     });
 
-    // Check if user exists
-    if (!user) {
+    if (existingUser) {
       return NextResponse.json(
         {
-          error: "Invalid email or password",
+          error: "An account with this email already exists",
         },
         {
-          status: 401,
+          status: 409,
         }
       );
     }
 
-    // Compare entered password with hashed password
-    const passwordMatch = await bcrypt.compare(
-      password,
-      user.passwordHash
-    );
+    // Hash password
+    const passwordHash = await bcrypt.hash(password, 10);
 
-    // Check password
-    if (!passwordMatch) {
-      return NextResponse.json(
-        {
-          error: "Invalid email or password",
-        },
-        {
-          status: 401,
-        }
-      );
-    }
+    // Create user
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        passwordHash,
+        role: "STUDENT",
+      },
+    });
 
-    // Login successful
-    return NextResponse.json(
+    // Create JWT
+    const token = await createToken(user.id);
+
+    // Create response
+    const response = NextResponse.json(
       {
-        message: "Login successful",
+        message: "Account created successfully",
         user: {
           id: user.id,
           name: user.name,
@@ -78,15 +77,26 @@ export async function POST(request: Request) {
         },
       },
       {
-        status: 200,
+        status: 201,
       }
     );
+
+    // Store JWT in HTTP-only cookie
+    response.cookies.set("session", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    });
+
+    return response;
   } catch (error) {
-    console.error("Login Error:", error);
+    console.error("Signup Error:", error);
 
     return NextResponse.json(
       {
-        error: "Something went wrong",
+        error: "Something went wrong while creating your account",
       },
       {
         status: 500,

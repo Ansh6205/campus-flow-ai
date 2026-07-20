@@ -106,15 +106,27 @@ export async function POST(request: Request) {
     }
 
     const profile = await prisma.studentProfile.upsert({
-      where: {
-        userId: user.id,
-      },
-      update: result.data,
-      create: {
-        userId: user.id,
-        ...result.data,
-      },
-    });
+  where: {
+    userId: user.id,
+  },
+  update: {
+    college: result.data.college,
+    department: result.data.department,
+    year: result.data.year,
+    division: result.data.division,
+    rollNumber: result.data.rollNumber,
+    phone: result.data.phone,
+  },
+  create: {
+    userId: user.id,
+    college: result.data.college!,
+    department: result.data.department!,
+    year: result.data.year!,
+    division: result.data.division!,
+    rollNumber: result.data.rollNumber!,
+    phone: result.data.phone!,
+  },
+});
 
     return NextResponse.json(
       {

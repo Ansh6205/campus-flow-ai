@@ -7,35 +7,117 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id           Int             @id @default(autoincrement())
-  name         String
-  email        String          @unique
-  passwordHash String
-  role         Role            @default(STUDENT)
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-
-  studentProfile StudentProfile?
-}
-
-model StudentProfile {
-  id           Int      @id @default(autoincrement())
-  userId       Int      @unique
-  college      String?
-  department   String?
-  year         Int?
-  division     String?
-  rollNumber   String?
-  phone        String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
 enum Role {
   STUDENT
   FACULTY
   ADMIN
+}
+
+enum ComplaintStatus {
+  PENDING
+  IN_PROGRESS
+  RESOLVED
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(STUDENT)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Student profile
+  studentProfile StudentProfile?
+
+  // Announcements created by user
+  announcements Announcement[]
+
+  // Events created by user
+  events Event[]
+
+  // Complaints created by user
+  complaints Complaint[]
+
+  // Notifications received by user
+  notifications Notification[]
+}
+
+model StudentProfile {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @unique
+  college    String?
+  department String?
+  year       Int?
+  division   String?
+  rollNumber String?
+  phone      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Announcement {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdById Int
+  createdBy   User @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([createdById])
+}
+
+model Event {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String
+  location    String?
+  eventDate   DateTime
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  createdById Int
+  createdBy   User @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([createdById])
+  @@index([eventDate])
+}
+
+model Complaint {
+  id          Int             @id @default(autoincrement())
+  title       String
+  description String
+  category    String
+  location    String?
+  status      ComplaintStatus @default(PENDING)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  createdById Int
+  createdBy   User @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([createdById])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isRead])
 }
