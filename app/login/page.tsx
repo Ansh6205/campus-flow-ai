@@ -70,11 +70,30 @@ export default function LoginPage() {
           boxShadow: "0 10px 30px rgba(0, 0, 0, 0.08)",
         }}
       >
+        {/* Back to Home */}
+        <button
+          type="button"
+          onClick={() => router.push("/")}
+          style={{
+            border: "none",
+            background: "transparent",
+            padding: 0,
+            marginBottom: "24px",
+            color: "#4b5563",
+            fontSize: "14px",
+            fontWeight: "500",
+            cursor: "pointer",
+          }}
+        >
+          ← Back to Home
+        </button>
+
         <h1
           style={{
             fontSize: "28px",
             fontWeight: "700",
             marginBottom: "8px",
+            color: "#111827",
           }}
         >
           Welcome Back
@@ -90,6 +109,7 @@ export default function LoginPage() {
         </p>
 
         <form onSubmit={handleLogin}>
+          {/* Email */}
           <div style={{ marginBottom: "16px" }}>
             <label
               htmlFor="email"
@@ -97,6 +117,7 @@ export default function LoginPage() {
                 display: "block",
                 marginBottom: "6px",
                 fontWeight: "500",
+                color: "#374151",
               }}
             >
               Email
@@ -115,10 +136,12 @@ export default function LoginPage() {
                 border: "1px solid #ddd",
                 borderRadius: "8px",
                 fontSize: "16px",
+                boxSizing: "border-box",
               }}
             />
           </div>
 
+          {/* Password */}
           <div style={{ marginBottom: "16px" }}>
             <label
               htmlFor="password"
@@ -126,6 +149,7 @@ export default function LoginPage() {
                 display: "block",
                 marginBottom: "6px",
                 fontWeight: "500",
+                color: "#374151",
               }}
             >
               Password
@@ -144,10 +168,12 @@ export default function LoginPage() {
                 border: "1px solid #ddd",
                 borderRadius: "8px",
                 fontSize: "16px",
+                boxSizing: "border-box",
               }}
             />
           </div>
 
+          {/* Error */}
           {error && (
             <div
               style={{
@@ -162,6 +188,7 @@ export default function LoginPage() {
             </div>
           )}
 
+          {/* Login Button */}
           <button
             type="submit"
             disabled={loading}
