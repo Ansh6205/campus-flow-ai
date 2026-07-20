@@ -41,6 +41,12 @@ export default function ComplaintsPage() {
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [updatingComplaintId, setUpdatingComplaintId] =
+    useState<number | null>(null);
+
+  const [selectedStatuses, setSelectedStatuses] = useState<
+    Record<number, ComplaintStatus>
+  >({});
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -62,10 +68,7 @@ export default function ComplaintsPage() {
         setLoading(true);
         setError("");
 
-        // ----------------------------------------
-        // 1. Get logged-in user
-        // ----------------------------------------
-
+        // Get logged-in user
         const userResponse = await fetch("/api/auth/me", {
           method: "GET",
           credentials: "include",
@@ -77,13 +80,11 @@ export default function ComplaintsPage() {
           return;
         }
 
-        // User is not logged in
         if (userResponse.status === 401) {
           router.push("/login");
           return;
         }
 
-        // Other error
         if (!userResponse.ok) {
           setError(
             userData.error ||
@@ -92,13 +93,9 @@ export default function ComplaintsPage() {
           return;
         }
 
-        // Save user
         setUser(userData.user);
 
-        // ----------------------------------------
-        // 2. Get complaints
-        // ----------------------------------------
-
+        // Get complaints
         const complaintResponse = await fetch(
           "/api/complaint",
           {
@@ -114,13 +111,11 @@ export default function ComplaintsPage() {
           return;
         }
 
-        // User session expired
         if (complaintResponse.status === 401) {
           router.push("/login");
           return;
         }
 
-        // API error
         if (!complaintResponse.ok) {
           setError(
             complaintData.error ||
@@ -129,10 +124,22 @@ export default function ComplaintsPage() {
           return;
         }
 
-        // Save complaints
-        setComplaints(
-          complaintData.complaints || []
-        );
+        const loadedComplaints: Complaint[] =
+          complaintData.complaints || [];
+
+        setComplaints(loadedComplaints);
+
+        const initialStatuses: Record<
+          number,
+          ComplaintStatus
+        > = {};
+
+        loadedComplaints.forEach((complaint) => {
+          initialStatuses[complaint.id] =
+            complaint.status;
+        });
+
+        setSelectedStatuses(initialStatuses);
       } catch (error) {
         if (cancelled) {
           return;
@@ -193,13 +200,11 @@ export default function ComplaintsPage() {
 
       const data = await response.json();
 
-      // Not logged in
       if (response.status === 401) {
         router.push("/login");
         return;
       }
 
-      // API error
       if (!response.ok) {
         setError(
           data.error ||
@@ -208,24 +213,29 @@ export default function ComplaintsPage() {
         return;
       }
 
-      // Success
       setSuccess(
         "Complaint submitted successfully!"
       );
 
-      // Clear form
       setTitle("");
       setDescription("");
       setCategory("");
       setLocation("");
 
-      // Add new complaint to top of list
       if (data.complaint) {
         setComplaints(
           (previousComplaints) => [
             data.complaint,
             ...previousComplaints,
           ]
+        );
+
+        setSelectedStatuses(
+          (previousStatuses) => ({
+            ...previousStatuses,
+            [data.complaint.id]:
+              data.complaint.status,
+          })
         );
       }
     } catch (error) {
@@ -239,6 +249,113 @@ export default function ComplaintsPage() {
       );
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  // ============================================
+  // UPDATE COMPLAINT STATUS
+  // ============================================
+
+  async function handleStatusUpdate(
+    complaintId: number
+  ) {
+    const newStatus =
+      selectedStatuses[complaintId];
+
+    if (!newStatus) {
+      setError(
+        "Please select a valid complaint status."
+      );
+      return;
+    }
+
+    setUpdatingComplaintId(complaintId);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await fetch(
+        "/api/complaint",
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            complaintId,
+            status: newStatus,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.status === 401) {
+        router.push("/login");
+        return;
+      }
+
+      if (response.status === 403) {
+        setError(
+          data.error ||
+            "You are not authorized to update complaint status."
+        );
+        return;
+      }
+
+      if (!response.ok) {
+        setError(
+          data.error ||
+            "Failed to update complaint status."
+        );
+        return;
+      }
+
+      const updatedComplaint =
+        data.complaint;
+
+      setComplaints(
+        (previousComplaints) =>
+          previousComplaints.map(
+            (complaint) =>
+              complaint.id === complaintId
+                ? {
+                    ...complaint,
+                    status:
+                      updatedComplaint?.status ||
+                      newStatus,
+                    updatedAt:
+                      updatedComplaint?.updatedAt ||
+                      new Date().toISOString(),
+                  }
+                : complaint
+          )
+      );
+
+      setSelectedStatuses(
+        (previousStatuses) => ({
+          ...previousStatuses,
+          [complaintId]:
+            updatedComplaint?.status ||
+            newStatus,
+        })
+      );
+
+      setSuccess(
+        `Complaint #${complaintId} status updated successfully.`
+      );
+    } catch (error) {
+      console.error(
+        "Update Complaint Status Error:",
+        error
+      );
+
+      setError(
+        "Something went wrong while updating the complaint status."
+      );
+    } finally {
+      setUpdatingComplaintId(null);
     }
   }
 
@@ -329,6 +446,9 @@ export default function ComplaintsPage() {
   const isAdmin =
     user?.role === "ADMIN";
 
+  const canUpdateStatus =
+    isFaculty || isAdmin;
+
   // ============================================
   // MAIN UI
   // ============================================
@@ -347,9 +467,7 @@ export default function ComplaintsPage() {
           margin: "0 auto",
         }}
       >
-        {/* ====================================== */}
         {/* HEADER */}
-        {/* ====================================== */}
 
         <header
           style={{
@@ -396,9 +514,7 @@ export default function ComplaintsPage() {
           </p>
         </header>
 
-        {/* ====================================== */}
-        {/* ERROR MESSAGE */}
-        {/* ====================================== */}
+        {/* ERROR */}
 
         {error && (
           <div
@@ -414,9 +530,7 @@ export default function ComplaintsPage() {
           </div>
         )}
 
-        {/* ====================================== */}
-        {/* SUCCESS MESSAGE */}
-        {/* ====================================== */}
+        {/* SUCCESS */}
 
         {success && (
           <div
@@ -432,9 +546,7 @@ export default function ComplaintsPage() {
           </div>
         )}
 
-        {/* ====================================== */}
         {/* STUDENT COMPLAINT FORM */}
-        {/* ====================================== */}
 
         {isStudent && (
           <section
@@ -471,8 +583,6 @@ export default function ComplaintsPage() {
             </p>
 
             <form onSubmit={handleSubmit}>
-              {/* TITLE */}
-
               <div
                 style={{
                   marginBottom: "18px",
@@ -516,8 +626,6 @@ export default function ComplaintsPage() {
                   }}
                 />
               </div>
-
-              {/* CATEGORY */}
 
               <div
                 style={{
@@ -600,8 +708,6 @@ export default function ComplaintsPage() {
                 </select>
               </div>
 
-              {/* LOCATION */}
-
               <div
                 style={{
                   marginBottom: "18px",
@@ -645,8 +751,6 @@ export default function ComplaintsPage() {
                   }}
                 />
               </div>
-
-              {/* DESCRIPTION */}
 
               <div
                 style={{
@@ -695,8 +799,6 @@ export default function ComplaintsPage() {
                 />
               </div>
 
-              {/* SUBMIT */}
-
               <button
                 type="submit"
                 disabled={submitting}
@@ -724,9 +826,7 @@ export default function ComplaintsPage() {
           </section>
         )}
 
-        {/* ====================================== */}
-        {/* COMPLAINT LIST HEADER */}
-        {/* ====================================== */}
+        {/* COMPLAINT LIST */}
 
         <section>
           <div
@@ -784,9 +884,7 @@ export default function ComplaintsPage() {
             </button>
           </div>
 
-          {/* ==================================== */}
           {/* EMPTY STATE */}
-          {/* ==================================== */}
 
           {complaints.length === 0 && (
             <div
@@ -832,9 +930,7 @@ export default function ComplaintsPage() {
             </div>
           )}
 
-          {/* ==================================== */}
-          {/* COMPLAINT LIST */}
-          {/* ==================================== */}
+          {/* COMPLAINT CARDS */}
 
           <div
             style={{
@@ -850,6 +946,16 @@ export default function ComplaintsPage() {
                   getStatusStyle(
                     complaint.status
                   );
+
+                const selectedStatus =
+                  selectedStatuses[
+                    complaint.id
+                  ] ||
+                  complaint.status;
+
+                const isUpdating =
+                  updatingComplaintId ===
+                  complaint.id;
 
                 return (
                   <article
@@ -869,8 +975,6 @@ export default function ComplaintsPage() {
                         "1px solid #eef0f4",
                     }}
                   >
-                    {/* TOP ROW */}
-
                     <div
                       style={{
                         display:
@@ -938,8 +1042,6 @@ export default function ComplaintsPage() {
                       </span>
                     </div>
 
-                    {/* DESCRIPTION */}
-
                     <p
                       style={{
                         margin:
@@ -957,8 +1059,6 @@ export default function ComplaintsPage() {
                       }
                     </p>
 
-                    {/* DETAILS */}
-
                     <div
                       style={{
                         display:
@@ -970,8 +1070,6 @@ export default function ComplaintsPage() {
                           "18px",
                       }}
                     >
-                      {/* CATEGORY */}
-
                       <div>
                         <strong
                           style={{
@@ -999,8 +1097,6 @@ export default function ComplaintsPage() {
                           }
                         </span>
                       </div>
-
-                      {/* LOCATION */}
 
                       <div>
                         <strong
@@ -1030,8 +1126,6 @@ export default function ComplaintsPage() {
                           }
                         </span>
                       </div>
-
-                      {/* SUBMITTED BY */}
 
                       {!isStudent &&
                         complaint.createdBy && (
@@ -1066,6 +1160,144 @@ export default function ComplaintsPage() {
                           </div>
                         )}
                     </div>
+
+                    {/* FACULTY / ADMIN STATUS CONTROL */}
+
+                    {canUpdateStatus && (
+                      <div
+                        style={{
+                          marginBottom:
+                            "18px",
+                          padding:
+                            "16px",
+                          background:
+                            "#f9fafb",
+                          borderRadius:
+                            "10px",
+                          border:
+                            "1px solid #e5e7eb",
+                        }}
+                      >
+                        <strong
+                          style={{
+                            display:
+                              "block",
+                            marginBottom:
+                              "10px",
+                            color:
+                              "#111827",
+                          }}
+                        >
+                          Update Complaint Status
+                        </strong>
+
+                        <div
+                          style={{
+                            display:
+                              "flex",
+                            gap: "10px",
+                            alignItems:
+                              "center",
+                            flexWrap:
+                              "wrap",
+                          }}
+                        >
+                          <select
+                            value={
+                              selectedStatus
+                            }
+                            onChange={(
+                              event
+                            ) =>
+                              setSelectedStatuses(
+                                (
+                                  previousStatuses
+                                ) => ({
+                                  ...previousStatuses,
+                                  [complaint.id]:
+                                    event
+                                      .target
+                                      .value as ComplaintStatus,
+                                })
+                              )
+                            }
+                            disabled={
+                              isUpdating
+                            }
+                            style={{
+                              padding:
+                                "10px 12px",
+                              border:
+                                "1px solid #d1d5db",
+                              borderRadius:
+                                "8px",
+                              fontSize:
+                                "14px",
+                              color:
+                                "#111827",
+                              background:
+                                "white",
+                            }}
+                          >
+                            <option value="PENDING">
+                              PENDING
+                            </option>
+
+                            <option value="IN_PROGRESS">
+                              IN PROGRESS
+                            </option>
+
+                            <option value="RESOLVED">
+                              RESOLVED
+                            </option>
+                          </select>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleStatusUpdate(
+                                complaint.id
+                              )
+                            }
+                            disabled={
+                              isUpdating ||
+                              selectedStatus ===
+                                complaint.status
+                            }
+                            style={{
+                              border:
+                                "none",
+                              background:
+                                isUpdating ||
+                                selectedStatus ===
+                                  complaint.status
+                                  ? "#9ca3af"
+                                  : "#111827",
+                              color:
+                                "white",
+                              padding:
+                                "10px 16px",
+                              borderRadius:
+                                "8px",
+                              cursor:
+                                isUpdating ||
+                                selectedStatus ===
+                                  complaint.status
+                                  ? "not-allowed"
+                                  : "pointer",
+                              fontSize:
+                                "14px",
+                              fontWeight:
+                                "600",
+                            }}
+                          >
+                            {isUpdating
+                              ? "Updating..."
+                              : "Update Status"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     {/* FOOTER */}
 
