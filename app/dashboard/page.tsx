@@ -46,21 +46,29 @@ export default function DashboardPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
 
   const [loading, setLoading] = useState(true);
-  const [announcementsLoading, setAnnouncementsLoading] = useState(true);
+  const [announcementsLoading, setAnnouncementsLoading] =
+    useState(true);
 
   const [error, setError] = useState("");
-  const [announcementError, setAnnouncementError] = useState("");
+  const [announcementError, setAnnouncementError] =
+    useState("");
 
-  // Load user profile
+  // ============================================
+  // LOAD USER PROFILE
+  // ============================================
+
   useEffect(() => {
     let cancelled = false;
 
     async function loadProfile() {
       try {
-        const response = await fetch("/api/profile/student", {
-          method: "GET",
-          credentials: "include",
-        });
+        const response = await fetch(
+          "/api/profile/student",
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
 
         const result = await response.json();
 
@@ -74,7 +82,10 @@ export default function DashboardPage() {
         }
 
         if (!response.ok) {
-          setError(result.error || "Failed to load profile");
+          setError(
+            result.error ||
+              "Failed to load profile"
+          );
           return;
         }
 
@@ -84,8 +95,14 @@ export default function DashboardPage() {
           return;
         }
 
-        console.error("Dashboard Error:", error);
-        setError("Something went wrong. Please try again.");
+        console.error(
+          "Dashboard Error:",
+          error
+        );
+
+        setError(
+          "Something went wrong. Please try again."
+        );
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -100,16 +117,22 @@ export default function DashboardPage() {
     };
   }, [router]);
 
-  // Load announcements
+  // ============================================
+  // LOAD ANNOUNCEMENTS
+  // ============================================
+
   useEffect(() => {
     let cancelled = false;
 
     async function loadAnnouncements() {
       try {
-        const response = await fetch("/api/announcements", {
-          method: "GET",
-          credentials: "include",
-        });
+        const response = await fetch(
+          "/api/announcements",
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
 
         const result = await response.json();
 
@@ -124,18 +147,25 @@ export default function DashboardPage() {
 
         if (!response.ok) {
           setAnnouncementError(
-            result.error || "Failed to load announcements"
+            result.error ||
+              "Failed to load announcements"
           );
           return;
         }
 
-        setAnnouncements(result.announcements || []);
+        setAnnouncements(
+          result.announcements || []
+        );
       } catch (error) {
         if (cancelled) {
           return;
         }
 
-        console.error("Announcements Error:", error);
+        console.error(
+          "Announcements Error:",
+          error
+        );
+
         setAnnouncementError(
           "Something went wrong while loading announcements."
         );
@@ -153,31 +183,53 @@ export default function DashboardPage() {
     };
   }, [router]);
 
-  // Logout
+  // ============================================
+  // LOGOUT
+  // ============================================
+
   async function handleLogout() {
     try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      await fetch(
+        "/api/auth/logout",
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
 
       router.push("/login");
       router.refresh();
     } catch (error) {
-      console.error("Logout Error:", error);
+      console.error(
+        "Logout Error:",
+        error
+      );
     }
   }
 
-  // Format announcement date
-  function formatDate(dateString: string) {
-    return new Date(dateString).toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
+  // ============================================
+  // FORMAT ANNOUNCEMENT DATE
+  // ============================================
+
+  function formatDate(
+    dateString: string
+  ) {
+    return new Date(
+      dateString
+    ).toLocaleDateString(
+      "en-IN",
+      {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }
+    );
   }
 
-  // Loading state
+  // ============================================
+  // LOADING STATE
+  // ============================================
+
   if (loading) {
     return (
       <main
@@ -195,7 +247,10 @@ export default function DashboardPage() {
     );
   }
 
-  // Error state
+  // ============================================
+  // ERROR STATE
+  // ============================================
+
   if (error) {
     return (
       <main
@@ -209,7 +264,10 @@ export default function DashboardPage() {
         }}
       >
         <div>
-          <h1>Something went wrong</h1>
+          <h1>
+            Something went wrong
+          </h1>
+
           <p>{error}</p>
         </div>
       </main>
@@ -220,7 +278,14 @@ export default function DashboardPage() {
     return null;
   }
 
-  const { user, profile } = data;
+  const {
+    user,
+    profile,
+  } = data;
+
+  // ============================================
+  // MAIN DASHBOARD
+  // ============================================
 
   return (
     <main
@@ -237,11 +302,15 @@ export default function DashboardPage() {
           margin: "0 auto",
         }}
       >
-        {/* Header */}
+        {/* ====================================== */}
+        {/* HEADER */}
+        {/* ====================================== */}
+
         <header
           style={{
             display: "flex",
-            justifyContent: "space-between",
+            justifyContent:
+              "space-between",
             alignItems: "center",
             marginBottom: "32px",
             gap: "20px",
@@ -265,7 +334,8 @@ export default function DashboardPage() {
                 marginTop: "8px",
               }}
             >
-              Welcome to your Campus Flow AI dashboard
+              Welcome to your Campus Flow AI
+              dashboard
             </p>
           </div>
 
@@ -286,14 +356,18 @@ export default function DashboardPage() {
           </button>
         </header>
 
-        {/* Account Information */}
+        {/* ====================================== */}
+        {/* ACCOUNT INFORMATION */}
+        {/* ====================================== */}
+
         <section
           style={{
             background: "white",
             padding: "24px",
             borderRadius: "16px",
             marginBottom: "24px",
-            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
+            boxShadow:
+              "0 4px 20px rgba(0, 0, 0, 0.05)",
           }}
         >
           <h2
@@ -305,27 +379,46 @@ export default function DashboardPage() {
             Account Information
           </h2>
 
-          <p style={{ color: "#374151" }}>
-            <strong>Name:</strong> {user.name}
+          <p
+            style={{
+              color: "#374151",
+            }}
+          >
+            <strong>Name:</strong>{" "}
+            {user.name}
           </p>
 
-          <p style={{ color: "#374151" }}>
-            <strong>Email:</strong> {user.email}
+          <p
+            style={{
+              color: "#374151",
+            }}
+          >
+            <strong>Email:</strong>{" "}
+            {user.email}
           </p>
 
-          <p style={{ color: "#374151" }}>
-            <strong>Role:</strong> {user.role}
+          <p
+            style={{
+              color: "#374151",
+            }}
+          >
+            <strong>Role:</strong>{" "}
+            {user.role}
           </p>
         </section>
 
-        {/* Student Profile */}
+        {/* ====================================== */}
+        {/* STUDENT PROFILE */}
+        {/* ====================================== */}
+
         <section
           style={{
             background: "white",
             padding: "24px",
             borderRadius: "16px",
             marginBottom: "24px",
-            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
+            boxShadow:
+              "0 4px 20px rgba(0, 0, 0, 0.05)",
           }}
         >
           <h2
@@ -339,48 +432,98 @@ export default function DashboardPage() {
 
           {profile ? (
             <div>
-              <p style={{ color: "#374151" }}>
-                <strong>College:</strong>{" "}
-                {profile.college || "Not provided"}
+              <p
+                style={{
+                  color: "#374151",
+                }}
+              >
+                <strong>
+                  College:
+                </strong>{" "}
+                {profile.college ||
+                  "Not provided"}
               </p>
 
-              <p style={{ color: "#374151" }}>
-                <strong>Department:</strong>{" "}
-                {profile.department || "Not provided"}
+              <p
+                style={{
+                  color: "#374151",
+                }}
+              >
+                <strong>
+                  Department:
+                </strong>{" "}
+                {profile.department ||
+                  "Not provided"}
               </p>
 
-              <p style={{ color: "#374151" }}>
-                <strong>Year:</strong>{" "}
-                {profile.year || "Not provided"}
+              <p
+                style={{
+                  color: "#374151",
+                }}
+              >
+                <strong>
+                  Year:
+                </strong>{" "}
+                {profile.year ||
+                  "Not provided"}
               </p>
 
-              <p style={{ color: "#374151" }}>
-                <strong>Division:</strong>{" "}
-                {profile.division || "Not provided"}
+              <p
+                style={{
+                  color: "#374151",
+                }}
+              >
+                <strong>
+                  Division:
+                </strong>{" "}
+                {profile.division ||
+                  "Not provided"}
               </p>
 
-              <p style={{ color: "#374151" }}>
-                <strong>Roll Number:</strong>{" "}
-                {profile.rollNumber || "Not provided"}
+              <p
+                style={{
+                  color: "#374151",
+                }}
+              >
+                <strong>
+                  Roll Number:
+                </strong>{" "}
+                {profile.rollNumber ||
+                  "Not provided"}
               </p>
 
-              <p style={{ color: "#374151" }}>
-                <strong>Phone:</strong>{" "}
-                {profile.phone || "Not provided"}
+              <p
+                style={{
+                  color: "#374151",
+                }}
+              >
+                <strong>
+                  Phone:
+                </strong>{" "}
+                {profile.phone ||
+                  "Not provided"}
               </p>
 
               <button
                 type="button"
-                onClick={() => router.push("/profile")}
+                onClick={() =>
+                  router.push(
+                    "/profile"
+                  )
+                }
                 style={{
                   marginTop: "10px",
-                  padding: "10px 18px",
+                  padding:
+                    "10px 18px",
                   border: "none",
                   borderRadius: "8px",
-                  background: "#111827",
+                  background:
+                    "#111827",
                   color: "white",
-                  cursor: "pointer",
-                  fontWeight: "600",
+                  cursor:
+                    "pointer",
+                  fontWeight:
+                    "600",
                 }}
               >
                 Edit Profile
@@ -388,21 +531,36 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div>
-              <p style={{ color: "#374151" }}>
-                You haven&apos;t created your student profile yet.
+              <p
+                style={{
+                  color: "#374151",
+                }}
+              >
+                You haven&apos;t
+                created your
+                student profile
+                yet.
               </p>
 
               <button
                 type="button"
-                onClick={() => router.push("/profile")}
+                onClick={() =>
+                  router.push(
+                    "/profile"
+                  )
+                }
                 style={{
-                  padding: "10px 18px",
+                  padding:
+                    "10px 18px",
                   border: "none",
                   borderRadius: "8px",
-                  background: "#111827",
+                  background:
+                    "#111827",
                   color: "white",
-                  cursor: "pointer",
-                  fontWeight: "600",
+                  cursor:
+                    "pointer",
+                  fontWeight:
+                    "600",
                 }}
               >
                 Create Profile
@@ -411,21 +569,25 @@ export default function DashboardPage() {
           )}
         </section>
 
-        {/* Latest Announcements */}
+        {/* ====================================== */}
+        {/* LATEST ANNOUNCEMENTS */}
+        {/* ====================================== */}
+
         <section
           style={{
             background: "white",
             padding: "24px",
             borderRadius: "16px",
             marginBottom: "24px",
-            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
+            boxShadow:
+              "0 4px 20px rgba(0, 0, 0, 0.05)",
           }}
         >
-          {/* Announcement Header */}
           <div
             style={{
               display: "flex",
-              justifyContent: "space-between",
+              justifyContent:
+                "space-between",
               alignItems: "center",
               gap: "16px",
               flexWrap: "wrap",
@@ -444,25 +606,36 @@ export default function DashboardPage() {
 
               <p
                 style={{
-                  margin: "6px 0 0",
+                  margin:
+                    "6px 0 0",
                   color: "#6b7280",
                 }}
               >
-                Stay updated with the latest campus news and notices.
+                Stay updated with
+                the latest campus
+                news and notices.
               </p>
             </div>
 
             <button
               type="button"
-              onClick={() => router.push("/announcements")}
+              onClick={() =>
+                router.push(
+                  "/announcements"
+                )
+              }
               style={{
-                padding: "10px 16px",
+                padding:
+                  "10px 16px",
                 border: "none",
                 borderRadius: "8px",
-                background: "#111827",
+                background:
+                  "#111827",
                 color: "white",
-                cursor: "pointer",
-                fontWeight: "600",
+                cursor:
+                  "pointer",
+                fontWeight:
+                  "600",
               }}
             >
               View All
@@ -470,312 +643,463 @@ export default function DashboardPage() {
           </div>
 
           {/* Announcement Loading */}
+
           {announcementsLoading && (
-            <p style={{ color: "#6b7280" }}>
+            <p
+              style={{
+                color: "#6b7280",
+              }}
+            >
               Loading announcements...
             </p>
           )}
 
           {/* Announcement Error */}
-          {!announcementsLoading && announcementError && (
-            <div
-              style={{
-                padding: "14px",
-                background: "#fee2e2",
-                color: "#b91c1c",
-                borderRadius: "8px",
-              }}
-            >
-              {announcementError}
-            </div>
-          )}
+
+          {!announcementsLoading &&
+            announcementError && (
+              <div
+                style={{
+                  padding: "14px",
+                  background:
+                    "#fee2e2",
+                  color: "#b91c1c",
+                  borderRadius: "8px",
+                }}
+              >
+                {announcementError}
+              </div>
+            )}
 
           {/* No Announcements */}
+
           {!announcementsLoading &&
             !announcementError &&
-            announcements.length === 0 && (
+            announcements.length ===
+              0 && (
               <div
                 style={{
                   padding: "30px",
-                  textAlign: "center",
-                  background: "#f9fafb",
-                  borderRadius: "10px",
+                  textAlign:
+                    "center",
+                  background:
+                    "#f9fafb",
+                  borderRadius:
+                    "10px",
                 }}
               >
                 <p
                   style={{
                     margin: 0,
-                    color: "#6b7280",
+                    color:
+                      "#6b7280",
                   }}
                 >
-                  No announcements available right now.
+                  No announcements
+                  available
+                  right now.
                 </p>
               </div>
             )}
 
           {/* Announcement List */}
+
           {!announcementsLoading &&
             !announcementError &&
-            announcements.length > 0 && (
+            announcements.length >
+              0 && (
               <div
                 style={{
-                  display: "flex",
-                  flexDirection: "column",
+                  display:
+                    "flex",
+                  flexDirection:
+                    "column",
                   gap: "14px",
                 }}
               >
-                {announcements.slice(0, 3).map((announcement) => (
-                  <article
-                    key={announcement.id}
-                    style={{
-                      padding: "18px",
-                      border: "1px solid #eef0f4",
-                      borderRadius: "12px",
-                      background: "#fafbfc",
-                    }}
-                  >
-                    <h3
-                      style={{
-                        margin: "0 0 8px",
-                        color: "#111827",
-                        fontSize: "18px",
-                      }}
-                    >
-                      {announcement.title}
-                    </h3>
-
-                    <p
-                      style={{
-                        margin: "0 0 12px",
-                        color: "#374151",
-                        lineHeight: "1.5",
-                        whiteSpace: "pre-wrap",
-                      }}
-                    >
-                      {announcement.content}
-                    </p>
-
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        gap: "10px",
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      <span
+                {announcements
+                  .slice(0, 3)
+                  .map(
+                    (
+                      announcement
+                    ) => (
+                      <article
+                        key={
+                          announcement.id
+                        }
                         style={{
-                          fontSize: "14px",
-                          color: "#6b7280",
+                          padding:
+                            "18px",
+                          border:
+                            "1px solid #eef0f4",
+                          borderRadius:
+                            "12px",
+                          background:
+                            "#fafbfc",
                         }}
                       >
-                        Posted by{" "}
-                        <strong style={{ color: "#374151" }}>
-                          {announcement.createdBy.name}
-                        </strong>
-                      </span>
+                        <h3
+                          style={{
+                            margin:
+                              "0 0 8px",
+                            color:
+                              "#111827",
+                            fontSize:
+                              "18px",
+                          }}
+                        >
+                          {
+                            announcement.title
+                          }
+                        </h3>
 
-                      <span
-                        style={{
-                          fontSize: "14px",
-                          color: "#6b7280",
-                        }}
-                      >
-                        {formatDate(announcement.createdAt)}
-                      </span>
-                    </div>
-                  </article>
-                ))}
+                        <p
+                          style={{
+                            margin:
+                              "0 0 12px",
+                            color:
+                              "#374151",
+                            lineHeight:
+                              "1.5",
+                            whiteSpace:
+                              "pre-wrap",
+                          }}
+                        >
+                          {
+                            announcement.content
+                          }
+                        </p>
+
+                        <div
+                          style={{
+                            display:
+                              "flex",
+                            justifyContent:
+                              "space-between",
+                            alignItems:
+                              "center",
+                            gap: "10px",
+                            flexWrap:
+                              "wrap",
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize:
+                                "14px",
+                              color:
+                                "#6b7280",
+                            }}
+                          >
+                            Posted by{" "}
+                            <strong
+                              style={{
+                                color:
+                                  "#374151",
+                              }}
+                            >
+                              {
+                                announcement
+                                  .createdBy
+                                  .name
+                              }
+                            </strong>
+                          </span>
+
+                          <span
+                            style={{
+                              fontSize:
+                                "14px",
+                              color:
+                                "#6b7280",
+                            }}
+                          >
+                            {formatDate(
+                              announcement.createdAt
+                            )}
+                          </span>
+                        </div>
+                      </article>
+                    )
+                  )}
               </div>
             )}
         </section>
 
-        {/* Quick Actions */}
-<section>
-  <h2
-    style={{
-      color: "#111827",
-      marginBottom: "16px",
-    }}
-  >
-    Quick Actions
-  </h2>
+        {/* ====================================== */}
+        {/* QUICK ACTIONS */}
+        {/* ====================================== */}
 
-  <div
-    style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-      gap: "16px",
-    }}
-  >
-    {/* Campus Events */}
-    <button
-      type="button"
-      onClick={() => router.push("/events")}
-      style={{
-        background: "white",
-        padding: "24px",
-        borderRadius: "16px",
-        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
-        border: "1px solid #eef0f4",
-        textAlign: "left",
-        cursor: "pointer",
-        width: "100%",
-      }}
-    >
-      <h3
-        style={{
-          margin: "0 0 8px",
-          color: "#111827",
-        }}
-      >
-        📅 Campus Events
-      </h3>
+        <section>
+          <h2
+            style={{
+              color: "#111827",
+              marginBottom:
+                "16px",
+            }}
+          >
+            Quick Actions
+          </h2>
 
-      <p
-        style={{
-          margin: 0,
-          color: "#6b7280",
-          lineHeight: "1.5",
-        }}
-      >
-        View upcoming campus events and activities.
-      </p>
-    </button>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: "16px",
+            }}
+          >
+            {/* Campus Events */}
 
-    {/* Announcements */}
-    <button
-      type="button"
-      onClick={() => router.push("/announcements")}
-      style={{
-        background: "white",
-        padding: "24px",
-        borderRadius: "16px",
-        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
-        border: "1px solid #eef0f4",
-        textAlign: "left",
-        cursor: "pointer",
-        width: "100%",
-      }}
-    >
-      <h3
-        style={{
-          margin: "0 0 8px",
-          color: "#111827",
-        }}
-      >
-        📢 Notices
-      </h3>
+            <button
+              type="button"
+              onClick={() =>
+                router.push(
+                  "/events"
+                )
+              }
+              style={{
+                background: "white",
+                padding: "24px",
+                borderRadius:
+                  "16px",
+                boxShadow:
+                  "0 4px 20px rgba(0, 0, 0, 0.05)",
+                border:
+                  "1px solid #eef0f4",
+                textAlign:
+                  "left",
+                cursor:
+                  "pointer",
+                width: "100%",
+              }}
+            >
+              <h3
+                style={{
+                  margin:
+                    "0 0 8px",
+                  color:
+                    "#111827",
+                }}
+              >
+                📅 Campus Events
+              </h3>
 
-      <p
-        style={{
-          margin: 0,
-          color: "#6b7280",
-          lineHeight: "1.5",
-        }}
-      >
-        Stay updated with the latest campus announcements.
-      </p>
-    </button>
+              <p
+                style={{
+                  margin: 0,
+                  color:
+                    "#6b7280",
+                  lineHeight:
+                    "1.5",
+                }}
+              >
+                View upcoming
+                campus events
+                and activities.
+              </p>
+            </button>
 
-    {/* Complaints */}
-<button
-  type="button"
-  onClick={() => router.push("/complaints")}
-  style={{
-    background: "white",
-    padding: "24px",
-    borderRadius: "16px",
-    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
-    border: "1px solid #eef0f4",
-    textAlign: "left",
-    cursor: "pointer",
-    width: "100%",
-  }}
->
-  <h3
-    style={{
-      margin: "0 0 8px",
-      color: "#111827",
-    }}
-  >
-    📝 Complaints
-  </h3>
+            {/* Announcements */}
 
-  <p
-    style={{
-      margin: 0,
-      color: "#6b7280",
-      lineHeight: "1.5",
-    }}
-  >
-    Submit and track campus complaints.
-  </p>
+            <button
+              type="button"
+              onClick={() =>
+                router.push(
+                  "/announcements"
+                )
+              }
+              style={{
+                background: "white",
+                padding: "24px",
+                borderRadius:
+                  "16px",
+                boxShadow:
+                  "0 4px 20px rgba(0, 0, 0, 0.05)",
+                border:
+                  "1px solid #eef0f4",
+                textAlign:
+                  "left",
+                cursor:
+                  "pointer",
+                width: "100%",
+              }}
+            >
+              <h3
+                style={{
+                  margin:
+                    "0 0 8px",
+                  color:
+                    "#111827",
+                }}
+              >
+                📢 Notices
+              </h3>
 
-  <span
-    style={{
-      display: "inline-block",
-      marginTop: "12px",
-      fontSize: "12px",
-      fontWeight: "600",
-      color: "#166534",
-      background: "#dcfce7",
-      padding: "5px 8px",
-      borderRadius: "6px",
-    }}
-  >
-    Available
-  </span>
-</button>
+              <p
+                style={{
+                  margin: 0,
+                  color:
+                    "#6b7280",
+                  lineHeight:
+                    "1.5",
+                }}
+              >
+                Stay updated
+                with the latest
+                campus
+                announcements.
+              </p>
+            </button>
 
-    {/* Notifications - Coming Soon */}
-    <div
-      style={{
-        background: "white",
-        padding: "24px",
-        borderRadius: "16px",
-        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
-        border: "1px solid #eef0f4",
-        opacity: 0.7,
-      }}
-    >
-      <h3
-        style={{
-          margin: "0 0 8px",
-          color: "#111827",
-        }}
-      >
-        🔔 Notifications
-      </h3>
+            {/* Complaints */}
 
-      <p
-        style={{
-          margin: 0,
-          color: "#6b7280",
-          lineHeight: "1.5",
-        }}
-      >
-        View your latest notifications.
-      </p>
+            <button
+              type="button"
+              onClick={() =>
+                router.push(
+                  "/complaints"
+                )
+              }
+              style={{
+                background: "white",
+                padding: "24px",
+                borderRadius:
+                  "16px",
+                boxShadow:
+                  "0 4px 20px rgba(0, 0, 0, 0.05)",
+                border:
+                  "1px solid #eef0f4",
+                textAlign:
+                  "left",
+                cursor:
+                  "pointer",
+                width: "100%",
+              }}
+            >
+              <h3
+                style={{
+                  margin:
+                    "0 0 8px",
+                  color:
+                    "#111827",
+                }}
+              >
+                📝 Complaints
+              </h3>
 
-      <span
-        style={{
-          display: "inline-block",
-          marginTop: "12px",
-          fontSize: "12px",
-          fontWeight: "600",
-          color: "#6b7280",
-          background: "#f3f4f6",
-          padding: "5px 8px",
-          borderRadius: "6px",
-        }}
-      >
-        Coming Soon
-      </span>
-    </div>
-  </div>
-</section>
+              <p
+                style={{
+                  margin: 0,
+                  color:
+                    "#6b7280",
+                  lineHeight:
+                    "1.5",
+                }}
+              >
+                Submit and track
+                campus
+                complaints.
+              </p>
+
+              <span
+                style={{
+                  display:
+                    "inline-block",
+                  marginTop:
+                    "12px",
+                  fontSize:
+                    "12px",
+                  fontWeight:
+                    "600",
+                  color:
+                    "#166534",
+                  background:
+                    "#dcfce7",
+                  padding:
+                    "5px 8px",
+                  borderRadius:
+                    "6px",
+                }}
+              >
+                Available
+              </span>
+            </button>
+
+            {/* Notifications */}
+
+            <button
+              type="button"
+              onClick={() =>
+                router.push(
+                  "/notifications"
+                )
+              }
+              style={{
+                background: "white",
+                padding: "24px",
+                borderRadius:
+                  "16px",
+                boxShadow:
+                  "0 4px 20px rgba(0, 0, 0, 0.05)",
+                border:
+                  "1px solid #eef0f4",
+                textAlign:
+                  "left",
+                cursor:
+                  "pointer",
+                width: "100%",
+              }}
+            >
+              <h3
+                style={{
+                  margin:
+                    "0 0 8px",
+                  color:
+                    "#111827",
+                }}
+              >
+                🔔 Notifications
+              </h3>
+
+              <p
+                style={{
+                  margin: 0,
+                  color:
+                    "#6b7280",
+                  lineHeight:
+                    "1.5",
+                }}
+              >
+                View your latest
+                notifications.
+              </p>
+
+              <span
+                style={{
+                  display:
+                    "inline-block",
+                  marginTop:
+                    "12px",
+                  fontSize:
+                    "12px",
+                  fontWeight:
+                    "600",
+                  color:
+                    "#166534",
+                  background:
+                    "#dcfce7",
+                  padding:
+                    "5px 8px",
+                  borderRadius:
+                    "6px",
+                }}
+              >
+                Available
+              </span>
+            </button>
+          </div>
+        </section>
       </div>
     </main>
   );
