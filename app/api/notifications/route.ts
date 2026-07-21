@@ -6,7 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 // Returns notifications for the currently logged-in user
 export async function GET() {
   try {
-    // Get logged-in user
+    // Get currently logged-in user
     const user = await getCurrentUser();
 
     // Check authentication
@@ -21,7 +21,7 @@ export async function GET() {
       );
     }
 
-    // Get notifications for current user
+    // Get notifications belonging to the logged-in user
     const notifications = await prisma.notification.findMany({
       where: {
         userId: user.id,
@@ -54,6 +54,10 @@ export async function GET() {
     return NextResponse.json(
       {
         error: "Something went wrong while loading notifications",
+        details:
+          error instanceof Error
+            ? error.message
+            : String(error),
       },
       {
         status: 500,
@@ -66,7 +70,7 @@ export async function GET() {
 // Marks a notification as read
 export async function PATCH(request: Request) {
   try {
-    // Get logged-in user
+    // Get currently logged-in user
     const user = await getCurrentUser();
 
     // Check authentication
@@ -84,6 +88,7 @@ export async function PATCH(request: Request) {
     // Read request body
     const body = await request.json();
 
+    // Convert notification ID to number
     const notificationId = Number(body.notificationId);
 
     // Validate notification ID
@@ -106,7 +111,7 @@ export async function PATCH(request: Request) {
       },
     });
 
-    // Notification doesn't exist or belongs to another user
+    // Check if notification exists
     if (!notification) {
       return NextResponse.json(
         {
@@ -144,6 +149,10 @@ export async function PATCH(request: Request) {
     return NextResponse.json(
       {
         error: "Something went wrong while updating the notification",
+        details:
+          error instanceof Error
+            ? error.message
+            : String(error),
       },
       {
         status: 500,
