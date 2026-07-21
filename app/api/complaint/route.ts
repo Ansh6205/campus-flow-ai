@@ -59,10 +59,8 @@ const updateComplaintSchema = z.object({
 
 export async function GET() {
   try {
-    // Get currently logged-in user
     const user = await getCurrentUser();
 
-    // Check authentication
     if (!user) {
       return NextResponse.json(
         {
@@ -74,7 +72,6 @@ export async function GET() {
       );
     }
 
-    // Determine what complaints the user can see
     const where =
       user.role === "STUDENT"
         ? {
@@ -82,7 +79,6 @@ export async function GET() {
           }
         : {};
 
-    // Fetch complaints
     const complaints = await prisma.complaint.findMany({
       where,
 
@@ -133,14 +129,15 @@ export async function GET() {
 //
 // FACULTY / ADMIN:
 // Not allowed to create complaints.
+//
+// NOTIFICATION:
+// Faculty and Admin users receive a notification.
 // ============================================================
 
 export async function POST(request: Request) {
   try {
-    // Get currently logged-in user
     const user = await getCurrentUser();
 
-    // Check authentication
     if (!user) {
       return NextResponse.json(
         {
@@ -164,10 +161,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Read request body
     const body = await request.json();
 
-    // Validate request body
     const result = complaintSchema.safeParse(body);
 
     if (!result.success) {
@@ -197,8 +192,6 @@ export async function POST(request: Request) {
         description,
         category,
         location: location || null,
-
-        // Complaint belongs to logged-in student
         createdById: user.id,
       },
 
@@ -214,6 +207,30 @@ export async function POST(request: Request) {
       },
     });
 
+    // Find all Faculty and Admin users
+    const facultyAndAdmins =
+      await prisma.user.findMany({
+        where: {
+          role: {
+            in: ["FACULTY", "ADMIN"],
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+    // Create notifications for Faculty and Admin users
+    if (facultyAndAdmins.length > 0) {
+      await prisma.notification.createMany({
+        data: facultyAndAdmins.map((recipient) => ({
+          title: "New Complaint Submitted",
+          message: `${user.name} submitted a new complaint: "${complaint.title}"`,
+          userId: recipient.id,
+        })),
+      });
+    }
+
     return NextResponse.json(
       {
         message: "Complaint created successfully",
@@ -224,10 +241,7 @@ export async function POST(request: Request) {
       }
     );
   } catch (error) {
-    console.error(
-      "Create Complaint Error:",
-      error
-    );
+    console.error("Create Complaint Error:", error);
 
     return NextResponse.json(
       {
@@ -249,14 +263,15 @@ export async function POST(request: Request) {
 //
 // STUDENT:
 // Not allowed to update complaint status.
+//
+// NOTIFICATION:
+// Complaint owner receives a notification.
 // ============================================================
 
 export async function PATCH(request: Request) {
   try {
-    // Get currently logged-in user
     const user = await getCurrentUser();
 
-    // Check authentication
     if (!user) {
       return NextResponse.json(
         {
@@ -284,10 +299,8 @@ export async function PATCH(request: Request) {
       );
     }
 
-    // Read request body
     const body = await request.json();
 
-    // Validate request body
     const result =
       updateComplaintSchema.safeParse(body);
 
@@ -350,6 +363,15 @@ export async function PATCH(request: Request) {
           },
         },
       });
+
+    // Create notification for the student
+    await prisma.notification.create({
+      data: {
+        title: "Complaint Status Updated",
+        message: `Your complaint "${updatedComplaint.title}" is now ${updatedComplaint.status}.`,
+        userId: updatedComplaint.createdById,
+      },
+    });
 
     return NextResponse.json(
       {
