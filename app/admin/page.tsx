@@ -8,30 +8,58 @@ type AdminUser = {
   name: string;
   email: string;
   role: string;
+  createdAt: string;
+  updatedAt: string;
+  studentProfile: {
+    college: string | null;
+    department: string | null;
+    year: number | null;
+    division: string | null;
+    rollNumber: string | null;
+    phone: string | null;
+  } | null;
+  _count: {
+    complaints: number;
+    announcements: number;
+    events: number;
+    notifications: number;
+  };
+};
+
+type AdminUsersResponse = {
+  users: AdminUser[];
+  total: number;
 };
 
 export default function AdminPage() {
   const router = useRouter();
 
-  const [user, setUser] = useState<AdminUser | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [admin, setAdmin] = useState<AdminUser | null>(null);
+  const [users, setUsers] = useState<AdminUser[]>([]);
 
-  // ============================================
-  // CHECK ADMIN ACCESS
-  // ============================================
+  const [loading, setLoading] = useState(true);
+  const [usersError, setUsersError] = useState("");
+
+  // ============================================================
+  // LOAD ADMIN DASHBOARD DATA
+  // ============================================================
 
   useEffect(() => {
     let cancelled = false;
 
-    async function checkAdminAccess() {
+    async function loadAdminDashboard() {
       try {
-        const response = await fetch("/api/admin", {
+        setLoading(true);
+        setUsersError("");
+
+        const response = await fetch("/api/admin/users", {
           method: "GET",
           credentials: "include",
         });
 
-        const result = await response.json();
+        const result: AdminUsersResponse & {
+          error?: string;
+        } = await response.json();
 
         if (cancelled) {
           return;
@@ -49,19 +77,53 @@ export default function AdminPage() {
           return;
         }
 
+        // Other API errors
         if (!response.ok) {
-          setError(result.error || "Failed to load admin dashboard");
+          setUsersError(
+            result.error || "Failed to load admin dashboard"
+          );
           return;
         }
 
-        setUser(result.user);
+        // Make sure users array exists
+        if (!Array.isArray(result.users)) {
+          setUsersError(
+            "Invalid response received from admin API."
+          );
+          return;
+        }
+
+        // Store all users
+        setUsers(result.users);
+
+        // Find the logged-in admin
+        // The API only allows ADMIN users to access this route,
+        // so there should be at least one admin in the result.
+        const currentAdmin = result.users.find(
+          (user) => user.role === "ADMIN"
+        );
+
+        if (!currentAdmin) {
+          setUsersError(
+            "Admin user information could not be found."
+          );
+          return;
+        }
+
+        setAdmin(currentAdmin);
       } catch (error) {
         if (cancelled) {
           return;
         }
 
-        console.error("Admin Dashboard Error:", error);
-        setError("Something went wrong. Please try again.");
+        console.error(
+          "Load Admin Dashboard Error:",
+          error
+        );
+
+        setUsersError(
+          "Something went wrong while loading the admin dashboard."
+        );
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -69,16 +131,16 @@ export default function AdminPage() {
       }
     }
 
-    checkAdminAccess();
+    loadAdminDashboard();
 
     return () => {
       cancelled = true;
     };
   }, [router]);
 
-  // ============================================
+  // ============================================================
   // LOGOUT
-  // ============================================
+  // ============================================================
 
   async function handleLogout() {
     try {
@@ -94,9 +156,9 @@ export default function AdminPage() {
     }
   }
 
-  // ============================================
+  // ============================================================
   // LOADING STATE
-  // ============================================
+  // ============================================================
 
   if (loading) {
     return (
@@ -116,11 +178,11 @@ export default function AdminPage() {
     );
   }
 
-  // ============================================
+  // ============================================================
   // ERROR STATE
-  // ============================================
+  // ============================================================
 
-  if (error) {
+  if (usersError || !admin) {
     return (
       <main
         style={{
@@ -130,23 +192,24 @@ export default function AdminPage() {
           justifyContent: "center",
           padding: "24px",
           background: "#f5f7fb",
-          color: "#111827",
         }}
       >
         <div
           style={{
+            maxWidth: "500px",
+            width: "100%",
             background: "white",
             padding: "32px",
             borderRadius: "16px",
-            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
-            maxWidth: "500px",
-            width: "100%",
+            boxShadow:
+              "0 4px 20px rgba(0, 0, 0, 0.05)",
+            textAlign: "center",
           }}
         >
           <h1
             style={{
-              marginTop: 0,
               color: "#111827",
+              marginTop: 0,
             }}
           >
             Unable to Load Admin Dashboard
@@ -155,39 +218,104 @@ export default function AdminPage() {
           <p
             style={{
               color: "#6b7280",
+              lineHeight: "1.5",
             }}
           >
-            {error}
+            {usersError ||
+              "Admin access could not be verified."}
           </p>
 
-          <button
-            type="button"
-            onClick={() => router.push("/dashboard")}
+          <div
             style={{
-              marginTop: "12px",
-              padding: "10px 18px",
-              border: "none",
-              borderRadius: "8px",
-              background: "#111827",
-              color: "white",
-              cursor: "pointer",
-              fontWeight: "600",
+              display: "flex",
+              justifyContent: "center",
+              gap: "12px",
+              flexWrap: "wrap",
+              marginTop: "20px",
             }}
           >
-            Go to Dashboard
-          </button>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              style={{
+                padding: "10px 18px",
+                border: "none",
+                borderRadius: "8px",
+                background: "#111827",
+                color: "white",
+                cursor: "pointer",
+                fontWeight: "600",
+              }}
+            >
+              Try Again
+            </button>
+
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard")}
+              style={{
+                padding: "10px 18px",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                background: "white",
+                color: "#111827",
+                cursor: "pointer",
+                fontWeight: "600",
+              }}
+            >
+              Go to Dashboard
+            </button>
+          </div>
         </div>
       </main>
     );
   }
 
-  if (!user) {
-    return null;
-  }
+  // ============================================================
+  // CALCULATE ADMIN STATISTICS
+  // ============================================================
 
-  // ============================================
+  const totalUsers = users.length;
+
+  const totalStudents = users.filter(
+    (user) => user.role === "STUDENT"
+  ).length;
+
+  const totalFaculty = users.filter(
+    (user) => user.role === "FACULTY"
+  ).length;
+
+  const totalAdmins = users.filter(
+    (user) => user.role === "ADMIN"
+  ).length;
+
+  const totalComplaints = users.reduce(
+    (total, user) =>
+      total + user._count.complaints,
+    0
+  );
+
+  const totalAnnouncements = users.reduce(
+    (total, user) =>
+      total + user._count.announcements,
+    0
+  );
+
+  const totalEvents = users.reduce(
+    (total, user) =>
+      total + user._count.events,
+    0
+  );
+
+  const totalNotifications = users.reduce(
+    (total, user) =>
+      total + user._count.notifications,
+    0
+  );
+
+  // ============================================================
   // ADMIN DASHBOARD
-  // ============================================
+  // ============================================================
 
   return (
     <main
@@ -197,9 +325,9 @@ export default function AdminPage() {
         color: "#111827",
       }}
     >
-      {/* ====================================== */}
+      {/* ====================================================== */}
       {/* HEADER */}
-      {/* ====================================== */}
+      {/* ====================================================== */}
 
       <header
         style={{
@@ -224,7 +352,6 @@ export default function AdminPage() {
               style={{
                 margin: 0,
                 fontSize: "26px",
-                color: "#111827",
               }}
             >
               Campus Flow AI
@@ -256,10 +383,9 @@ export default function AdminPage() {
               <strong
                 style={{
                   display: "block",
-                  color: "#111827",
                 }}
               >
-                {user.name}
+                {admin.name}
               </strong>
 
               <span
@@ -268,7 +394,7 @@ export default function AdminPage() {
                   color: "#6b7280",
                 }}
               >
-                {user.email}
+                {admin.email}
               </span>
             </div>
 
@@ -291,9 +417,9 @@ export default function AdminPage() {
         </div>
       </header>
 
-      {/* ====================================== */}
-      {/* MAIN CONTENT */}
-      {/* ====================================== */}
+      {/* ====================================================== */}
+      {/* MAIN */}
+      {/* ====================================================== */}
 
       <div
         style={{
@@ -302,7 +428,9 @@ export default function AdminPage() {
           padding: "32px",
         }}
       >
-        {/* Welcome */}
+        {/* ==================================================== */}
+        {/* WELCOME */}
+        {/* ==================================================== */}
 
         <section
           style={{
@@ -313,10 +441,9 @@ export default function AdminPage() {
             style={{
               margin: 0,
               fontSize: "32px",
-              color: "#111827",
             }}
           >
-            Welcome, Admin 👋
+            Welcome, {admin.name}! 👋
           </h2>
 
           <p
@@ -325,13 +452,14 @@ export default function AdminPage() {
               color: "#6b7280",
             }}
           >
-            Manage and monitor your campus operations from one place.
+            Manage and monitor your campus operations
+            from one place.
           </p>
         </section>
 
-        {/* ====================================== */}
-        {/* OVERVIEW CARDS */}
-        {/* ====================================== */}
+        {/* ==================================================== */}
+        {/* USER OVERVIEW */}
+        {/* ==================================================== */}
 
         <section
           style={{
@@ -342,404 +470,529 @@ export default function AdminPage() {
             marginBottom: "32px",
           }}
         >
-          {/* Users */}
-
           <div
             style={{
               background: "white",
               padding: "24px",
               borderRadius: "16px",
+              border: "1px solid #eef0f4",
               boxShadow:
                 "0 4px 20px rgba(0, 0, 0, 0.05)",
-              border: "1px solid #eef0f4",
             }}
           >
-            <div
-              style={{
-                fontSize: "32px",
-                marginBottom: "12px",
-              }}
-            >
-              👥
-            </div>
-
-            <h3
-              style={{
-                margin: "0 0 6px",
-              }}
-            >
-              Users
-            </h3>
-
             <p
               style={{
                 margin: 0,
                 color: "#6b7280",
+                fontSize: "14px",
               }}
             >
-              Manage students, faculty, and administrators.
+              Total Users
             </p>
+
+            <h3
+              style={{
+                fontSize: "32px",
+                margin: "8px 0 0",
+              }}
+            >
+              {totalUsers}
+            </h3>
           </div>
 
-          {/* Announcements */}
-
           <div
             style={{
               background: "white",
               padding: "24px",
               borderRadius: "16px",
+              border: "1px solid #eef0f4",
               boxShadow:
                 "0 4px 20px rgba(0, 0, 0, 0.05)",
-              border: "1px solid #eef0f4",
             }}
           >
-            <div
-              style={{
-                fontSize: "32px",
-                marginBottom: "12px",
-              }}
-            >
-              📢
-            </div>
-
-            <h3
-              style={{
-                margin: "0 0 6px",
-              }}
-            >
-              Announcements
-            </h3>
-
             <p
               style={{
                 margin: 0,
                 color: "#6b7280",
+                fontSize: "14px",
               }}
             >
-              Create and manage campus announcements.
+              Students
             </p>
+
+            <h3
+              style={{
+                fontSize: "32px",
+                margin: "8px 0 0",
+              }}
+            >
+              {totalStudents}
+            </h3>
           </div>
 
-          {/* Events */}
-
           <div
             style={{
               background: "white",
               padding: "24px",
               borderRadius: "16px",
+              border: "1px solid #eef0f4",
               boxShadow:
                 "0 4px 20px rgba(0, 0, 0, 0.05)",
-              border: "1px solid #eef0f4",
             }}
           >
-            <div
-              style={{
-                fontSize: "32px",
-                marginBottom: "12px",
-              }}
-            >
-              📅
-            </div>
-
-            <h3
-              style={{
-                margin: "0 0 6px",
-              }}
-            >
-              Events
-            </h3>
-
             <p
               style={{
                 margin: 0,
                 color: "#6b7280",
+                fontSize: "14px",
               }}
             >
-              Manage upcoming campus events.
+              Faculty
             </p>
+
+            <h3
+              style={{
+                fontSize: "32px",
+                margin: "8px 0 0",
+              }}
+            >
+              {totalFaculty}
+            </h3>
           </div>
 
-          {/* Complaints */}
-
           <div
             style={{
               background: "white",
               padding: "24px",
               borderRadius: "16px",
+              border: "1px solid #eef0f4",
               boxShadow:
                 "0 4px 20px rgba(0, 0, 0, 0.05)",
-              border: "1px solid #eef0f4",
             }}
           >
-            <div
-              style={{
-                fontSize: "32px",
-                marginBottom: "12px",
-              }}
-            >
-              📝
-            </div>
-
-            <h3
-              style={{
-                margin: "0 0 6px",
-              }}
-            >
-              Complaints
-            </h3>
-
             <p
               style={{
                 margin: 0,
                 color: "#6b7280",
+                fontSize: "14px",
               }}
             >
-              Review and manage student complaints.
+              Administrators
             </p>
-          </div>
-
-          {/* Notifications */}
-
-          <div
-            style={{
-              background: "white",
-              padding: "24px",
-              borderRadius: "16px",
-              boxShadow:
-                "0 4px 20px rgba(0, 0, 0, 0.05)",
-              border: "1px solid #eef0f4",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "32px",
-                marginBottom: "12px",
-              }}
-            >
-              🔔
-            </div>
 
             <h3
               style={{
-                margin: "0 0 6px",
+                fontSize: "32px",
+                margin: "8px 0 0",
               }}
             >
-              Notifications
+              {totalAdmins}
             </h3>
-
-            <p
-              style={{
-                margin: 0,
-                color: "#6b7280",
-              }}
-            >
-              Manage campus notifications.
-            </p>
           </div>
         </section>
 
-        {/* ====================================== */}
-        {/* ADMIN MANAGEMENT */}
-        {/* ====================================== */}
+        {/* ==================================================== */}
+        {/* PLATFORM ACTIVITY */}
+        {/* ==================================================== */}
 
-        <section>
+        <section
+          style={{
+            marginBottom: "32px",
+          }}
+        >
           <h2
             style={{
               marginBottom: "16px",
-              color: "#111827",
             }}
           >
-            Management
+            Platform Activity
           </h2>
 
           <div
             style={{
               display: "grid",
               gridTemplateColumns:
-                "repeat(auto-fit, minmax(240px, 1fr))",
+                "repeat(auto-fit, minmax(220px, 1fr))",
               gap: "16px",
             }}
           >
-            {/* User Management */}
-
-            <button
-              type="button"
-              onClick={() => {
-                alert("User management will be added next.");
-              }}
+            <div
               style={{
                 background: "white",
-                padding: "24px",
+                padding: "20px",
                 borderRadius: "16px",
                 border: "1px solid #eef0f4",
-                boxShadow:
-                  "0 4px 20px rgba(0, 0, 0, 0.05)",
-                textAlign: "left",
-                cursor: "pointer",
               }}
             >
-              <h3
-                style={{
-                  margin: "0 0 8px",
-                }}
-              >
-                👥 User Management
-              </h3>
+              <strong>Complaints</strong>
 
               <p
                 style={{
-                  margin: 0,
-                  color: "#6b7280",
+                  fontSize: "28px",
+                  fontWeight: "700",
+                  margin: "8px 0 0",
                 }}
               >
-                View and manage registered campus users.
+                {totalComplaints}
               </p>
-            </button>
+            </div>
 
-            {/* Announcement Management */}
-
-            <button
-              type="button"
-              onClick={() => {
-                router.push("/announcements");
-              }}
+            <div
               style={{
                 background: "white",
-                padding: "24px",
+                padding: "20px",
                 borderRadius: "16px",
                 border: "1px solid #eef0f4",
-                boxShadow:
-                  "0 4px 20px rgba(0, 0, 0, 0.05)",
-                textAlign: "left",
-                cursor: "pointer",
               }}
             >
-              <h3
-                style={{
-                  margin: "0 0 8px",
-                }}
-              >
-                📢 Announcements
-              </h3>
+              <strong>Announcements</strong>
 
               <p
                 style={{
-                  margin: 0,
-                  color: "#6b7280",
+                  fontSize: "28px",
+                  fontWeight: "700",
+                  margin: "8px 0 0",
                 }}
               >
-                View campus announcements.
+                {totalAnnouncements}
               </p>
-            </button>
+            </div>
 
-            {/* Event Management */}
-
-            <button
-              type="button"
-              onClick={() => {
-                router.push("/events");
-              }}
+            <div
               style={{
                 background: "white",
-                padding: "24px",
+                padding: "20px",
                 borderRadius: "16px",
                 border: "1px solid #eef0f4",
-                boxShadow:
-                  "0 4px 20px rgba(0, 0, 0, 0.05)",
-                textAlign: "left",
-                cursor: "pointer",
               }}
             >
-              <h3
-                style={{
-                  margin: "0 0 8px",
-                }}
-              >
-                📅 Events
-              </h3>
+              <strong>Events</strong>
 
               <p
                 style={{
-                  margin: 0,
-                  color: "#6b7280",
+                  fontSize: "28px",
+                  fontWeight: "700",
+                  margin: "8px 0 0",
                 }}
               >
-                View campus events and activities.
+                {totalEvents}
               </p>
-            </button>
+            </div>
 
-            {/* Complaint Management */}
-
-            <button
-              type="button"
-              onClick={() => {
-                router.push("/complaints");
-              }}
+            <div
               style={{
                 background: "white",
-                padding: "24px",
+                padding: "20px",
                 borderRadius: "16px",
                 border: "1px solid #eef0f4",
-                boxShadow:
-                  "0 4px 20px rgba(0, 0, 0, 0.05)",
-                textAlign: "left",
-                cursor: "pointer",
               }}
             >
-              <h3
-                style={{
-                  margin: "0 0 8px",
-                }}
-              >
-                📝 Complaints
-              </h3>
+              <strong>Notifications</strong>
 
               <p
                 style={{
-                  margin: 0,
-                  color: "#6b7280",
+                  fontSize: "28px",
+                  fontWeight: "700",
+                  margin: "8px 0 0",
                 }}
               >
-                Review and manage campus complaints.
+                {totalNotifications}
               </p>
-            </button>
-
-            {/* Notification Management */}
-
-            <button
-              type="button"
-              onClick={() => {
-                router.push("/notifications");
-              }}
-              style={{
-                background: "white",
-                padding: "24px",
-                borderRadius: "16px",
-                border: "1px solid #eef0f4",
-                boxShadow:
-                  "0 4px 20px rgba(0, 0, 0, 0.05)",
-                textAlign: "left",
-                cursor: "pointer",
-              }}
-            >
-              <h3
-                style={{
-                  margin: "0 0 8px",
-                }}
-              >
-                🔔 Notifications
-              </h3>
-
-              <p
-                style={{
-                  margin: 0,
-                  color: "#6b7280",
-                }}
-              >
-                View notification activity.
-              </p>
-            </button>
+            </div>
           </div>
+        </section>
+
+        {/* ==================================================== */}
+        {/* USER MANAGEMENT */}
+        {/* ==================================================== */}
+
+        <section
+          style={{
+            background: "white",
+            padding: "24px",
+            borderRadius: "16px",
+            border: "1px solid #eef0f4",
+            boxShadow:
+              "0 4px 20px rgba(0, 0, 0, 0.05)",
+          }}
+        >
+          <div
+            style={{
+              marginBottom: "20px",
+            }}
+          >
+            <h2
+              style={{
+                margin: 0,
+              }}
+            >
+              User Management
+            </h2>
+
+            <p
+              style={{
+                marginTop: "6px",
+                color: "#6b7280",
+              }}
+            >
+              View all registered users and their activity.
+            </p>
+          </div>
+
+          {users.length === 0 ? (
+            <p
+              style={{
+                color: "#6b7280",
+              }}
+            >
+              No users found.
+            </p>
+          ) : (
+            <div
+              style={{
+                overflowX: "auto",
+              }}
+            >
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  minWidth: "850px",
+                }}
+              >
+                <thead>
+                  <tr
+                    style={{
+                      borderBottom:
+                        "2px solid #e5e7eb",
+                      textAlign: "left",
+                    }}
+                  >
+                    <th style={{ padding: "12px" }}>
+                      Name
+                    </th>
+
+                    <th style={{ padding: "12px" }}>
+                      Email
+                    </th>
+
+                    <th style={{ padding: "12px" }}>
+                      Role
+                    </th>
+
+                    <th style={{ padding: "12px" }}>
+                      Complaints
+                    </th>
+
+                    <th style={{ padding: "12px" }}>
+                      Announcements
+                    </th>
+
+                    <th style={{ padding: "12px" }}>
+                      Events
+                    </th>
+
+                    <th style={{ padding: "12px" }}>
+                      Notifications
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {users.map((user) => (
+                    <tr
+                      key={user.id}
+                      style={{
+                        borderBottom:
+                          "1px solid #eef0f4",
+                      }}
+                    >
+                      <td
+                        style={{
+                          padding: "14px 12px",
+                          fontWeight: "600",
+                        }}
+                      >
+                        {user.name}
+                      </td>
+
+                      <td
+                        style={{
+                          padding: "14px 12px",
+                          color: "#6b7280",
+                        }}
+                      >
+                        {user.email}
+                      </td>
+
+                      <td
+                        style={{
+                          padding: "14px 12px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            display: "inline-block",
+                            padding: "5px 9px",
+                            borderRadius: "6px",
+                            background:
+                              user.role === "ADMIN"
+                                ? "#ede9fe"
+                                : user.role ===
+                                    "FACULTY"
+                                  ? "#dbeafe"
+                                  : "#dcfce7",
+                            color:
+                              user.role === "ADMIN"
+                                ? "#6d28d9"
+                                : user.role ===
+                                    "FACULTY"
+                                  ? "#1d4ed8"
+                                  : "#166534",
+                            fontSize: "12px",
+                            fontWeight: "700",
+                          }}
+                        >
+                          {user.role}
+                        </span>
+                      </td>
+
+                      <td
+                        style={{
+                          padding: "14px 12px",
+                        }}
+                      >
+                        {user._count.complaints}
+                      </td>
+
+                      <td
+                        style={{
+                          padding: "14px 12px",
+                        }}
+                      >
+                        {user._count.announcements}
+                      </td>
+
+                      <td
+                        style={{
+                          padding: "14px 12px",
+                        }}
+                      >
+                        {user._count.events}
+                      </td>
+
+                      <td
+                        style={{
+                          padding: "14px 12px",
+                        }}
+                      >
+                        {user._count.notifications}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        {/* ==================================================== */}
+        {/* NAVIGATION */}
+        {/* ==================================================== */}
+
+        <section
+          style={{
+            marginTop: "24px",
+            display: "flex",
+            gap: "12px",
+            flexWrap: "wrap",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard")}
+            style={{
+              padding: "10px 18px",
+              border: "none",
+              borderRadius: "8px",
+              background: "#111827",
+              color: "white",
+              cursor: "pointer",
+              fontWeight: "600",
+            }}
+          >
+            Back to Dashboard
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              router.push("/announcements")
+            }
+            style={{
+              padding: "10px 18px",
+              border: "1px solid #d1d5db",
+              borderRadius: "8px",
+              background: "white",
+              color: "#111827",
+              cursor: "pointer",
+              fontWeight: "600",
+            }}
+          >
+            Manage Announcements
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/events")}
+            style={{
+              padding: "10px 18px",
+              border: "1px solid #d1d5db",
+              borderRadius: "8px",
+              background: "white",
+              color: "#111827",
+              cursor: "pointer",
+              fontWeight: "600",
+            }}
+          >
+            Manage Events
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              router.push("/complaints")
+            }
+            style={{
+              padding: "10px 18px",
+              border: "1px solid #d1d5db",
+              borderRadius: "8px",
+              background: "white",
+              color: "#111827",
+              cursor: "pointer",
+              fontWeight: "600",
+            }}
+          >
+            Manage Complaints
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              router.push("/notifications")
+            }
+            style={{
+              padding: "10px 18px",
+              border: "1px solid #d1d5db",
+              borderRadius: "8px",
+              background: "white",
+              color: "#111827",
+              cursor: "pointer",
+              fontWeight: "600",
+            }}
+          >
+            View Notifications
+          </button>
         </section>
       </div>
     </main>

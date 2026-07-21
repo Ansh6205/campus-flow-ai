@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 
 export async function GET() {
@@ -6,7 +7,7 @@ export async function GET() {
     // Only ADMIN users can access this route
     const result = await requireRole(["ADMIN"]);
 
-    // Not authenticated or not authorized
+    // Check authentication and authorization
     if (!result.user) {
       return NextResponse.json(
         {
@@ -18,27 +19,60 @@ export async function GET() {
       );
     }
 
-    // Admin access granted
+    // Fetch all users
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+
+        // Include student profile information
+        studentProfile: {
+          select: {
+            college: true,
+            department: true,
+            year: true,
+            division: true,
+            rollNumber: true,
+            phone: true,
+          },
+        },
+
+        // Include basic activity counts
+        _count: {
+          select: {
+            complaints: true,
+            announcements: true,
+            events: true,
+            notifications: true,
+          },
+        },
+      },
+
+      // Show newest users first
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
     return NextResponse.json(
       {
-        message: "Welcome to the admin API",
-        user: {
-          id: result.user.id,
-          name: result.user.name,
-          email: result.user.email,
-          role: result.user.role,
-        },
+        users,
+        total: users.length,
       },
       {
         status: 200,
       }
     );
   } catch (error) {
-    console.error("Admin API Error:", error);
+    console.error("Admin Users API Error:", error);
 
     return NextResponse.json(
       {
-        error: "Something went wrong",
+        error: "Something went wrong while loading users",
       },
       {
         status: 500,
