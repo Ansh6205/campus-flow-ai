@@ -26,8 +26,15 @@ type Announcement = {
 export default function AnnouncementsPage() {
   const router = useRouter();
 
+  // ============================================================
+  // STATE
+  // ============================================================
+
   const [user, setUser] = useState<User | null>(null);
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+
+  const [announcements, setAnnouncements] = useState<
+    Announcement[]
+  >([]);
 
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -38,36 +45,10 @@ export default function AnnouncementsPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Load announcements
-  async function loadAnnouncements() {
-    try {
-      setError("");
+  // ============================================================
+  // LOAD CURRENT USER
+  // ============================================================
 
-      const response = await fetch("/api/announcements", {
-        method: "GET",
-        credentials: "include",
-      });
-
-      const data = await response.json();
-
-      if (response.status === 401) {
-        router.push("/login");
-        return;
-      }
-
-      if (!response.ok) {
-        setError(data.error || "Failed to load announcements");
-        return;
-      }
-
-      setAnnouncements(data.announcements || []);
-    } catch (error) {
-      console.error("Load Announcements Error:", error);
-      setError("Something went wrong while loading announcements.");
-    }
-  }
-
-  // Load current logged-in user
   useEffect(() => {
     let cancelled = false;
 
@@ -84,13 +65,18 @@ export default function AnnouncementsPage() {
           return;
         }
 
+        // Not authenticated
         if (response.status === 401) {
           router.push("/login");
           return;
         }
 
+        // Other API error
         if (!response.ok) {
-          setError(data.error || "Failed to load user information");
+          setError(
+            data.error ||
+              "Failed to load user information."
+          );
           return;
         }
 
@@ -100,8 +86,14 @@ export default function AnnouncementsPage() {
           return;
         }
 
-        console.error("Load User Error:", error);
-        setError("Something went wrong while loading your account.");
+        console.error(
+          "Load User Error:",
+          error
+        );
+
+        setError(
+          "Something went wrong while loading your account."
+        );
       }
     }
 
@@ -112,16 +104,70 @@ export default function AnnouncementsPage() {
     };
   }, [router]);
 
-  // Load announcements when page opens
+  // ============================================================
+  // LOAD ANNOUNCEMENTS
+  // ============================================================
+
+  async function loadAnnouncements() {
+    try {
+      setError("");
+
+      const response = await fetch(
+        "/api/announcements",
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+
+      // Not authenticated
+      if (response.status === 401) {
+        router.push("/login");
+        return;
+      }
+
+      // API error
+      if (!response.ok) {
+        setError(
+          data.error ||
+            "Failed to load announcements."
+        );
+        return;
+      }
+
+      setAnnouncements(
+        data.announcements || []
+      );
+    } catch (error) {
+      console.error(
+        "Load Announcements Error:",
+        error
+      );
+
+      setError(
+        "Something went wrong while loading announcements."
+      );
+    }
+  }
+
+  // ============================================================
+  // INITIAL PAGE LOAD
+  // ============================================================
+
   useEffect(() => {
     let cancelled = false;
 
     async function fetchAnnouncements() {
       try {
-        const response = await fetch("/api/announcements", {
-          method: "GET",
-          credentials: "include",
-        });
+        const response = await fetch(
+          "/api/announcements",
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
 
         const data = await response.json();
 
@@ -129,24 +175,37 @@ export default function AnnouncementsPage() {
           return;
         }
 
+        // Not authenticated
         if (response.status === 401) {
           router.push("/login");
           return;
         }
 
+        // API error
         if (!response.ok) {
-          setError(data.error || "Failed to load announcements");
+          setError(
+            data.error ||
+              "Failed to load announcements."
+          );
           return;
         }
 
-        setAnnouncements(data.announcements || []);
+        setAnnouncements(
+          data.announcements || []
+        );
       } catch (error) {
         if (cancelled) {
           return;
         }
 
-        console.error("Load Announcements Error:", error);
-        setError("Something went wrong while loading announcements.");
+        console.error(
+          "Load Announcements Error:",
+          error
+        );
+
+        setError(
+          "Something went wrong while loading announcements."
+        );
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -161,42 +220,79 @@ export default function AnnouncementsPage() {
     };
   }, [router]);
 
-  // Create announcement
+  // ============================================================
+  // CREATE ANNOUNCEMENT
+  // ============================================================
+
   async function handleCreateAnnouncement(
     event: React.FormEvent<HTMLFormElement>
   ) {
     event.preventDefault();
+
+    // Basic frontend validation
+    if (title.trim().length < 3) {
+      setError(
+        "Title must be at least 3 characters long."
+      );
+      return;
+    }
+
+    if (content.trim().length < 5) {
+      setError(
+        "Content must be at least 5 characters long."
+      );
+      return;
+    }
 
     setCreating(true);
     setError("");
     setSuccess("");
 
     try {
-      const response = await fetch("/api/announcements", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          title,
-          content,
-        }),
-      });
+      const response = await fetch(
+        "/api/announcements",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            title: title.trim(),
+            content: content.trim(),
+          }),
+        }
+      );
 
       const data = await response.json();
 
+      // Not authenticated
       if (response.status === 401) {
         router.push("/login");
         return;
       }
 
-      if (!response.ok) {
-        setError(data.error || "Failed to create announcement");
+      // Not authorized
+      if (response.status === 403) {
+        setError(
+          "You are not authorized to create announcements."
+        );
         return;
       }
 
-      setSuccess("Announcement created successfully!");
+      // Other error
+      if (!response.ok) {
+        setError(
+          data.error ||
+            "Failed to create announcement."
+        );
+        return;
+      }
+
+      // Success
+      setSuccess(
+        "Announcement created successfully!"
+      );
 
       // Clear form
       setTitle("");
@@ -205,22 +301,67 @@ export default function AnnouncementsPage() {
       // Reload announcements
       await loadAnnouncements();
     } catch (error) {
-      console.error("Create Announcement Error:", error);
-      setError("Something went wrong while creating the announcement.");
+      console.error(
+        "Create Announcement Error:",
+        error
+      );
+
+      setError(
+        "Something went wrong while creating the announcement."
+      );
     } finally {
       setCreating(false);
     }
   }
 
-  // Format date
-  function formatDate(dateString: string) {
-    return new Date(dateString).toLocaleString("en-IN", {
+  // ============================================================
+  // LOGOUT
+  // ============================================================
+
+  async function handleLogout() {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      router.push("/login");
+      router.refresh();
+    } catch (error) {
+      console.error(
+        "Logout Error:",
+        error
+      );
+    }
+  }
+
+  // ============================================================
+  // FORMAT DATE
+  // ============================================================
+
+  function formatDate(
+    dateString: string
+  ) {
+    return new Date(
+      dateString
+    ).toLocaleString("en-IN", {
       dateStyle: "medium",
       timeStyle: "short",
     });
   }
 
-  // Loading state
+  // ============================================================
+  // CHECK CREATE PERMISSION
+  // ============================================================
+
+  const canCreateAnnouncement =
+    user?.role === "FACULTY" ||
+    user?.role === "ADMIN";
+
+  // ============================================================
+  // LOADING
+  // ============================================================
+
   if (loading) {
     return (
       <main
@@ -251,8 +392,9 @@ export default function AnnouncementsPage() {
     );
   }
 
-  const canCreateAnnouncement =
-    user?.role === "FACULTY" || user?.role === "ADMIN";
+  // ============================================================
+  // MAIN PAGE
+  // ============================================================
 
   return (
     <main
@@ -260,6 +402,7 @@ export default function AnnouncementsPage() {
         minHeight: "100vh",
         background: "#f5f7fb",
         padding: "32px 20px",
+        color: "#111827",
       }}
     >
       <div
@@ -268,121 +411,206 @@ export default function AnnouncementsPage() {
           margin: "0 auto",
         }}
       >
-        {/* Header */}
-        <div
+        {/* ================================================== */}
+        {/* HEADER */}
+        {/* ================================================== */}
+
+        <header
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: "20px",
-            marginBottom: "32px",
-            flexWrap: "wrap",
+            background: "white",
+            padding: "24px",
+            borderRadius: "16px",
+            border: "1px solid #eef0f4",
+            marginBottom: "24px",
+            boxShadow:
+              "0 4px 20px rgba(0, 0, 0, 0.05)",
           }}
         >
-          <div>
-            <button
-              type="button"
-              onClick={() => router.push("/dashboard")}
-              style={{
-                border: "none",
-                background: "transparent",
-                cursor: "pointer",
-                padding: "0",
-                marginBottom: "12px",
-                fontSize: "15px",
-                color: "#374151",
-              }}
-            >
-              ← Back to Dashboard
-            </button>
-
-            <h1
-              style={{
-                margin: "0 0 8px",
-                fontSize: "32px",
-                color: "#111827",
-              }}
-            >
-              Campus Announcements
-            </h1>
-
-            <p
-              style={{
-                margin: "0",
-                color: "#6b7280",
-                fontSize: "16px",
-              }}
-            >
-              Stay updated with the latest campus news and notices.
-            </p>
-          </div>
-
-          {/* Refresh Button */}
-          <button
-            type="button"
-            onClick={loadAnnouncements}
+          <div
             style={{
-              border: "none",
-              background: "#111827",
-              color: "white",
-              padding: "11px 18px",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontSize: "15px",
-              fontWeight: "600",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "20px",
+              flexWrap: "wrap",
             }}
           >
-            Refresh
-          </button>
-        </div>
+            <div>
+              <button
+                type="button"
+                onClick={() =>
+                  router.push("/dashboard")
+                }
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                  padding: 0,
+                  marginBottom: "12px",
+                  fontSize: "15px",
+                  color: "#374151",
+                }}
+              >
+                ← Back to Dashboard
+              </button>
 
-        {/* Error Message */}
+              <h1
+                style={{
+                  margin: 0,
+                  fontSize: "32px",
+                }}
+              >
+                Announcements
+              </h1>
+
+              <p
+                style={{
+                  marginTop: "8px",
+                  marginBottom: 0,
+                  color: "#6b7280",
+                }}
+              >
+                Stay updated with the latest
+                campus announcements.
+              </p>
+            </div>
+
+            <div
+              style={{
+                textAlign: "right",
+              }}
+            >
+              {user && (
+                <>
+                  <strong
+                    style={{
+                      display: "block",
+                    }}
+                  >
+                    {user.name}
+                  </strong>
+
+                  <span
+                    style={{
+                      display: "block",
+                      fontSize: "13px",
+                      color: "#6b7280",
+                      marginTop: "4px",
+                    }}
+                  >
+                    {user.email}
+                  </span>
+
+                  {/* CURRENT ROLE */}
+                  <span
+                    style={{
+                      display: "inline-block",
+                      marginTop: "8px",
+                      padding: "5px 10px",
+                      borderRadius: "6px",
+                      background:
+                        user.role === "ADMIN"
+                          ? "#ede9fe"
+                          : user.role === "FACULTY"
+                            ? "#dbeafe"
+                            : "#dcfce7",
+                      color:
+                        user.role === "ADMIN"
+                          ? "#6d28d9"
+                          : user.role === "FACULTY"
+                            ? "#1d4ed8"
+                            : "#166534",
+                      fontSize: "12px",
+                      fontWeight: "700",
+                    }}
+                  >
+                    Current Role: {user.role}
+                  </span>
+                </>
+              )}
+
+              <div>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  style={{
+                    marginTop: "12px",
+                    padding: "9px 16px",
+                    border: "none",
+                    borderRadius: "8px",
+                    background: "#111827",
+                    color: "white",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* ================================================== */}
+        {/* ERROR MESSAGE */}
+        {/* ================================================== */}
+
         {error && (
           <div
             style={{
               marginBottom: "20px",
-              padding: "14px",
+              padding: "14px 16px",
+              borderRadius: "10px",
               background: "#fee2e2",
               color: "#b91c1c",
-              borderRadius: "10px",
+              border:
+                "1px solid #fecaca",
             }}
           >
             {error}
           </div>
         )}
 
-        {/* Success Message */}
+        {/* ================================================== */}
+        {/* SUCCESS MESSAGE */}
+        {/* ================================================== */}
+
         {success && (
           <div
             style={{
               marginBottom: "20px",
-              padding: "14px",
+              padding: "14px 16px",
+              borderRadius: "10px",
               background: "#dcfce7",
               color: "#166534",
-              borderRadius: "10px",
+              border:
+                "1px solid #bbf7d0",
             }}
           >
             {success}
           </div>
         )}
 
-        {/* Create Announcement Form */}
+        {/* ================================================== */}
+        {/* CREATE ANNOUNCEMENT */}
+        {/* ================================================== */}
+
         {canCreateAnnouncement && (
           <section
             style={{
               background: "white",
               padding: "24px",
               borderRadius: "16px",
-              boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
               border: "1px solid #eef0f4",
-              marginBottom: "28px",
+              marginBottom: "24px",
+              boxShadow:
+                "0 4px 20px rgba(0, 0, 0, 0.05)",
             }}
           >
             <h2
               style={{
-                margin: "0 0 8px",
-                fontSize: "22px",
-                color: "#111827",
+                marginTop: 0,
+                marginBottom: "8px",
               }}
             >
               Create Announcement
@@ -390,226 +618,300 @@ export default function AnnouncementsPage() {
 
             <p
               style={{
-                margin: "0 0 20px",
+                marginTop: 0,
+                marginBottom: "20px",
                 color: "#6b7280",
               }}
             >
-              Share an important update with the campus community.
+              Publish an announcement for
+              campus users.
             </p>
 
-            <form onSubmit={handleCreateAnnouncement}>
-              {/* Title */}
-              <div style={{ marginBottom: "18px" }}>
+            <form
+              onSubmit={
+                handleCreateAnnouncement
+              }
+            >
+              {/* TITLE */}
+
+              <div
+                style={{
+                  marginBottom: "16px",
+                }}
+              >
                 <label
                   htmlFor="announcement-title"
                   style={{
                     display: "block",
-                    marginBottom: "7px",
+                    marginBottom: "6px",
                     fontWeight: "600",
-                    color: "#374151",
                   }}
                 >
-                  Announcement Title
+                  Title
                 </label>
 
                 <input
                   id="announcement-title"
                   type="text"
                   value={title}
-                  onChange={(event) => setTitle(event.target.value)}
+                  onChange={(event) =>
+                    setTitle(event.target.value)
+                  }
                   placeholder="Enter announcement title"
-                  required
-                  minLength={3}
+                  disabled={creating}
                   style={{
                     width: "100%",
-                    padding: "12px",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "8px",
-                    fontSize: "16px",
-                    color: "#111827",
-                    background: "white",
                     boxSizing: "border-box",
+                    padding: "12px",
+                    border:
+                      "1px solid #d1d5db",
+                    borderRadius: "8px",
+                    background: "white",
+                    color: "#111827",
+                    fontSize: "15px",
                   }}
                 />
               </div>
 
-              {/* Content */}
-              <div style={{ marginBottom: "18px" }}>
+              {/* CONTENT */}
+
+              <div
+                style={{
+                  marginBottom: "16px",
+                }}
+              >
                 <label
                   htmlFor="announcement-content"
                   style={{
                     display: "block",
-                    marginBottom: "7px",
+                    marginBottom: "6px",
                     fontWeight: "600",
-                    color: "#374151",
                   }}
                 >
-                  Announcement Content
+                  Content
                 </label>
 
                 <textarea
                   id="announcement-content"
                   value={content}
-                  onChange={(event) => setContent(event.target.value)}
-                  placeholder="Write your announcement here..."
-                  required
-                  minLength={5}
-                  rows={5}
+                  onChange={(event) =>
+                    setContent(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Enter announcement content"
+                  disabled={creating}
+                  rows={6}
                   style={{
                     width: "100%",
-                    padding: "12px",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "8px",
-                    fontSize: "16px",
-                    color: "#111827",
-                    background: "white",
-                    resize: "vertical",
                     boxSizing: "border-box",
-                    fontFamily: "inherit",
+                    padding: "12px",
+                    border:
+                      "1px solid #d1d5db",
+                    borderRadius: "8px",
+                    background: "white",
+                    color: "#111827",
+                    fontSize: "15px",
+                    resize: "vertical",
                   }}
                 />
               </div>
 
-              {/* Submit */}
+              {/* SUBMIT */}
+
               <button
                 type="submit"
                 disabled={creating}
                 style={{
+                  padding: "11px 20px",
                   border: "none",
-                  background: creating ? "#9ca3af" : "#111827",
-                  color: "white",
-                  padding: "12px 20px",
                   borderRadius: "8px",
-                  cursor: creating ? "not-allowed" : "pointer",
-                  fontSize: "15px",
+                  background: creating
+                    ? "#9ca3af"
+                    : "#111827",
+                  color: "white",
+                  cursor: creating
+                    ? "not-allowed"
+                    : "pointer",
                   fontWeight: "600",
                 }}
               >
-                {creating ? "Creating..." : "Create Announcement"}
+                {creating
+                  ? "Publishing..."
+                  : "Publish Announcement"}
               </button>
             </form>
           </section>
         )}
 
-        {/* Empty State */}
-        {!error && announcements.length === 0 && (
-          <div
-            style={{
-              background: "white",
-              padding: "50px 30px",
-              borderRadius: "16px",
-              textAlign: "center",
-              boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "48px",
-                marginBottom: "16px",
-              }}
-            >
-              📢
-            </div>
+        {/* ================================================== */}
+        {/* ANNOUNCEMENTS LIST */}
+        {/* ================================================== */}
 
-            <h2
-              style={{
-                margin: "0 0 8px",
-                color: "#111827",
-              }}
-            >
-              No announcements yet
-            </h2>
-
-            <p
-              style={{
-                margin: "0",
-                color: "#6b7280",
-              }}
-            >
-              There are currently no campus announcements.
-            </p>
-          </div>
-        )}
-
-        {/* Announcement List */}
-        <div
+        <section
           style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "16px",
+            background: "white",
+            padding: "24px",
+            borderRadius: "16px",
+            border: "1px solid #eef0f4",
+            boxShadow:
+              "0 4px 20px rgba(0, 0, 0, 0.05)",
           }}
         >
-          {announcements.map((announcement) => (
-            <article
-              key={announcement.id}
+          <h2
+            style={{
+              marginTop: 0,
+              marginBottom: "8px",
+            }}
+          >
+            Latest Announcements
+          </h2>
+
+          <p
+            style={{
+              marginTop: 0,
+              marginBottom: "20px",
+              color: "#6b7280",
+            }}
+          >
+            View the latest updates from
+            campus administration and faculty.
+          </p>
+
+          {announcements.length === 0 && (
+            <div
               style={{
-                background: "white",
-                padding: "24px",
-                borderRadius: "16px",
-                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
-                border: "1px solid #eef0f4",
+                padding: "30px",
+                textAlign: "center",
+                background: "#f9fafb",
+                borderRadius: "10px",
               }}
             >
-              {/* Title */}
-              <h2
-                style={{
-                  margin: "0 0 10px",
-                  fontSize: "22px",
-                  color: "#111827",
-                }}
-              >
-                {announcement.title}
-              </h2>
-
-              {/* Content */}
               <p
                 style={{
-                  margin: "0 0 18px",
-                  color: "#374151",
-                  fontSize: "16px",
-                  lineHeight: "1.6",
-                  whiteSpace: "pre-wrap",
+                  margin: 0,
+                  color: "#6b7280",
                 }}
               >
-                {announcement.content}
+                No announcements available.
               </p>
+            </div>
+          )}
 
-              {/* Metadata */}
-              <div
-                style={{
-                  paddingTop: "14px",
-                  borderTop: "1px solid #eef0f4",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "10px",
-                  flexWrap: "wrap",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "14px",
-                    color: "#6b7280",
-                  }}
-                >
-                  Posted by{" "}
-                  <strong style={{ color: "#374151" }}>
-                    {announcement.createdBy.name}
-                  </strong>
-                </span>
+          {announcements.length > 0 && (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "16px",
+              }}
+            >
+              {announcements.map(
+                (announcement) => (
+                  <article
+                    key={announcement.id}
+                    style={{
+                      padding: "20px",
+                      border:
+                        "1px solid #eef0f4",
+                      borderRadius: "12px",
+                      background: "#fafbfc",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        marginTop: 0,
+                        marginBottom: "8px",
+                        fontSize: "20px",
+                      }}
+                    >
+                      {announcement.title}
+                    </h3>
 
-                <span
-                  style={{
-                    fontSize: "14px",
-                    color: "#6b7280",
-                  }}
-                >
-                  {formatDate(announcement.createdAt)}
-                </span>
-              </div>
-            </article>
-          ))}
-        </div>
+                    <p
+                      style={{
+                        margin: "0 0 16px",
+                        color: "#374151",
+                        lineHeight: "1.6",
+                        whiteSpace:
+                          "pre-wrap",
+                      }}
+                    >
+                      {announcement.content}
+                    </p>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent:
+                          "space-between",
+                        alignItems: "center",
+                        gap: "12px",
+                        flexWrap: "wrap",
+                        paddingTop: "12px",
+                        borderTop:
+                          "1px solid #e5e7eb",
+                      }}
+                    >
+                      <div>
+                        <strong
+                          style={{
+                            fontSize: "14px",
+                          }}
+                        >
+                          {announcement.createdBy
+                            .name}
+                        </strong>
+
+                        <span
+                          style={{
+                            marginLeft: "8px",
+                            padding:
+                              "4px 8px",
+                            borderRadius: "5px",
+                            background:
+                              announcement
+                                .createdBy
+                                .role ===
+                              "ADMIN"
+                                ? "#ede9fe"
+                                : "#dbeafe",
+                            color:
+                              announcement
+                                .createdBy
+                                .role ===
+                              "ADMIN"
+                                ? "#6d28d9"
+                                : "#1d4ed8",
+                            fontSize: "11px",
+                            fontWeight: "700",
+                          }}
+                        >
+                          {
+                            announcement
+                              .createdBy
+                              .role
+                          }
+                        </span>
+                      </div>
+
+                      <span
+                        style={{
+                          fontSize: "13px",
+                          color: "#6b7280",
+                        }}
+                      >
+                        {formatDate(
+                          announcement.createdAt
+                        )}
+                      </span>
+                    </div>
+                  </article>
+                )
+              )}
+            </div>
+          )}
+        </section>
       </div>
     </main>
   );
