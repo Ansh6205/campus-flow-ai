@@ -265,7 +265,8 @@ export async function POST(request: Request) {
 // Not allowed to update complaint status.
 //
 // NOTIFICATION:
-// Complaint owner receives a notification.
+// Complaint owner receives a notification only when
+// the complaint status actually changes.
 // ============================================================
 
 export async function PATCH(request: Request) {
@@ -341,6 +342,10 @@ export async function PATCH(request: Request) {
       );
     }
 
+    // Check whether the status actually changed
+    const statusChanged =
+      existingComplaint.status !== status;
+
     // Update complaint status
     const updatedComplaint =
       await prisma.complaint.update({
@@ -364,14 +369,17 @@ export async function PATCH(request: Request) {
         },
       });
 
-    // Create notification for the student
-    await prisma.notification.create({
-      data: {
-        title: "Complaint Status Updated",
-        message: `Your complaint "${updatedComplaint.title}" is now ${updatedComplaint.status}.`,
-        userId: updatedComplaint.createdById,
-      },
-    });
+    // Create notification only when the complaint
+    // status actually changes
+    if (statusChanged) {
+      await prisma.notification.create({
+        data: {
+          title: "Complaint Status Updated",
+          message: `Your complaint "${updatedComplaint.title}" is now ${updatedComplaint.status}.`,
+          userId: updatedComplaint.createdById,
+        },
+      });
+    }
 
     return NextResponse.json(
       {
