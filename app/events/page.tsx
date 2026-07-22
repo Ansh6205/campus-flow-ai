@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type User = {
@@ -42,7 +42,10 @@ export default function EventsPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Load current logged-in user
+  // ============================================================
+  // LOAD CURRENT USER
+  // ============================================================
+
   useEffect(() => {
     let cancelled = false;
 
@@ -65,7 +68,9 @@ export default function EventsPage() {
         }
 
         if (!response.ok) {
-          setError(data.error || "Failed to load user information");
+          setError(
+            data.error || "Failed to load user information."
+          );
           return;
         }
 
@@ -76,7 +81,10 @@ export default function EventsPage() {
         }
 
         console.error("Load User Error:", error);
-        setError("Something went wrong while loading your account.");
+
+        setError(
+          "Something went wrong while loading your account."
+        );
       }
     }
 
@@ -87,7 +95,10 @@ export default function EventsPage() {
     };
   }, [router]);
 
-  // Load events
+  // ============================================================
+  // LOAD EVENTS
+  // ============================================================
+
   async function loadEvents() {
     try {
       setError("");
@@ -105,18 +116,26 @@ export default function EventsPage() {
       }
 
       if (!response.ok) {
-        setError(data.error || "Failed to load events");
+        setError(
+          data.error || "Failed to load events."
+        );
         return;
       }
 
       setEvents(data.events || []);
     } catch (error) {
       console.error("Load Events Error:", error);
-      setError("Something went wrong while loading events.");
+
+      setError(
+        "Something went wrong while loading events."
+      );
     }
   }
 
-  // Load events when page opens
+  // ============================================================
+  // INITIAL EVENT LOAD
+  // ============================================================
+
   useEffect(() => {
     let cancelled = false;
 
@@ -139,7 +158,9 @@ export default function EventsPage() {
         }
 
         if (!response.ok) {
-          setError(data.error || "Failed to load events");
+          setError(
+            data.error || "Failed to load events."
+          );
           return;
         }
 
@@ -150,7 +171,10 @@ export default function EventsPage() {
         }
 
         console.error("Load Events Error:", error);
-        setError("Something went wrong while loading events.");
+
+        setError(
+          "Something went wrong while loading events."
+        );
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -165,15 +189,48 @@ export default function EventsPage() {
     };
   }, [router]);
 
-  // Create event
+  // ============================================================
+  // CREATE EVENT
+  // ============================================================
+
   async function handleCreateEvent(
     event: FormEvent<HTMLFormElement>
   ) {
     event.preventDefault();
 
-    setCreating(true);
     setError("");
     setSuccess("");
+
+    // Client-side validation
+    if (
+      !title.trim() ||
+      !description.trim() ||
+      !location.trim() ||
+      !eventDate
+    ) {
+      setError(
+        "Please fill in all event fields."
+      );
+      return;
+    }
+
+    const selectedDate = new Date(eventDate);
+
+    if (Number.isNaN(selectedDate.getTime())) {
+      setError(
+        "Please select a valid event date and time."
+      );
+      return;
+    }
+
+    if (selectedDate <= new Date()) {
+      setError(
+        "Event date and time must be in the future."
+      );
+      return;
+    }
+
+    setCreating(true);
 
     try {
       const response = await fetch("/api/events", {
@@ -183,10 +240,10 @@ export default function EventsPage() {
         },
         credentials: "include",
         body: JSON.stringify({
-          title,
-          description,
-          location,
-          eventDate: new Date(eventDate).toISOString(),
+          title: title.trim(),
+          description: description.trim(),
+          location: location.trim(),
+          eventDate: selectedDate.toISOString(),
         }),
       });
 
@@ -197,12 +254,23 @@ export default function EventsPage() {
         return;
       }
 
-      if (!response.ok) {
-        setError(data.error || "Failed to create event");
+      if (response.status === 403) {
+        setError(
+          "You do not have permission to create events."
+        );
         return;
       }
 
-      setSuccess("Event created successfully!");
+      if (!response.ok) {
+        setError(
+          data.error || "Failed to create event."
+        );
+        return;
+      }
+
+      setSuccess(
+        "Event created successfully!"
+      );
 
       // Clear form
       setTitle("");
@@ -213,22 +281,72 @@ export default function EventsPage() {
       // Reload events
       await loadEvents();
     } catch (error) {
-      console.error("Create Event Error:", error);
-      setError("Something went wrong while creating the event.");
+      console.error(
+        "Create Event Error:",
+        error
+      );
+
+      setError(
+        "Something went wrong while creating the event."
+      );
     } finally {
       setCreating(false);
     }
   }
 
-  // Format event date
-  function formatEventDate(dateString: string) {
-    return new Date(dateString).toLocaleString("en-IN", {
+  // ============================================================
+  // FORMAT DATE
+  // ============================================================
+
+  function formatEventDate(
+    dateString: string
+  ) {
+    return new Date(
+      dateString
+    ).toLocaleString("en-IN", {
       dateStyle: "full",
       timeStyle: "short",
     });
   }
 
-  // Loading state
+  // ============================================================
+  // UPCOMING / PAST EVENTS
+  // ============================================================
+
+  const upcomingEvents = useMemo(() => {
+    const now = new Date();
+
+    return events.filter(
+      (event) =>
+        new Date(event.eventDate) >= now
+    );
+  }, [events]);
+
+  const pastEvents = useMemo(() => {
+    const now = new Date();
+
+    return events.filter(
+      (event) =>
+        new Date(event.eventDate) < now
+    );
+  }, [events]);
+
+  // ============================================================
+  // STATISTICS
+  // ============================================================
+
+  const totalEvents = events.length;
+  const upcomingCount = upcomingEvents.length;
+  const pastCount = pastEvents.length;
+
+  const canCreateEvent =
+    user?.role === "FACULTY" ||
+    user?.role === "ADMIN";
+
+  // ============================================================
+  // LOADING STATE
+  // ============================================================
+
   if (loading) {
     return (
       <main
@@ -259,8 +377,9 @@ export default function EventsPage() {
     );
   }
 
-  const canCreateEvent =
-    user?.role === "FACULTY" || user?.role === "ADMIN";
+  // ============================================================
+  // MAIN UI
+  // ============================================================
 
   return (
     <main
@@ -276,8 +395,11 @@ export default function EventsPage() {
           margin: "0 auto",
         }}
       >
-        {/* Header */}
-        <div
+        {/* ======================================================
+            HEADER
+        ====================================================== */}
+
+        <header
           style={{
             display: "flex",
             justifyContent: "space-between",
@@ -290,7 +412,9 @@ export default function EventsPage() {
           <div>
             <button
               type="button"
-              onClick={() => router.push("/dashboard")}
+              onClick={() =>
+                router.push("/dashboard")
+              }
               style={{
                 border: "none",
                 background: "transparent",
@@ -306,7 +430,7 @@ export default function EventsPage() {
 
             <h1
               style={{
-                margin: "0 0 8px",
+                margin: 0,
                 fontSize: "32px",
                 color: "#111827",
               }}
@@ -316,105 +440,217 @@ export default function EventsPage() {
 
             <p
               style={{
-                margin: "0",
+                marginTop: "8px",
                 color: "#6b7280",
-                fontSize: "16px",
               }}
             >
-              Discover upcoming events and activities happening on campus.
+              Stay updated with important
+              campus events and activities.
             </p>
           </div>
 
-          {/* Refresh Button */}
           <button
             type="button"
-            onClick={loadEvents}
+            onClick={() =>
+              router.push("/notifications")
+            }
             style={{
-              border: "none",
-              background: "#111827",
-              color: "white",
-              padding: "11px 18px",
+              padding: "10px 16px",
+              border: "1px solid #d1d5db",
               borderRadius: "8px",
+              background: "white",
+              color: "#111827",
               cursor: "pointer",
-              fontSize: "15px",
               fontWeight: "600",
             }}
           >
-            Refresh
+            View Notifications
           </button>
-        </div>
+        </header>
 
-        {/* Error Message */}
+        {/* ======================================================
+            ERROR / SUCCESS
+        ====================================================== */}
+
         {error && (
           <div
             style={{
               marginBottom: "20px",
-              padding: "14px",
+              padding: "14px 16px",
+              borderRadius: "8px",
               background: "#fee2e2",
               color: "#b91c1c",
-              borderRadius: "10px",
+              border: "1px solid #fecaca",
             }}
           >
             {error}
           </div>
         )}
 
-        {/* Success Message */}
         {success && (
           <div
             style={{
               marginBottom: "20px",
-              padding: "14px",
+              padding: "14px 16px",
+              borderRadius: "8px",
               background: "#dcfce7",
               color: "#166534",
-              borderRadius: "10px",
+              border: "1px solid #bbf7d0",
             }}
           >
             {success}
           </div>
         )}
 
-        {/* Create Event Form */}
+        {/* ======================================================
+            EVENT STATISTICS
+        ====================================================== */}
+
+        <section
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: "16px",
+            marginBottom: "32px",
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              padding: "20px",
+              borderRadius: "12px",
+              border: "1px solid #eef0f4",
+            }}
+          >
+            <p
+              style={{
+                margin: 0,
+                color: "#6b7280",
+                fontSize: "14px",
+              }}
+            >
+              Total Events
+            </p>
+
+            <h2
+              style={{
+                margin: "8px 0 0",
+                fontSize: "30px",
+              }}
+            >
+              {totalEvents}
+            </h2>
+          </div>
+
+          <div
+            style={{
+              background: "white",
+              padding: "20px",
+              borderRadius: "12px",
+              border: "1px solid #eef0f4",
+            }}
+          >
+            <p
+              style={{
+                margin: 0,
+                color: "#6b7280",
+                fontSize: "14px",
+              }}
+            >
+              Upcoming
+            </p>
+
+            <h2
+              style={{
+                margin: "8px 0 0",
+                fontSize: "30px",
+              }}
+            >
+              {upcomingCount}
+            </h2>
+          </div>
+
+          <div
+            style={{
+              background: "white",
+              padding: "20px",
+              borderRadius: "12px",
+              border: "1px solid #eef0f4",
+            }}
+          >
+            <p
+              style={{
+                margin: 0,
+                color: "#6b7280",
+                fontSize: "14px",
+              }}
+            >
+              Past Events
+            </p>
+
+            <h2
+              style={{
+                margin: "8px 0 0",
+                fontSize: "30px",
+              }}
+            >
+              {pastCount}
+            </h2>
+          </div>
+        </section>
+
+        {/* ======================================================
+            CREATE EVENT
+        ====================================================== */}
+
         {canCreateEvent && (
           <section
             style={{
               background: "white",
               padding: "24px",
               borderRadius: "16px",
-              boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
               border: "1px solid #eef0f4",
-              marginBottom: "28px",
+              boxShadow:
+                "0 4px 20px rgba(0, 0, 0, 0.05)",
+              marginBottom: "32px",
             }}
           >
             <h2
               style={{
-                margin: "0 0 8px",
-                fontSize: "22px",
-                color: "#111827",
+                marginTop: 0,
+                marginBottom: "8px",
               }}
             >
-              Create Campus Event
+              Create New Event
             </h2>
 
             <p
               style={{
-                margin: "0 0 20px",
+                marginTop: 0,
+                marginBottom: "20px",
                 color: "#6b7280",
               }}
             >
-              Add a new event for students and the campus community.
+              Create a new campus event for
+              students and faculty.
             </p>
 
-            <form onSubmit={handleCreateEvent}>
-              {/* Title */}
-              <div style={{ marginBottom: "18px" }}>
+            <form
+              onSubmit={handleCreateEvent}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "16px",
+              }}
+            >
+              <div>
                 <label
                   htmlFor="event-title"
                   style={{
                     display: "block",
-                    marginBottom: "7px",
+                    marginBottom: "6px",
                     fontWeight: "600",
-                    color: "#374151",
                   }}
                 >
                   Event Title
@@ -424,32 +660,30 @@ export default function EventsPage() {
                   id="event-title"
                   type="text"
                   value={title}
-                  onChange={(event) => setTitle(event.target.value)}
+                  onChange={(event) =>
+                    setTitle(event.target.value)
+                  }
                   placeholder="Enter event title"
-                  required
-                  minLength={3}
+                  disabled={creating}
                   style={{
                     width: "100%",
-                    padding: "12px",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "8px",
-                    fontSize: "16px",
-                    color: "#111827",
-                    background: "white",
                     boxSizing: "border-box",
+                    padding: "12px",
+                    borderRadius: "8px",
+                    border:
+                      "1px solid #d1d5db",
+                    color: "#111827",
                   }}
                 />
               </div>
 
-              {/* Description */}
-              <div style={{ marginBottom: "18px" }}>
+              <div>
                 <label
                   htmlFor="event-description"
                   style={{
                     display: "block",
-                    marginBottom: "7px",
+                    marginBottom: "6px",
                     fontWeight: "600",
-                    color: "#374151",
                   }}
                 >
                   Description
@@ -459,36 +693,33 @@ export default function EventsPage() {
                   id="event-description"
                   value={description}
                   onChange={(event) =>
-                    setDescription(event.target.value)
+                    setDescription(
+                      event.target.value
+                    )
                   }
-                  placeholder="Describe the event..."
-                  required
-                  minLength={5}
+                  placeholder="Describe the event"
                   rows={5}
+                  disabled={creating}
                   style={{
                     width: "100%",
-                    padding: "12px",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "8px",
-                    fontSize: "16px",
-                    color: "#111827",
-                    background: "white",
-                    resize: "vertical",
                     boxSizing: "border-box",
-                    fontFamily: "inherit",
+                    padding: "12px",
+                    borderRadius: "8px",
+                    border:
+                      "1px solid #d1d5db",
+                    color: "#111827",
+                    resize: "vertical",
                   }}
                 />
               </div>
 
-              {/* Location */}
-              <div style={{ marginBottom: "18px" }}>
+              <div>
                 <label
                   htmlFor="event-location"
                   style={{
                     display: "block",
-                    marginBottom: "7px",
+                    marginBottom: "6px",
                     fontWeight: "600",
-                    color: "#374151",
                   }}
                 >
                   Location
@@ -498,223 +729,400 @@ export default function EventsPage() {
                   id="event-location"
                   type="text"
                   value={location}
-                  onChange={(event) => setLocation(event.target.value)}
-                  placeholder="e.g. Main Auditorium"
-                  required
+                  onChange={(event) =>
+                    setLocation(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Enter event location"
+                  disabled={creating}
                   style={{
                     width: "100%",
-                    padding: "12px",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "8px",
-                    fontSize: "16px",
-                    color: "#111827",
-                    background: "white",
                     boxSizing: "border-box",
+                    padding: "12px",
+                    borderRadius: "8px",
+                    border:
+                      "1px solid #d1d5db",
+                    color: "#111827",
                   }}
                 />
               </div>
 
-              {/* Event Date */}
-              <div style={{ marginBottom: "20px" }}>
+              <div>
                 <label
                   htmlFor="event-date"
                   style={{
                     display: "block",
-                    marginBottom: "7px",
+                    marginBottom: "6px",
                     fontWeight: "600",
-                    color: "#374151",
                   }}
                 >
-                  Event Date & Time
+                  Date & Time
                 </label>
 
                 <input
                   id="event-date"
                   type="datetime-local"
                   value={eventDate}
-                  onChange={(event) => setEventDate(event.target.value)}
-                  required
+                  onChange={(event) =>
+                    setEventDate(
+                      event.target.value
+                    )
+                  }
+                  disabled={creating}
+                  min={new Date()
+                    .toISOString()
+                    .slice(0, 16)}
                   style={{
                     width: "100%",
-                    padding: "12px",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "8px",
-                    fontSize: "16px",
-                    color: "#111827",
-                    background: "white",
                     boxSizing: "border-box",
+                    padding: "12px",
+                    borderRadius: "8px",
+                    border:
+                      "1px solid #d1d5db",
+                    color: "#111827",
                   }}
                 />
               </div>
 
-              {/* Submit */}
               <button
                 type="submit"
                 disabled={creating}
                 style={{
+                  padding: "12px 18px",
                   border: "none",
-                  background: creating ? "#9ca3af" : "#111827",
-                  color: "white",
-                  padding: "12px 20px",
                   borderRadius: "8px",
-                  cursor: creating ? "not-allowed" : "pointer",
-                  fontSize: "15px",
+                  background: creating
+                    ? "#9ca3af"
+                    : "#111827",
+                  color: "white",
+                  cursor: creating
+                    ? "not-allowed"
+                    : "pointer",
                   fontWeight: "600",
+                  alignSelf: "flex-start",
                 }}
               >
-                {creating ? "Creating..." : "Create Event"}
+                {creating
+                  ? "Creating Event..."
+                  : "Create Event"}
               </button>
             </form>
           </section>
         )}
 
-        {/* Empty State */}
-        {!error && events.length === 0 && (
-          <div
-            style={{
-              background: "white",
-              padding: "50px 30px",
-              borderRadius: "16px",
-              textAlign: "center",
-              boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "48px",
-                marginBottom: "16px",
-              }}
-            >
-              📅
-            </div>
+        {/* ======================================================
+            UPCOMING EVENTS
+        ====================================================== */}
 
-            <h2
-              style={{
-                margin: "0 0 8px",
-                color: "#111827",
-              }}
-            >
-              No upcoming events
-            </h2>
-
-            <p
-              style={{
-                margin: "0",
-                color: "#6b7280",
-              }}
-            >
-              There are currently no campus events scheduled.
-            </p>
-          </div>
-        )}
-
-        {/* Event List */}
-        <div
+        <section
           style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "16px",
+            marginBottom: "32px",
           }}
         >
-          {events.map((event) => (
-            <article
-              key={event.id}
+          <h2
+            style={{
+              marginBottom: "16px",
+            }}
+          >
+            Upcoming Events
+          </h2>
+
+          {upcomingEvents.length === 0 ? (
+            <div
               style={{
                 background: "white",
-                padding: "24px",
-                borderRadius: "16px",
-                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
+                padding: "30px",
+                borderRadius: "12px",
+                textAlign: "center",
                 border: "1px solid #eef0f4",
               }}
             >
-              {/* Event Title */}
-              <h2
-                style={{
-                  margin: "0 0 10px",
-                  fontSize: "22px",
-                  color: "#111827",
-                }}
-              >
-                {event.title}
-              </h2>
-
-              {/* Event Description */}
               <p
                 style={{
-                  margin: "0 0 18px",
-                  color: "#374151",
-                  fontSize: "16px",
-                  lineHeight: "1.6",
-                  whiteSpace: "pre-wrap",
+                  margin: 0,
+                  color: "#6b7280",
                 }}
               >
-                {event.description}
+                No upcoming events at the moment.
               </p>
-
-              {/* Event Details */}
-              <div
-                style={{
-                  display: "grid",
-                  gap: "10px",
-                  marginBottom: "18px",
-                }}
-              >
-                <div
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "16px",
+              }}
+            >
+              {upcomingEvents.map((event) => (
+                <article
+                  key={event.id}
                   style={{
-                    color: "#374151",
-                    fontSize: "15px",
+                    background: "white",
+                    padding: "24px",
+                    borderRadius: "16px",
+                    border:
+                      "1px solid #eef0f4",
+                    boxShadow:
+                      "0 4px 20px rgba(0, 0, 0, 0.04)",
                   }}
                 >
-                  📍 <strong>Location:</strong> {event.location}
-                </div>
+                  <h3
+                    style={{
+                      marginTop: 0,
+                      marginBottom: "10px",
+                      fontSize: "22px",
+                    }}
+                  >
+                    {event.title}
+                  </h3>
 
-                <div
+                  <p
+                    style={{
+                      color: "#374151",
+                      lineHeight: "1.6",
+                      whiteSpace: "pre-wrap",
+                    }}
+                  >
+                    {event.description}
+                  </p>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "8px",
+                      marginTop: "16px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        color: "#374151",
+                      }}
+                    >
+                      <strong>
+                        Location:
+                      </strong>{" "}
+                      {event.location}
+                    </div>
+
+                    <div
+                      style={{
+                        color: "#374151",
+                      }}
+                    >
+                      <strong>
+                        Date & Time:
+                      </strong>{" "}
+                      {formatEventDate(
+                        event.eventDate
+                      )}
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      paddingTop: "14px",
+                      marginTop: "18px",
+                      borderTop:
+                        "1px solid #eef0f4",
+                      display: "flex",
+                      justifyContent:
+                        "space-between",
+                      alignItems: "center",
+                      gap: "10px",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "14px",
+                        color: "#6b7280",
+                      }}
+                    >
+                      Created by{" "}
+                      <strong
+                        style={{
+                          color: "#374151",
+                        }}
+                      >
+                        {event.createdBy.name}
+                      </strong>
+                    </span>
+
+                    <span
+                      style={{
+                        fontSize: "14px",
+                        color: "#6b7280",
+                      }}
+                    >
+                      Posted{" "}
+                      {formatEventDate(
+                        event.createdAt
+                      )}
+                    </span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ======================================================
+            PAST EVENTS
+        ====================================================== */}
+
+        {pastEvents.length > 0 && (
+          <section
+            style={{
+              marginBottom: "32px",
+            }}
+          >
+            <h2
+              style={{
+                marginBottom: "16px",
+              }}
+            >
+              Past Events
+            </h2>
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "16px",
+              }}
+            >
+              {pastEvents.map((event) => (
+                <article
+                  key={event.id}
                   style={{
-                    color: "#374151",
-                    fontSize: "15px",
+                    background: "#f9fafb",
+                    padding: "20px",
+                    borderRadius: "12px",
+                    border:
+                      "1px solid #e5e7eb",
+                    opacity: 0.8,
                   }}
                 >
-                  🕒 <strong>Date & Time:</strong>{" "}
-                  {formatEventDate(event.eventDate)}
-                </div>
-              </div>
+                  <h3
+                    style={{
+                      marginTop: 0,
+                      marginBottom: "8px",
+                    }}
+                  >
+                    {event.title}
+                  </h3>
 
-              {/* Metadata */}
-              <div
-                style={{
-                  paddingTop: "14px",
-                  borderTop: "1px solid #eef0f4",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "10px",
-                  flexWrap: "wrap",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "14px",
-                    color: "#6b7280",
-                  }}
-                >
-                  Created by{" "}
-                  <strong style={{ color: "#374151" }}>
-                    {event.createdBy.name}
-                  </strong>
-                </span>
+                  <p
+                    style={{
+                      color: "#4b5563",
+                      lineHeight: "1.5",
+                    }}
+                  >
+                    {event.description}
+                  </p>
 
-                <span
-                  style={{
-                    fontSize: "14px",
-                    color: "#6b7280",
-                  }}
-                >
-                  {formatEventDate(event.createdAt)}
-                </span>
-              </div>
-            </article>
-          ))}
-        </div>
+                  <p
+                    style={{
+                      marginBottom: "6px",
+                      color: "#6b7280",
+                    }}
+                  >
+                    <strong>
+                      Location:
+                    </strong>{" "}
+                    {event.location}
+                  </p>
+
+                  <p
+                    style={{
+                      margin: 0,
+                      color: "#6b7280",
+                    }}
+                  >
+                    <strong>
+                      Date:
+                    </strong>{" "}
+                    {formatEventDate(
+                      event.eventDate
+                    )}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ======================================================
+            NAVIGATION
+        ====================================================== */}
+
+        <section
+          style={{
+            display: "flex",
+            gap: "12px",
+            flexWrap: "wrap",
+            paddingBottom: "20px",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() =>
+              router.push("/dashboard")
+            }
+            style={{
+              padding: "10px 18px",
+              border: "none",
+              borderRadius: "8px",
+              background: "#111827",
+              color: "white",
+              cursor: "pointer",
+              fontWeight: "600",
+            }}
+          >
+            Back to Dashboard
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              router.push("/announcements")
+            }
+            style={{
+              padding: "10px 18px",
+              border:
+                "1px solid #d1d5db",
+              borderRadius: "8px",
+              background: "white",
+              color: "#111827",
+              cursor: "pointer",
+              fontWeight: "600",
+            }}
+          >
+            Announcements
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              router.push("/notifications")
+            }
+            style={{
+              padding: "10px 18px",
+              border:
+                "1px solid #d1d5db",
+              borderRadius: "8px",
+              background: "white",
+              color: "#111827",
+              cursor: "pointer",
+              fontWeight: "600",
+            }}
+          >
+            Notifications
+          </button>
+        </section>
       </div>
     </main>
   );
