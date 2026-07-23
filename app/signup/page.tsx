@@ -3,29 +3,45 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const router = useRouter();
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleLogin(event: FormEvent<HTMLFormElement>) {
+  async function handleSignup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    setLoading(true);
     setError("");
 
+    // Check password confirmation
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    // Check password length before sending request
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
         body: JSON.stringify({
+          name,
           email,
           password,
         }),
@@ -34,16 +50,19 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Login failed");
+        setError(data.error || "Signup failed.");
         return;
       }
 
-      // Login successful
+      // Signup successful.
+      // The API automatically creates the session cookie.
       router.push("/dashboard");
       router.refresh();
     } catch (error) {
-      console.error("Login error:", error);
-      setError("Something went wrong. Please try again.");
+      console.error("Signup error:", error);
+      setError(
+        "Something went wrong while creating your account. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -88,6 +107,7 @@ export default function LoginPage() {
           ← Back to Home
         </button>
 
+        {/* Heading */}
         <h1
           style={{
             fontSize: "28px",
@@ -96,7 +116,7 @@ export default function LoginPage() {
             color: "#111827",
           }}
         >
-          Welcome Back
+          Create Your Account
         </h1>
 
         <p
@@ -105,10 +125,44 @@ export default function LoginPage() {
             marginBottom: "24px",
           }}
         >
-          Login to your Campus Flow AI account
+          Join Campus Flow AI and manage your campus experience.
         </p>
 
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleSignup}>
+          {/* Name */}
+          <div style={{ marginBottom: "16px" }}>
+            <label
+              htmlFor="name"
+              style={{
+                display: "block",
+                marginBottom: "6px",
+                fontWeight: "500",
+                color: "#374151",
+              }}
+            >
+              Full Name
+            </label>
+
+            <input
+              id="name"
+              type="text"
+              placeholder="Enter your full name"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              required
+              minLength={2}
+              autoComplete="name"
+              style={{
+                width: "100%",
+                padding: "12px",
+                border: "1px solid #ddd",
+                borderRadius: "8px",
+                fontSize: "16px",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+
           {/* Email */}
           <div style={{ marginBottom: "16px" }}>
             <label
@@ -159,11 +213,48 @@ export default function LoginPage() {
             <input
               id="password"
               type="password"
-              placeholder="Enter your password"
+              placeholder="Create a password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
-              autoComplete="current-password"
+              minLength={6}
+              autoComplete="new-password"
+              style={{
+                width: "100%",
+                padding: "12px",
+                border: "1px solid #ddd",
+                borderRadius: "8px",
+                fontSize: "16px",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+
+          {/* Confirm Password */}
+          <div style={{ marginBottom: "16px" }}>
+            <label
+              htmlFor="confirmPassword"
+              style={{
+                display: "block",
+                marginBottom: "6px",
+                fontWeight: "500",
+                color: "#374151",
+              }}
+            >
+              Confirm Password
+            </label>
+
+            <input
+              id="confirmPassword"
+              type="password"
+              placeholder="Confirm your password"
+              value={confirmPassword}
+              onChange={(event) =>
+                setConfirmPassword(event.target.value)
+              }
+              required
+              minLength={6}
+              autoComplete="new-password"
               style={{
                 width: "100%",
                 padding: "12px",
@@ -184,13 +275,14 @@ export default function LoginPage() {
                 background: "#fee2e2",
                 color: "#b91c1c",
                 borderRadius: "8px",
+                lineHeight: "1.5",
               }}
             >
               {error}
             </div>
           )}
 
-          {/* Login Button */}
+          {/* Signup Button */}
           <button
             type="submit"
             disabled={loading}
@@ -206,11 +298,11 @@ export default function LoginPage() {
               cursor: loading ? "not-allowed" : "pointer",
             }}
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 
-        {/* Signup Link */}
+        {/* Login Link */}
         <p
           style={{
             marginTop: "24px",
@@ -219,10 +311,10 @@ export default function LoginPage() {
             fontSize: "14px",
           }}
         >
-          Don&apos;t have an account?{" "}
+          Already have an account?{" "}
           <button
             type="button"
-            onClick={() => router.push("/signup")}
+            onClick={() => router.push("/login")}
             style={{
               border: "none",
               background: "transparent",
@@ -233,7 +325,7 @@ export default function LoginPage() {
               fontSize: "14px",
             }}
           >
-            Sign Up
+            Login
           </button>
         </p>
       </div>
