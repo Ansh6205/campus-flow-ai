@@ -10,6 +10,7 @@ type AdminUser = {
   role: string;
   createdAt: string;
   updatedAt: string;
+
   studentProfile: {
     college: string | null;
     department: string | null;
@@ -18,6 +19,7 @@ type AdminUser = {
     rollNumber: string | null;
     phone: string | null;
   } | null;
+
   _count: {
     complaints: number;
     announcements: number;
@@ -29,16 +31,33 @@ type AdminUser = {
 type AdminUsersResponse = {
   users: AdminUser[];
   total: number;
+  error?: string;
+};
+
+type CurrentAdminResponse = {
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+  };
+  error?: string;
 };
 
 export default function AdminPage() {
   const router = useRouter();
 
-  const [admin, setAdmin] = useState<AdminUser | null>(null);
+  const [admin, setAdmin] = useState<
+    CurrentAdminResponse["user"] | null
+  >(null);
+
   const [users, setUsers] = useState<AdminUser[]>([]);
 
   const [loading, setLoading] = useState(true);
+
   const [usersError, setUsersError] = useState("");
+
+  const [loggingOut, setLoggingOut] = useState(false);
 
   // ============================================================
   // LOAD ADMIN DASHBOARD DATA
@@ -52,65 +71,128 @@ export default function AdminPage() {
         setLoading(true);
         setUsersError("");
 
-        const response = await fetch("/api/admin/users", {
+        // ======================================================
+        // STEP 1: CHECK CURRENT LOGGED-IN USER
+        // ======================================================
+
+        const meResponse = await fetch("/api/auth/me", {
           method: "GET",
           credentials: "include",
+          cache: "no-store",
         });
 
-        const result: AdminUsersResponse & {
-          error?: string;
-        } = await response.json();
+        const meResult: CurrentAdminResponse =
+          await meResponse.json();
 
         if (cancelled) {
           return;
         }
 
-        // Not logged in
-        if (response.status === 401) {
+        // ======================================================
+        // USER IS NOT LOGGED IN
+        // ======================================================
+
+        if (meResponse.status === 401) {
           router.push("/login");
           return;
         }
 
-        // Logged in but not an admin
-        if (response.status === 403) {
+        // ======================================================
+        // AUTH CHECK FAILED
+        // ======================================================
+
+        if (!meResponse.ok || !meResult.user) {
+          setUsersError(
+            meResult.error ||
+              "Unable to verify the current user."
+          );
+
+          return;
+        }
+
+        // ======================================================
+        // USER IS NOT AN ADMIN
+        // ======================================================
+
+        if (meResult.user.role !== "ADMIN") {
           router.push("/dashboard");
           return;
         }
 
-        // Other API errors
-        if (!response.ok) {
-          setUsersError(
-            result.error || "Failed to load admin dashboard"
-          );
+        // ======================================================
+        // STORE CURRENT ADMIN
+        // ======================================================
+
+        setAdmin(meResult.user);
+
+        // ======================================================
+        // STEP 2: LOAD ALL USERS
+        // ======================================================
+
+        const usersResponse = await fetch(
+          "/api/admin/users",
+          {
+            method: "GET",
+            credentials: "include",
+            cache: "no-store",
+          }
+        );
+
+        const usersResult: AdminUsersResponse =
+          await usersResponse.json();
+
+        if (cancelled) {
           return;
         }
 
-        // Make sure users array exists
-        if (!Array.isArray(result.users)) {
+        // ======================================================
+        // USER IS NOT LOGGED IN
+        // ======================================================
+
+        if (usersResponse.status === 401) {
+          router.push("/login");
+          return;
+        }
+
+        // ======================================================
+        // USER IS NOT AN ADMIN
+        // ======================================================
+
+        if (usersResponse.status === 403) {
+          router.push("/dashboard");
+          return;
+        }
+
+        // ======================================================
+        // OTHER API ERROR
+        // ======================================================
+
+        if (!usersResponse.ok) {
+          setUsersError(
+            usersResult.error ||
+              "Failed to load admin dashboard."
+          );
+
+          return;
+        }
+
+        // ======================================================
+        // VALIDATE USERS ARRAY
+        // ======================================================
+
+        if (!Array.isArray(usersResult.users)) {
           setUsersError(
             "Invalid response received from admin API."
           );
+
           return;
         }
 
-        // Store all users
-        setUsers(result.users);
+        // ======================================================
+        // STORE USERS
+        // ======================================================
 
-        // Find the logged-in admin
-        // The API only allows ADMIN users to access this route,
-        // so there should be at least one admin in the result.
-        const currentAdmin = result.users.find(
-          (user) => user.role === "ADMIN"
-        );
-
-        if (!currentAdmin) {
-          setUsersError(
-            "Admin user information could not be found."
-          );
-          return;
-        }
-
-        setAdmin(currentAdmin);
+        setUsers(usersResult.users);
       } catch (error) {
         if (cancelled) {
           return;
@@ -144,15 +226,29 @@ export default function AdminPage() {
 
   async function handleLogout() {
     try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      setLoggingOut(true);
+
+      const response = await fetch(
+        "/api/auth/logout",
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        console.error(
+          "Logout failed with status:",
+          response.status
+        );
+      }
 
       router.push("/login");
       router.refresh();
     } catch (error) {
       console.error("Logout Error:", error);
+
+      setLoggingOut(false);
     }
   }
 
@@ -171,6 +267,7 @@ export default function AdminPage() {
           background: "#f5f7fb",
           color: "#111827",
           fontSize: "20px",
+          padding: "24px",
         }}
       >
         Loading admin dashboard...
@@ -236,7 +333,9 @@ export default function AdminPage() {
           >
             <button
               type="button"
-              onClick={() => window.location.reload()}
+              onClick={() =>
+                window.location.reload()
+              }
               style={{
                 padding: "10px 18px",
                 border: "none",
@@ -252,7 +351,9 @@ export default function AdminPage() {
 
             <button
               type="button"
-              onClick={() => router.push("/dashboard")}
+              onClick={() =>
+                router.push("/dashboard")
+              }
               style={{
                 padding: "10px 18px",
                 border: "1px solid #d1d5db",
@@ -291,25 +392,27 @@ export default function AdminPage() {
 
   const totalComplaints = users.reduce(
     (total, user) =>
-      total + user._count.complaints,
+      total + (user._count?.complaints ?? 0),
     0
   );
 
   const totalAnnouncements = users.reduce(
     (total, user) =>
-      total + user._count.announcements,
+      total +
+      (user._count?.announcements ?? 0),
     0
   );
 
   const totalEvents = users.reduce(
     (total, user) =>
-      total + user._count.events,
+      total + (user._count?.events ?? 0),
     0
   );
 
   const totalNotifications = users.reduce(
     (total, user) =>
-      total + user._count.notifications,
+      total +
+      (user._count?.notifications ?? 0),
     0
   );
 
@@ -332,7 +435,8 @@ export default function AdminPage() {
       <header
         style={{
           background: "white",
-          borderBottom: "1px solid #e5e7eb",
+          borderBottom:
+            "1px solid #e5e7eb",
           padding: "18px 32px",
         }}
       >
@@ -341,7 +445,8 @@ export default function AdminPage() {
             maxWidth: "1200px",
             margin: "0 auto",
             display: "flex",
-            justifyContent: "space-between",
+            justifyContent:
+              "space-between",
             alignItems: "center",
             gap: "20px",
             flexWrap: "wrap",
@@ -401,17 +506,24 @@ export default function AdminPage() {
             <button
               type="button"
               onClick={handleLogout}
+              disabled={loggingOut}
               style={{
                 padding: "10px 16px",
                 border: "none",
                 borderRadius: "8px",
-                background: "#111827",
+                background: loggingOut
+                  ? "#6b7280"
+                  : "#111827",
                 color: "white",
-                cursor: "pointer",
+                cursor: loggingOut
+                  ? "not-allowed"
+                  : "pointer",
                 fontWeight: "600",
               }}
             >
-              Logout
+              {loggingOut
+                ? "Logging out..."
+                : "Logout"}
             </button>
           </div>
         </div>
@@ -452,8 +564,8 @@ export default function AdminPage() {
               color: "#6b7280",
             }}
           >
-            Manage and monitor your campus operations
-            from one place.
+            Manage and monitor your campus
+            operations from one place.
           </p>
         </section>
 
@@ -470,12 +582,15 @@ export default function AdminPage() {
             marginBottom: "32px",
           }}
         >
+          {/* TOTAL USERS */}
+
           <div
             style={{
               background: "white",
               padding: "24px",
               borderRadius: "16px",
-              border: "1px solid #eef0f4",
+              border:
+                "1px solid #eef0f4",
               boxShadow:
                 "0 4px 20px rgba(0, 0, 0, 0.05)",
             }}
@@ -500,12 +615,15 @@ export default function AdminPage() {
             </h3>
           </div>
 
+          {/* STUDENTS */}
+
           <div
             style={{
               background: "white",
               padding: "24px",
               borderRadius: "16px",
-              border: "1px solid #eef0f4",
+              border:
+                "1px solid #eef0f4",
               boxShadow:
                 "0 4px 20px rgba(0, 0, 0, 0.05)",
             }}
@@ -530,12 +648,15 @@ export default function AdminPage() {
             </h3>
           </div>
 
+          {/* FACULTY */}
+
           <div
             style={{
               background: "white",
               padding: "24px",
               borderRadius: "16px",
-              border: "1px solid #eef0f4",
+              border:
+                "1px solid #eef0f4",
               boxShadow:
                 "0 4px 20px rgba(0, 0, 0, 0.05)",
             }}
@@ -560,12 +681,15 @@ export default function AdminPage() {
             </h3>
           </div>
 
+          {/* ADMINISTRATORS */}
+
           <div
             style={{
               background: "white",
               padding: "24px",
               borderRadius: "16px",
-              border: "1px solid #eef0f4",
+              border:
+                "1px solid #eef0f4",
               boxShadow:
                 "0 4px 20px rgba(0, 0, 0, 0.05)",
             }}
@@ -616,15 +740,20 @@ export default function AdminPage() {
               gap: "16px",
             }}
           >
+            {/* COMPLAINTS */}
+
             <div
               style={{
                 background: "white",
                 padding: "20px",
                 borderRadius: "16px",
-                border: "1px solid #eef0f4",
+                border:
+                  "1px solid #eef0f4",
               }}
             >
-              <strong>Complaints</strong>
+              <strong>
+                Complaints
+              </strong>
 
               <p
                 style={{
@@ -637,15 +766,20 @@ export default function AdminPage() {
               </p>
             </div>
 
+            {/* ANNOUNCEMENTS */}
+
             <div
               style={{
                 background: "white",
                 padding: "20px",
                 borderRadius: "16px",
-                border: "1px solid #eef0f4",
+                border:
+                  "1px solid #eef0f4",
               }}
             >
-              <strong>Announcements</strong>
+              <strong>
+                Announcements
+              </strong>
 
               <p
                 style={{
@@ -658,15 +792,20 @@ export default function AdminPage() {
               </p>
             </div>
 
+            {/* EVENTS */}
+
             <div
               style={{
                 background: "white",
                 padding: "20px",
                 borderRadius: "16px",
-                border: "1px solid #eef0f4",
+                border:
+                  "1px solid #eef0f4",
               }}
             >
-              <strong>Events</strong>
+              <strong>
+                Events
+              </strong>
 
               <p
                 style={{
@@ -679,15 +818,20 @@ export default function AdminPage() {
               </p>
             </div>
 
+            {/* NOTIFICATIONS */}
+
             <div
               style={{
                 background: "white",
                 padding: "20px",
                 borderRadius: "16px",
-                border: "1px solid #eef0f4",
+                border:
+                  "1px solid #eef0f4",
               }}
             >
-              <strong>Notifications</strong>
+              <strong>
+                Notifications
+              </strong>
 
               <p
                 style={{
@@ -711,7 +855,8 @@ export default function AdminPage() {
             background: "white",
             padding: "24px",
             borderRadius: "16px",
-            border: "1px solid #eef0f4",
+            border:
+              "1px solid #eef0f4",
             boxShadow:
               "0 4px 20px rgba(0, 0, 0, 0.05)",
           }}
@@ -735,7 +880,8 @@ export default function AdminPage() {
                 color: "#6b7280",
               }}
             >
-              View all registered users and their activity.
+              View all registered users and
+              their activity.
             </p>
           </div>
 
@@ -756,7 +902,8 @@ export default function AdminPage() {
               <table
                 style={{
                   width: "100%",
-                  borderCollapse: "collapse",
+                  borderCollapse:
+                    "collapse",
                   minWidth: "850px",
                 }}
               >
@@ -768,31 +915,59 @@ export default function AdminPage() {
                       textAlign: "left",
                     }}
                   >
-                    <th style={{ padding: "12px" }}>
+                    <th
+                      style={{
+                        padding: "12px",
+                      }}
+                    >
                       Name
                     </th>
 
-                    <th style={{ padding: "12px" }}>
+                    <th
+                      style={{
+                        padding: "12px",
+                      }}
+                    >
                       Email
                     </th>
 
-                    <th style={{ padding: "12px" }}>
+                    <th
+                      style={{
+                        padding: "12px",
+                      }}
+                    >
                       Role
                     </th>
 
-                    <th style={{ padding: "12px" }}>
+                    <th
+                      style={{
+                        padding: "12px",
+                      }}
+                    >
                       Complaints
                     </th>
 
-                    <th style={{ padding: "12px" }}>
+                    <th
+                      style={{
+                        padding: "12px",
+                      }}
+                    >
                       Announcements
                     </th>
 
-                    <th style={{ padding: "12px" }}>
+                    <th
+                      style={{
+                        padding: "12px",
+                      }}
+                    >
                       Events
                     </th>
 
-                    <th style={{ padding: "12px" }}>
+                    <th
+                      style={{
+                        padding: "12px",
+                      }}
+                    >
                       Notifications
                     </th>
                   </tr>
@@ -809,7 +984,8 @@ export default function AdminPage() {
                     >
                       <td
                         style={{
-                          padding: "14px 12px",
+                          padding:
+                            "14px 12px",
                           fontWeight: "600",
                         }}
                       >
@@ -818,7 +994,8 @@ export default function AdminPage() {
 
                       <td
                         style={{
-                          padding: "14px 12px",
+                          padding:
+                            "14px 12px",
                           color: "#6b7280",
                         }}
                       >
@@ -827,30 +1004,41 @@ export default function AdminPage() {
 
                       <td
                         style={{
-                          padding: "14px 12px",
+                          padding:
+                            "14px 12px",
                         }}
                       >
                         <span
                           style={{
-                            display: "inline-block",
-                            padding: "5px 9px",
-                            borderRadius: "6px",
+                            display:
+                              "inline-block",
+                            padding:
+                              "5px 9px",
+                            borderRadius:
+                              "6px",
+
                             background:
-                              user.role === "ADMIN"
+                              user.role ===
+                              "ADMIN"
                                 ? "#ede9fe"
                                 : user.role ===
-                                    "FACULTY"
-                                  ? "#dbeafe"
-                                  : "#dcfce7",
+                                  "FACULTY"
+                                ? "#dbeafe"
+                                : "#dcfce7",
+
                             color:
-                              user.role === "ADMIN"
+                              user.role ===
+                              "ADMIN"
                                 ? "#6d28d9"
                                 : user.role ===
-                                    "FACULTY"
-                                  ? "#1d4ed8"
-                                  : "#166534",
-                            fontSize: "12px",
-                            fontWeight: "700",
+                                  "FACULTY"
+                                ? "#1d4ed8"
+                                : "#166534",
+
+                            fontSize:
+                              "12px",
+                            fontWeight:
+                              "700",
                           }}
                         >
                           {user.role}
@@ -859,34 +1047,42 @@ export default function AdminPage() {
 
                       <td
                         style={{
-                          padding: "14px 12px",
+                          padding:
+                            "14px 12px",
                         }}
                       >
-                        {user._count.complaints}
+                        {user._count
+                          ?.complaints ?? 0}
                       </td>
 
                       <td
                         style={{
-                          padding: "14px 12px",
+                          padding:
+                            "14px 12px",
                         }}
                       >
-                        {user._count.announcements}
+                        {user._count
+                          ?.announcements ?? 0}
                       </td>
 
                       <td
                         style={{
-                          padding: "14px 12px",
+                          padding:
+                            "14px 12px",
                         }}
                       >
-                        {user._count.events}
+                        {user._count
+                          ?.events ?? 0}
                       </td>
 
                       <td
                         style={{
-                          padding: "14px 12px",
+                          padding:
+                            "14px 12px",
                         }}
                       >
-                        {user._count.notifications}
+                        {user._count
+                          ?.notifications ?? 0}
                       </td>
                     </tr>
                   ))}
@@ -908,9 +1104,13 @@ export default function AdminPage() {
             flexWrap: "wrap",
           }}
         >
+          {/* BACK TO DASHBOARD */}
+
           <button
             type="button"
-            onClick={() => router.push("/dashboard")}
+            onClick={() =>
+              router.push("/dashboard")
+            }
             style={{
               padding: "10px 18px",
               border: "none",
@@ -924,14 +1124,19 @@ export default function AdminPage() {
             Back to Dashboard
           </button>
 
+          {/* ANNOUNCEMENTS */}
+
           <button
             type="button"
             onClick={() =>
-              router.push("/announcements")
+              router.push(
+                "/announcements"
+              )
             }
             style={{
               padding: "10px 18px",
-              border: "1px solid #d1d5db",
+              border:
+                "1px solid #d1d5db",
               borderRadius: "8px",
               background: "white",
               color: "#111827",
@@ -942,12 +1147,17 @@ export default function AdminPage() {
             Manage Announcements
           </button>
 
+          {/* EVENTS */}
+
           <button
             type="button"
-            onClick={() => router.push("/events")}
+            onClick={() =>
+              router.push("/events")
+            }
             style={{
               padding: "10px 18px",
-              border: "1px solid #d1d5db",
+              border:
+                "1px solid #d1d5db",
               borderRadius: "8px",
               background: "white",
               color: "#111827",
@@ -958,14 +1168,19 @@ export default function AdminPage() {
             Manage Events
           </button>
 
+          {/* COMPLAINTS */}
+
           <button
             type="button"
             onClick={() =>
-              router.push("/complaints")
+              router.push(
+                "/complaints"
+              )
             }
             style={{
               padding: "10px 18px",
-              border: "1px solid #d1d5db",
+              border:
+                "1px solid #d1d5db",
               borderRadius: "8px",
               background: "white",
               color: "#111827",
@@ -976,14 +1191,19 @@ export default function AdminPage() {
             Manage Complaints
           </button>
 
+          {/* NOTIFICATIONS */}
+
           <button
             type="button"
             onClick={() =>
-              router.push("/notifications")
+              router.push(
+                "/notifications"
+              )
             }
             style={{
               padding: "10px 18px",
-              border: "1px solid #d1d5db",
+              border:
+                "1px solid #d1d5db",
               borderRadius: "8px",
               background: "white",
               color: "#111827",
