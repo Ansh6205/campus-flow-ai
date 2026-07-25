@@ -70,7 +70,8 @@ export async function POST(request: Request) {
     if (user.role !== "FACULTY" && user.role !== "ADMIN") {
       return NextResponse.json(
         {
-          error: "You are not authorized to create announcements",
+          error:
+            "You are not authorized to create announcements",
         },
         {
           status: 403,
@@ -115,17 +116,44 @@ export async function POST(request: Request) {
       },
     });
 
+    // Find all students
+    const students = await prisma.user.findMany({
+      where: {
+        role: "STUDENT",
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    // Create notifications for all students
+    if (students.length > 0) {
+      await prisma.notification.createMany({
+        data: students.map((student) => ({
+          userId: student.id,
+          title: `New Announcement: ${title}`,
+          message: content,
+          isRead: false,
+        })),
+      });
+    }
+
     return NextResponse.json(
       {
-        message: "Announcement created successfully",
+        message:
+          "Announcement created and notifications sent successfully",
         announcement,
+        notificationsSent: students.length,
       },
       {
         status: 201,
       }
     );
   } catch (error) {
-    console.error("Create Announcement Error:", error);
+    console.error(
+      "Create Announcement Error:",
+      error
+    );
 
     return NextResponse.json(
       {
