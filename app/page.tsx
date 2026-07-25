@@ -5,16 +5,22 @@ import { useRouter } from "next/navigation";
 export default function Home() {
   const router = useRouter();
 
+  // =========================================
+  // NAVIGATION HANDLERS
+  // =========================================
+
   function handleGetStarted() {
     router.push("/login");
   }
 
+  function handleSignUp() {
+    router.push("/signup");
+  }
+
   function handleLearnMore() {
-    document
-      .getElementById("features")
-      ?.scrollIntoView({
-        behavior: "smooth",
-      });
+    document.getElementById("features")?.scrollIntoView({
+      behavior: "smooth",
+    });
   }
 
   return (
@@ -36,6 +42,7 @@ export default function Home() {
 
           {/* Navbar Buttons */}
           <div className="flex items-center gap-3">
+            {/* Login */}
             <button
               type="button"
               onClick={() => router.push("/login")}
@@ -44,9 +51,10 @@ export default function Home() {
               Login
             </button>
 
+            {/* Sign Up */}
             <button
               type="button"
-              onClick={() => router.push("/login")}
+              onClick={handleSignUp}
               className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
             >
               Sign Up
@@ -70,16 +78,13 @@ export default function Home() {
           <h1 className="text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl">
             Manage Your Campus.
             <br />
-            <span className="text-gray-600">
-              Smarter.
-            </span>
+            <span className="text-gray-600">Smarter.</span>
           </h1>
 
           {/* Description */}
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600">
-            Campus Flow AI brings students, faculty, and
-            campus operations together in one intelligent
-            platform.
+            Campus Flow AI brings students, faculty, and campus operations
+            together in one intelligent platform.
           </p>
 
           {/* Hero Buttons */}
@@ -130,97 +135,92 @@ export default function Home() {
             </h2>
 
             <p className="mt-4 text-lg leading-8 text-gray-600">
-              Campus Flow AI connects the most important
-              campus activities into one simple and
-              easy-to-use platform.
+              Campus Flow AI connects the most important campus activities
+              into one simple and easy-to-use platform.
             </p>
           </div>
 
           {/* Feature Cards */}
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Events */}
+            {/* ========================================= */}
+            {/* EVENTS */}
+            {/* ========================================= */}
+
             <button
               type="button"
               onClick={() => router.push("/events")}
               className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-left transition hover:-translate-y-1 hover:shadow-lg"
             >
-              <div className="text-3xl">
-                📅
-              </div>
+              <div className="text-3xl">📅</div>
 
               <h3 className="mt-4 text-lg font-semibold text-gray-900">
                 Campus Events
               </h3>
 
               <p className="mt-2 text-sm leading-6 text-gray-600">
-                Discover upcoming events and campus
-                activities in one place.
+                Discover upcoming events and campus activities in one place.
               </p>
             </button>
 
-            {/* Announcements */}
+            {/* ========================================= */}
+            {/* ANNOUNCEMENTS */}
+            {/* ========================================= */}
+
             <button
               type="button"
-              onClick={() =>
-                router.push("/announcements")
-              }
+              onClick={() => router.push("/announcements")}
               className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-left transition hover:-translate-y-1 hover:shadow-lg"
             >
-              <div className="text-3xl">
-                📢
-              </div>
+              <div className="text-3xl">📢</div>
 
               <h3 className="mt-4 text-lg font-semibold text-gray-900">
                 Announcements
               </h3>
 
               <p className="mt-2 text-sm leading-6 text-gray-600">
-                Stay updated with important campus
-                news, notices, and announcements.
+                Stay updated with important campus news, notices, and
+                announcements.
               </p>
             </button>
 
-            {/* Complaints */}
+            {/* ========================================= */}
+            {/* COMPLAINTS */}
+            {/* ========================================= */}
+
             <button
               type="button"
-              onClick={() =>
-                router.push("/login")
-              }
+              onClick={() => router.push("/login")}
               className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-left transition hover:-translate-y-1 hover:shadow-lg"
             >
-              <div className="text-3xl">
-                📝
-              </div>
+              <div className="text-3xl">📝</div>
 
               <h3 className="mt-4 text-lg font-semibold text-gray-900">
                 Complaints
               </h3>
 
               <p className="mt-2 text-sm leading-6 text-gray-600">
-                Report campus issues and track the
-                status of your complaints.
+                Report campus issues and track the status of your complaints.
               </p>
             </button>
 
-            {/* Notifications */}
+            {/* ========================================= */}
+            {/* NOTIFICATIONS */}
+            {/* ========================================= */}
+
             <button
               type="button"
-              onClick={() =>
-                router.push("/login")
-              }
+              onClick={() => router.push("/login")}
               className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-left transition hover:-translate-y-1 hover:shadow-lg"
             >
-              <div className="text-3xl">
-                🔔
-              </div>
+              <div className="text-3xl">🔔</div>
 
               <h3 className="mt-4 text-lg font-semibold text-gray-900">
                 Notifications
               </h3>
 
               <p className="mt-2 text-sm leading-6 text-gray-600">
-                Keep track of important updates and
-                notifications from your campus.
+                Keep track of important updates and notifications from your
+                campus.
               </p>
             </button>
           </div>
@@ -238,8 +238,8 @@ export default function Home() {
           </h2>
 
           <p className="mt-4 text-lg text-gray-600">
-            Log in to your Campus Flow AI account and
-            access your campus dashboard.
+            Log in to your Campus Flow AI account and access your campus
+            dashboard.
           </p>
 
           <button
