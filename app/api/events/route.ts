@@ -95,8 +95,10 @@ export async function POST(request: Request) {
       );
     }
 
+    // Read request body
     const body = await request.json();
 
+    // Validate event data
     const result = createEventSchema.safeParse(body);
 
     if (!result.success) {
@@ -110,8 +112,14 @@ export async function POST(request: Request) {
       );
     }
 
-    const { title, description, location, eventDate } = result.data;
+    const {
+      title,
+      description,
+      location,
+      eventDate,
+    } = result.data;
 
+    // Create event
     const event = await prisma.event.create({
       data: {
         title,
@@ -131,10 +139,38 @@ export async function POST(request: Request) {
       },
     });
 
+    // ============================================================
+    // CREATE NOTIFICATIONS FOR ALL STUDENTS
+    // ============================================================
+
+    // Find all student users
+    const students = await prisma.user.findMany({
+      where: {
+        role: "STUDENT",
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    // Create a notification for every student
+    if (students.length > 0) {
+      await prisma.notification.createMany({
+        data: students.map((student) => ({
+          userId: student.id,
+          title: `New Event: ${event.title}`,
+          message: `A new campus event "${event.title}" has been scheduled at ${event.location}.`,
+          isRead: false,
+        })),
+      });
+    }
+
     return NextResponse.json(
       {
-        message: "Event created successfully",
+        message:
+          "Event created successfully and students notified",
         event,
+        notificationsCreated: students.length,
       },
       {
         status: 201,
@@ -145,7 +181,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       {
-        error: "Something went wrong while creating the event",
+        error:
+          "Something went wrong while creating the event",
       },
       {
         status: 500,
