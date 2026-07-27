@@ -68,7 +68,6 @@ export default function ComplaintsPage() {
         setLoading(true);
         setError("");
 
-        // Get logged-in user
         const userResponse = await fetch("/api/auth/me", {
           method: "GET",
           credentials: "include",
@@ -95,7 +94,6 @@ export default function ComplaintsPage() {
 
         setUser(userData.user);
 
-        // Get complaints
         const complaintResponse = await fetch(
           "/api/complaint",
           {
@@ -382,26 +380,26 @@ export default function ComplaintsPage() {
     switch (status) {
       case "PENDING":
         return {
-          background: "#fef3c7",
-          color: "#92400e",
+          background: "var(--warning-soft)",
+          color: "var(--warning)",
         };
 
       case "IN_PROGRESS":
         return {
-          background: "#dbeafe",
-          color: "#1e40af",
+          background: "var(--info-soft)",
+          color: "var(--info)",
         };
 
       case "RESOLVED":
         return {
-          background: "#dcfce7",
-          color: "#166534",
+          background: "var(--success-soft)",
+          color: "var(--success)",
         };
 
       default:
         return {
-          background: "#f3f4f6",
-          color: "#374151",
+          background: "var(--surface-muted)",
+          color: "var(--text-secondary)",
         };
     }
   }
@@ -415,20 +413,32 @@ export default function ComplaintsPage() {
       <main
         style={{
           minHeight: "100vh",
-          background: "#f5f7fb",
+          background: "var(--background)",
+          color: "var(--text-primary)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          transition:
+            "background-color var(--duration-normal) var(--ease-standard), color var(--duration-normal) var(--ease-standard)",
         }}
       >
-        <p
+        <div
+          className="glass"
           style={{
-            fontSize: "18px",
-            color: "#374151",
+            padding: "24px 32px",
+            borderRadius: "var(--radius-lg)",
           }}
         >
-          Loading complaints...
-        </p>
+          <p
+            style={{
+              margin: 0,
+              fontSize: "18px",
+              color: "var(--text-secondary)",
+            }}
+          >
+            Loading complaints...
+          </p>
+        </div>
       </main>
     );
   }
@@ -457,8 +467,11 @@ export default function ComplaintsPage() {
     <main
       style={{
         minHeight: "100vh",
-        background: "#f5f7fb",
+        background: "var(--background)",
+        color: "var(--text-primary)",
         padding: "32px 20px",
+        transition:
+          "background-color var(--duration-normal) var(--ease-standard), color var(--duration-normal) var(--ease-standard)",
       }}
     >
       <div
@@ -485,7 +498,7 @@ export default function ComplaintsPage() {
               cursor: "pointer",
               padding: 0,
               marginBottom: "12px",
-              color: "#374151",
+              color: "var(--text-secondary)",
               fontSize: "15px",
             }}
           >
@@ -496,7 +509,7 @@ export default function ComplaintsPage() {
             style={{
               margin: "0 0 8px",
               fontSize: "32px",
-              color: "#111827",
+              color: "var(--text-primary)",
             }}
           >
             Campus Complaints
@@ -505,7 +518,7 @@ export default function ComplaintsPage() {
           <p
             style={{
               margin: 0,
-              color: "#6b7280",
+              color: "var(--text-secondary)",
               fontSize: "16px",
             }}
           >
@@ -521,9 +534,11 @@ export default function ComplaintsPage() {
             style={{
               marginBottom: "20px",
               padding: "14px",
-              background: "#fee2e2",
-              color: "#b91c1c",
-              borderRadius: "10px",
+              background: "var(--danger-soft)",
+              color: "var(--danger)",
+              border:
+                "1px solid var(--border)",
+              borderRadius: "var(--radius-md)",
             }}
           >
             {error}
@@ -537,9 +552,11 @@ export default function ComplaintsPage() {
             style={{
               marginBottom: "20px",
               padding: "14px",
-              background: "#dcfce7",
-              color: "#166534",
-              borderRadius: "10px",
+              background: "var(--success-soft)",
+              color: "var(--success)",
+              border:
+                "1px solid var(--border)",
+              borderRadius: "var(--radius-md)",
             }}
           >
             {success}
@@ -550,14 +567,10 @@ export default function ComplaintsPage() {
 
         {isStudent && (
           <section
+            className="glass-strong"
             style={{
-              background: "white",
               padding: "24px",
-              borderRadius: "16px",
-              boxShadow:
-                "0 4px 20px rgba(0, 0, 0, 0.05)",
-              border:
-                "1px solid #eef0f4",
+              borderRadius: "var(--radius-xl)",
               marginBottom: "28px",
             }}
           >
@@ -565,7 +578,7 @@ export default function ComplaintsPage() {
               style={{
                 margin: "0 0 8px",
                 fontSize: "22px",
-                color: "#111827",
+                color: "var(--text-primary)",
               }}
             >
               Submit a Complaint
@@ -574,7 +587,7 @@ export default function ComplaintsPage() {
             <p
               style={{
                 margin: "0 0 20px",
-                color: "#6b7280",
+                color: "var(--text-secondary)",
               }}
             >
               Report an issue related to campus
@@ -583,6 +596,8 @@ export default function ComplaintsPage() {
             </p>
 
             <form onSubmit={handleSubmit}>
+              {/* TITLE */}
+
               <div
                 style={{
                   marginBottom: "18px",
@@ -594,7 +609,7 @@ export default function ComplaintsPage() {
                     display: "block",
                     marginBottom: "7px",
                     fontWeight: "600",
-                    color: "#374151",
+                    color: "var(--text-primary)",
                   }}
                 >
                   Complaint Title
@@ -616,16 +631,21 @@ export default function ComplaintsPage() {
                     width: "100%",
                     padding: "12px",
                     border:
-                      "1px solid #d1d5db",
-                    borderRadius: "8px",
+                      "1px solid var(--border)",
+                    borderRadius:
+                      "var(--radius-md)",
                     fontSize: "16px",
-                    color: "#111827",
-                    background: "white",
+                    color:
+                      "var(--text-primary)",
+                    background:
+                      "var(--surface-solid)",
                     boxSizing:
                       "border-box",
                   }}
                 />
               </div>
+
+              {/* CATEGORY */}
 
               <div
                 style={{
@@ -638,7 +658,7 @@ export default function ComplaintsPage() {
                     display: "block",
                     marginBottom: "7px",
                     fontWeight: "600",
-                    color: "#374151",
+                    color: "var(--text-primary)",
                   }}
                 >
                   Category
@@ -657,11 +677,14 @@ export default function ComplaintsPage() {
                     width: "100%",
                     padding: "12px",
                     border:
-                      "1px solid #d1d5db",
-                    borderRadius: "8px",
+                      "1px solid var(--border)",
+                    borderRadius:
+                      "var(--radius-md)",
                     fontSize: "16px",
-                    color: "#111827",
-                    background: "white",
+                    color:
+                      "var(--text-primary)",
+                    background:
+                      "var(--surface-solid)",
                     boxSizing:
                       "border-box",
                   }}
@@ -708,6 +731,8 @@ export default function ComplaintsPage() {
                 </select>
               </div>
 
+              {/* LOCATION */}
+
               <div
                 style={{
                   marginBottom: "18px",
@@ -719,7 +744,7 @@ export default function ComplaintsPage() {
                     display: "block",
                     marginBottom: "7px",
                     fontWeight: "600",
-                    color: "#374151",
+                    color: "var(--text-primary)",
                   }}
                 >
                   Location
@@ -741,16 +766,21 @@ export default function ComplaintsPage() {
                     width: "100%",
                     padding: "12px",
                     border:
-                      "1px solid #d1d5db",
-                    borderRadius: "8px",
+                      "1px solid var(--border)",
+                    borderRadius:
+                      "var(--radius-md)",
                     fontSize: "16px",
-                    color: "#111827",
-                    background: "white",
+                    color:
+                      "var(--text-primary)",
+                    background:
+                      "var(--surface-solid)",
                     boxSizing:
                       "border-box",
                   }}
                 />
               </div>
+
+              {/* DESCRIPTION */}
 
               <div
                 style={{
@@ -763,7 +793,7 @@ export default function ComplaintsPage() {
                     display: "block",
                     marginBottom: "7px",
                     fontWeight: "600",
-                    color: "#374151",
+                    color: "var(--text-primary)",
                   }}
                 >
                   Description
@@ -785,11 +815,14 @@ export default function ComplaintsPage() {
                     width: "100%",
                     padding: "12px",
                     border:
-                      "1px solid #d1d5db",
-                    borderRadius: "8px",
+                      "1px solid var(--border)",
+                    borderRadius:
+                      "var(--radius-md)",
                     fontSize: "16px",
-                    color: "#111827",
-                    background: "white",
+                    color:
+                      "var(--text-primary)",
+                    background:
+                      "var(--surface-solid)",
                     resize: "vertical",
                     boxSizing:
                       "border-box",
@@ -799,23 +832,33 @@ export default function ComplaintsPage() {
                 />
               </div>
 
+              {/* SUBMIT BUTTON */}
+
               <button
                 type="submit"
                 disabled={submitting}
                 style={{
-                  border: "none",
-                  background: submitting
-                    ? "#9ca3af"
-                    : "#111827",
-                  color: "white",
-                  padding:
-                    "12px 20px",
-                  borderRadius: "8px",
+                  border: "1px solid var(--border)",
+                  background:
+                    submitting
+                      ? "var(--surface-muted)"
+                      : "var(--primary)",
+                  color:
+                    submitting
+                      ? "var(--text-muted)"
+                      : "var(--text-inverse)",
+                  padding: "12px 20px",
+                  borderRadius:
+                    "var(--radius-md)",
                   cursor: submitting
                     ? "not-allowed"
                     : "pointer",
                   fontSize: "15px",
                   fontWeight: "600",
+                  boxShadow:
+                    submitting
+                      ? "none"
+                      : "var(--shadow-sm)",
                 }}
               >
                 {submitting
@@ -844,7 +887,7 @@ export default function ComplaintsPage() {
               <h2
                 style={{
                   margin: "0 0 4px",
-                  color: "#111827",
+                  color: "var(--text-primary)",
                 }}
               >
                 {isStudent
@@ -855,7 +898,7 @@ export default function ComplaintsPage() {
               <p
                 style={{
                   margin: 0,
-                  color: "#6b7280",
+                  color: "var(--text-muted)",
                 }}
               >
                 {complaints.length} complaint
@@ -871,13 +914,19 @@ export default function ComplaintsPage() {
                 window.location.reload()
               }
               style={{
-                border: "none",
-                background: "#111827",
-                color: "white",
+                border:
+                  "1px solid var(--border)",
+                background:
+                  "var(--primary)",
+                color:
+                  "var(--text-inverse)",
                 padding: "10px 16px",
-                borderRadius: "8px",
+                borderRadius:
+                  "var(--radius-md)",
                 cursor: "pointer",
                 fontWeight: "600",
+                boxShadow:
+                  "var(--shadow-sm)",
               }}
             >
               Refresh
@@ -888,14 +937,12 @@ export default function ComplaintsPage() {
 
           {complaints.length === 0 && (
             <div
+              className="glass"
               style={{
-                background: "white",
-                padding:
-                  "50px 30px",
-                borderRadius: "16px",
+                padding: "50px 30px",
+                borderRadius:
+                  "var(--radius-xl)",
                 textAlign: "center",
-                boxShadow:
-                  "0 4px 20px rgba(0, 0, 0, 0.05)",
               }}
             >
               <div
@@ -909,9 +956,9 @@ export default function ComplaintsPage() {
 
               <h3
                 style={{
-                  margin:
-                    "0 0 8px",
-                  color: "#111827",
+                  margin: "0 0 8px",
+                  color:
+                    "var(--text-primary)",
                 }}
               >
                 No complaints yet
@@ -920,7 +967,8 @@ export default function ComplaintsPage() {
               <p
                 style={{
                   margin: 0,
-                  color: "#6b7280",
+                  color:
+                    "var(--text-secondary)",
                 }}
               >
                 {isStudent
@@ -935,8 +983,7 @@ export default function ComplaintsPage() {
           <div
             style={{
               display: "flex",
-              flexDirection:
-                "column",
+              flexDirection: "column",
               gap: "16px",
             }}
           >
@@ -962,30 +1009,24 @@ export default function ComplaintsPage() {
                     key={
                       complaint.id
                     }
+                    className="glass"
                     style={{
-                      background:
-                        "white",
-                      padding:
-                        "24px",
+                      padding: "24px",
                       borderRadius:
-                        "16px",
-                      boxShadow:
-                        "0 4px 20px rgba(0, 0, 0, 0.05)",
-                      border:
-                        "1px solid #eef0f4",
+                        "var(--radius-xl)",
                     }}
                   >
+                    {/* CARD HEADER */}
+
                     <div
                       style={{
-                        display:
-                          "flex",
+                        display: "flex",
                         justifyContent:
                           "space-between",
                         alignItems:
                           "flex-start",
                         gap: "16px",
-                        flexWrap:
-                          "wrap",
+                        flexWrap: "wrap",
                         marginBottom:
                           "12px",
                       }}
@@ -996,7 +1037,7 @@ export default function ComplaintsPage() {
                             margin:
                               "0 0 8px",
                             color:
-                              "#111827",
+                              "var(--text-primary)",
                             fontSize:
                               "21px",
                           }}
@@ -1010,7 +1051,7 @@ export default function ComplaintsPage() {
                           style={{
                             margin: 0,
                             color:
-                              "#6b7280",
+                              "var(--text-muted)",
                             fontSize:
                               "14px",
                           }}
@@ -1028,7 +1069,7 @@ export default function ComplaintsPage() {
                           padding:
                             "6px 12px",
                           borderRadius:
-                            "999px",
+                            "var(--radius-full)",
                           fontSize:
                             "13px",
                           fontWeight:
@@ -1042,14 +1083,15 @@ export default function ComplaintsPage() {
                       </span>
                     </div>
 
+                    {/* DESCRIPTION */}
+
                     <p
                       style={{
                         margin:
                           "0 0 18px",
                         color:
-                          "#374151",
-                        lineHeight:
-                          "1.6",
+                          "var(--text-secondary)",
+                        lineHeight: "1.6",
                         whiteSpace:
                           "pre-wrap",
                       }}
@@ -1059,10 +1101,11 @@ export default function ComplaintsPage() {
                       }
                     </p>
 
+                    {/* COMPLAINT DETAILS */}
+
                     <div
                       style={{
-                        display:
-                          "grid",
+                        display: "grid",
                         gridTemplateColumns:
                           "repeat(auto-fit, minmax(180px, 1fr))",
                         gap: "12px",
@@ -1076,7 +1119,7 @@ export default function ComplaintsPage() {
                             display:
                               "block",
                             color:
-                              "#6b7280",
+                              "var(--text-muted)",
                             fontSize:
                               "13px",
                             marginBottom:
@@ -1089,7 +1132,7 @@ export default function ComplaintsPage() {
                         <span
                           style={{
                             color:
-                              "#111827",
+                              "var(--text-primary)",
                           }}
                         >
                           {
@@ -1104,7 +1147,7 @@ export default function ComplaintsPage() {
                             display:
                               "block",
                             color:
-                              "#6b7280",
+                              "var(--text-muted)",
                             fontSize:
                               "13px",
                             marginBottom:
@@ -1117,7 +1160,7 @@ export default function ComplaintsPage() {
                         <span
                           style={{
                             color:
-                              "#111827",
+                              "var(--text-primary)",
                           }}
                         >
                           {
@@ -1135,7 +1178,7 @@ export default function ComplaintsPage() {
                                 display:
                                   "block",
                                 color:
-                                  "#6b7280",
+                                  "var(--text-muted)",
                                 fontSize:
                                   "13px",
                                 marginBottom:
@@ -1148,7 +1191,7 @@ export default function ComplaintsPage() {
                             <span
                               style={{
                                 color:
-                                  "#111827",
+                                  "var(--text-primary)",
                               }}
                             >
                               {
@@ -1165,17 +1208,13 @@ export default function ComplaintsPage() {
 
                     {canUpdateStatus && (
                       <div
+                        className="glass-subtle"
                         style={{
                           marginBottom:
                             "18px",
-                          padding:
-                            "16px",
-                          background:
-                            "#f9fafb",
+                          padding: "16px",
                           borderRadius:
-                            "10px",
-                          border:
-                            "1px solid #e5e7eb",
+                            "var(--radius-md)",
                         }}
                       >
                         <strong
@@ -1185,7 +1224,7 @@ export default function ComplaintsPage() {
                             marginBottom:
                               "10px",
                             color:
-                              "#111827",
+                              "var(--text-primary)",
                           }}
                         >
                           Update Complaint Status
@@ -1228,15 +1267,15 @@ export default function ComplaintsPage() {
                               padding:
                                 "10px 12px",
                               border:
-                                "1px solid #d1d5db",
+                                "1px solid var(--border)",
                               borderRadius:
-                                "8px",
+                                "var(--radius-md)",
                               fontSize:
                                 "14px",
                               color:
-                                "#111827",
+                                "var(--text-primary)",
                               background:
-                                "white",
+                                "var(--surface-solid)",
                             }}
                           >
                             <option value="PENDING">
@@ -1266,19 +1305,23 @@ export default function ComplaintsPage() {
                             }
                             style={{
                               border:
-                                "none",
+                                "1px solid var(--border)",
                               background:
                                 isUpdating ||
                                 selectedStatus ===
                                   complaint.status
-                                  ? "#9ca3af"
-                                  : "#111827",
+                                  ? "var(--surface-muted)"
+                                  : "var(--primary)",
                               color:
-                                "white",
+                                isUpdating ||
+                                selectedStatus ===
+                                  complaint.status
+                                  ? "var(--text-muted)"
+                                  : "var(--text-inverse)",
                               padding:
                                 "10px 16px",
                               borderRadius:
-                                "8px",
+                                "var(--radius-md)",
                               cursor:
                                 isUpdating ||
                                 selectedStatus ===
@@ -1306,7 +1349,7 @@ export default function ComplaintsPage() {
                         paddingTop:
                           "14px",
                         borderTop:
-                          "1px solid #eef0f4",
+                          "1px solid var(--border)",
                         display:
                           "flex",
                         justifyContent:
@@ -1321,7 +1364,7 @@ export default function ComplaintsPage() {
                       <span
                         style={{
                           color:
-                            "#6b7280",
+                            "var(--text-muted)",
                           fontSize:
                             "14px",
                         }}
@@ -1335,7 +1378,7 @@ export default function ComplaintsPage() {
                       <span
                         style={{
                           color:
-                            "#6b7280",
+                            "var(--text-muted)",
                           fontSize:
                             "14px",
                         }}
@@ -1352,19 +1395,16 @@ export default function ComplaintsPage() {
                     {(isFaculty ||
                       isAdmin) && (
                       <div
+                        className="glass-subtle"
                         style={{
                           marginTop:
                             "16px",
-                          padding:
-                            "12px",
-                          background:
-                            "#f9fafb",
+                          padding: "12px",
                           borderRadius:
-                            "8px",
-                          fontSize:
-                            "13px",
+                            "var(--radius-md)",
+                          fontSize: "13px",
                           color:
-                            "#6b7280",
+                            "var(--text-secondary)",
                         }}
                       >
                         You are viewing
@@ -1373,7 +1413,7 @@ export default function ComplaintsPage() {
                         <strong
                           style={{
                             color:
-                              "#374151",
+                              "var(--text-primary)",
                           }}
                         >
                           {user?.role}
