@@ -79,13 +79,11 @@ export default function AnnouncementsPage() {
           return;
         }
 
-        // Not authenticated
         if (response.status === 401) {
           router.push("/login");
           return;
         }
 
-        // Other API error
         if (!response.ok) {
           setError(
             data.error ||
@@ -100,10 +98,7 @@ export default function AnnouncementsPage() {
           return;
         }
 
-        console.error(
-          "Load User Error:",
-          error
-        );
+        console.error("Load User Error:", error);
 
         setError(
           "Something went wrong while loading your account."
@@ -136,13 +131,11 @@ export default function AnnouncementsPage() {
 
       const data = await response.json();
 
-      // Not authenticated
       if (response.status === 401) {
         router.push("/login");
         return;
       }
 
-      // API error
       if (!response.ok) {
         setError(
           data.error ||
@@ -189,13 +182,11 @@ export default function AnnouncementsPage() {
           return;
         }
 
-        // Not authenticated
         if (response.status === 401) {
           router.push("/login");
           return;
         }
 
-        // API error
         if (!response.ok) {
           setError(
             data.error ||
@@ -243,7 +234,6 @@ export default function AnnouncementsPage() {
   ) {
     event.preventDefault();
 
-    // Basic frontend validation
     if (title.trim().length < 3) {
       setError(
         "Title must be at least 3 characters long."
@@ -280,13 +270,11 @@ export default function AnnouncementsPage() {
 
       const data = await response.json();
 
-      // Not authenticated
       if (response.status === 401) {
         router.push("/login");
         return;
       }
 
-      // Not authorized
       if (response.status === 403) {
         setError(
           "You are not authorized to create announcements."
@@ -294,7 +282,6 @@ export default function AnnouncementsPage() {
         return;
       }
 
-      // Other error
       if (!response.ok) {
         setError(
           data.error ||
@@ -303,16 +290,13 @@ export default function AnnouncementsPage() {
         return;
       }
 
-      // Success
       setSuccess(
         "Announcement created successfully!"
       );
 
-      // Clear form
       setTitle("");
       setContent("");
 
-      // Reload announcements
       await loadAnnouncements();
     } catch (error) {
       console.error(
@@ -329,20 +313,15 @@ export default function AnnouncementsPage() {
   }
 
   // ============================================================
-  // START EDITING ANNOUNCEMENT
+  // START EDITING
   // ============================================================
 
   function handleStartEdit(
     announcement: Announcement
   ) {
     setEditingId(announcement.id);
-
     setEditTitle(announcement.title);
-
-    setEditContent(
-      announcement.content
-    );
-
+    setEditContent(announcement.content);
     setError("");
     setSuccess("");
   }
@@ -353,11 +332,8 @@ export default function AnnouncementsPage() {
 
   function handleCancelEdit() {
     setEditingId(null);
-
     setEditTitle("");
-
     setEditContent("");
-
     setError("");
   }
 
@@ -374,7 +350,6 @@ export default function AnnouncementsPage() {
       return;
     }
 
-    // Frontend validation
     if (editTitle.trim().length < 3) {
       setError(
         "Title must be at least 3 characters long."
@@ -411,13 +386,11 @@ export default function AnnouncementsPage() {
 
       const data = await response.json();
 
-      // Not authenticated
       if (response.status === 401) {
         router.push("/login");
         return;
       }
 
-      // Not authorized
       if (response.status === 403) {
         setError(
           data.error ||
@@ -426,15 +399,11 @@ export default function AnnouncementsPage() {
         return;
       }
 
-      // Not found
       if (response.status === 404) {
-        setError(
-          "Announcement not found."
-        );
+        setError("Announcement not found.");
         return;
       }
 
-      // Other error
       if (!response.ok) {
         setError(
           data.error ||
@@ -443,19 +412,14 @@ export default function AnnouncementsPage() {
         return;
       }
 
-      // Success
       setSuccess(
         "Announcement updated successfully!"
       );
 
-      // Exit edit mode
       setEditingId(null);
-
       setEditTitle("");
-
       setEditContent("");
 
-      // Reload announcements
       await loadAnnouncements();
     } catch (error) {
       console.error(
@@ -487,9 +451,7 @@ export default function AnnouncementsPage() {
     }
 
     setDeletingId(announcementId);
-
     setError("");
-
     setSuccess("");
 
     try {
@@ -503,13 +465,11 @@ export default function AnnouncementsPage() {
 
       const data = await response.json();
 
-      // Not authenticated
       if (response.status === 401) {
         router.push("/login");
         return;
       }
 
-      // Not authorized
       if (response.status === 403) {
         setError(
           data.error ||
@@ -518,15 +478,11 @@ export default function AnnouncementsPage() {
         return;
       }
 
-      // Not found
       if (response.status === 404) {
-        setError(
-          "Announcement not found."
-        );
+        setError("Announcement not found.");
         return;
       }
 
-      // Other error
       if (!response.ok) {
         setError(
           data.error ||
@@ -535,15 +491,9 @@ export default function AnnouncementsPage() {
         return;
       }
 
-      // If deleted announcement was
-      // currently being edited
-      if (
-        editingId === announcementId
-      ) {
+      if (editingId === announcementId) {
         setEditingId(null);
-
         setEditTitle("");
-
         setEditContent("");
       }
 
@@ -551,7 +501,6 @@ export default function AnnouncementsPage() {
         "Announcement deleted successfully!"
       );
 
-      // Reload announcements
       await loadAnnouncements();
     } catch (error) {
       console.error(
@@ -579,13 +528,9 @@ export default function AnnouncementsPage() {
       });
 
       router.push("/login");
-
       router.refresh();
     } catch (error) {
-      console.error(
-        "Logout Error:",
-        error
-      );
+      console.error("Logout Error:", error);
     }
   }
 
@@ -593,15 +538,14 @@ export default function AnnouncementsPage() {
   // FORMAT DATE
   // ============================================================
 
-  function formatDate(
-    dateString: string
-  ) {
-    return new Date(
-      dateString
-    ).toLocaleString("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
+  function formatDate(dateString: string) {
+    return new Date(dateString).toLocaleString(
+      "en-IN",
+      {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }
+    );
   }
 
   // ============================================================
@@ -615,9 +559,7 @@ export default function AnnouncementsPage() {
   function canManageAnnouncement(
     announcement: Announcement
   ) {
-    if (
-      user?.role === "ADMIN"
-    ) {
+    if (user?.role === "ADMIN") {
       return true;
     }
 
@@ -638,26 +580,20 @@ export default function AnnouncementsPage() {
   if (loading) {
     return (
       <main
-        style={{
-          minHeight: "100vh",
-          background: "#f5f7fb",
-          padding: "32px 20px",
-        }}
+        className="
+          flex
+          min-h-screen
+          items-center
+          justify-center
+          bg-background
+          px-6
+          text-[var(--text-primary)]
+          transition-colors
+          duration-300
+        "
       >
-        <div
-          style={{
-            maxWidth: "900px",
-            margin: "0 auto",
-            textAlign: "center",
-            paddingTop: "100px",
-          }}
-        >
-          <p
-            style={{
-              fontSize: "18px",
-              color: "#374151",
-            }}
-          >
+        <div className="glass rounded-3xl px-8 py-6">
+          <p className="text-lg text-[var(--text-secondary)]">
             Loading announcements...
           </p>
         </div>
@@ -671,255 +607,166 @@ export default function AnnouncementsPage() {
 
   return (
     <main
-      style={{
-        minHeight: "100vh",
-        background: "#f5f7fb",
-        padding: "32px 20px",
-        color: "#111827",
-      }}
+      className="
+        min-h-screen
+        bg-background
+        px-4
+        py-8
+        text-foreground
+        transition-colors
+        duration-300
+        sm:px-6
+        lg:px-8
+      "
     >
-      <div
-        style={{
-          maxWidth: "900px",
-          margin: "0 auto",
-        }}
-      >
-        {/* ================================================== */}
-        {/* HEADER */}
-        {/* ================================================== */}
+      <div className="mx-auto max-w-6xl">
 
-        <header
-          style={{
-            background: "white",
-            padding: "24px",
-            borderRadius: "16px",
-            border: "1px solid #eef0f4",
-            marginBottom: "24px",
-            boxShadow:
-              "0 4px 20px rgba(0, 0, 0, 0.05)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: "20px",
-              flexWrap: "wrap",
-            }}
-          >
+        {/* HEADER */}
+
+        <header className="glass mb-6 rounded-3xl p-6 sm:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-6">
+
             <div>
               <button
                 type="button"
                 onClick={() =>
                   router.push("/dashboard")
                 }
-                style={{
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                  padding: 0,
-                  marginBottom: "12px",
-                  fontSize: "15px",
-                  color: "#374151",
-                }}
+                className="
+                  mb-4
+                  rounded-lg
+                  px-2
+                  py-1
+                  text-sm
+                  font-medium
+                  text-[var(--text-secondary)]
+                  transition-all
+                  duration-200
+                  hover:bg-[var(--primary-soft)]
+                  hover:text-[var(--primary)]
+                "
               >
                 ← Back to Dashboard
               </button>
 
-              <h1
-                style={{
-                  margin: 0,
-                  fontSize: "32px",
-                }}
-              >
+              <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">
                 Announcements
               </h1>
 
-              <p
-                style={{
-                  marginTop: "8px",
-                  marginBottom: 0,
-                  color: "#6b7280",
-                }}
-              >
-                Stay updated with the latest
-                campus announcements.
+              <p className="mt-2 text-[var(--text-secondary)]">
+                Stay updated with the latest campus
+                announcements.
               </p>
             </div>
 
-            <div
-              style={{
-                textAlign: "right",
-              }}
-            >
-              {user && (
-                <>
-                  <strong
-                    style={{
-                      display: "block",
-                    }}
-                  >
-                    {user.name}
-                  </strong>
+            {user && (
+              <div className="text-left sm:text-right">
+                <strong className="block text-[var(--text-primary)]">
+                  {user.name}
+                </strong>
 
-                  <span
-                    style={{
-                      display: "block",
-                      fontSize: "13px",
-                      color: "#6b7280",
-                      marginTop: "4px",
-                    }}
-                  >
-                    {user.email}
-                  </span>
+                <span className="mt-1 block text-sm text-[var(--text-muted)]">
+                  {user.email}
+                </span>
 
-                  <span
-                    style={{
-                      display: "inline-block",
-                      marginTop: "8px",
-                      padding: "5px 10px",
-                      borderRadius: "6px",
-                      background:
-                        user.role === "ADMIN"
-                          ? "#ede9fe"
-                          : user.role ===
-                              "FACULTY"
-                            ? "#dbeafe"
-                            : "#dcfce7",
-                      color:
-                        user.role === "ADMIN"
-                          ? "#6d28d9"
-                          : user.role ===
-                              "FACULTY"
-                            ? "#1d4ed8"
-                            : "#166534",
-                      fontSize: "12px",
-                      fontWeight: "700",
-                    }}
-                  >
-                    Current Role: {user.role}
-                  </span>
-                </>
-              )}
-
-              <div>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  style={{
-                    marginTop: "12px",
-                    padding: "9px 16px",
-                    border: "none",
-                    borderRadius: "8px",
-                    background: "#111827",
-                    color: "white",
-                    cursor: "pointer",
-                    fontWeight: "600",
-                  }}
+                <span
+                  className="
+                    mt-3
+                    inline-block
+                    rounded-full
+                    bg-primary-soft
+                    px-3
+                    py-1
+                    text-xs
+                    font-semibold
+                    text-primary
+                  "
                 >
-                  Logout
-                </button>
+                  {user.role}
+                </span>
+
+                <div>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="
+                      mt-4
+                      rounded-xl
+                      bg-danger
+                      px-5
+                      py-2.5
+                      font-semibold
+                      text-white
+                      shadow-[var(--shadow-sm)]
+                      transition-all
+                      duration-300
+                      hover:-translate-y-0.5
+                      hover:shadow-[var(--shadow-md)]
+                    "
+                  >
+                    Logout
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </header>
 
-        {/* ================================================== */}
-        {/* ERROR MESSAGE */}
-        {/* ================================================== */}
+        {/* ERROR */}
 
         {error && (
           <div
-            style={{
-              marginBottom: "20px",
-              padding: "14px 16px",
-              borderRadius: "10px",
-              background: "#fee2e2",
-              color: "#b91c1c",
-              border:
-                "1px solid #fecaca",
-            }}
+            className="
+              mb-5
+              rounded-2xl
+              border
+              border-[var(--danger-soft)]
+              bg-[var(--danger-soft)]
+              px-5
+              py-4
+              text-[var(--danger)]
+            "
           >
             {error}
           </div>
         )}
 
-        {/* ================================================== */}
-        {/* SUCCESS MESSAGE */}
-        {/* ================================================== */}
+        {/* SUCCESS */}
 
         {success && (
           <div
-            style={{
-              marginBottom: "20px",
-              padding: "14px 16px",
-              borderRadius: "10px",
-              background: "#dcfce7",
-              color: "#166534",
-              border:
-                "1px solid #bbf7d0",
-            }}
+            className="
+              mb-5
+              rounded-2xl
+              border
+              border-[var(--success-soft)]
+              bg-[var(--success-soft)]
+              px-5
+              py-4
+              text-[var(--success)]
+            "
           >
             {success}
           </div>
         )}
 
-        {/* ================================================== */}
         {/* CREATE ANNOUNCEMENT */}
-        {/* ================================================== */}
 
         {canCreateAnnouncement && (
-          <section
-            style={{
-              background: "white",
-              padding: "24px",
-              borderRadius: "16px",
-              border: "1px solid #eef0f4",
-              marginBottom: "24px",
-              boxShadow:
-                "0 4px 20px rgba(0, 0, 0, 0.05)",
-            }}
-          >
-            <h2
-              style={{
-                marginTop: 0,
-                marginBottom: "8px",
-              }}
-            >
+          <section className="glass mb-6 rounded-3xl p-6 sm:p-8">
+            <h2 className="text-2xl font-bold text-[var(--text-primary)]">
               Create Announcement
             </h2>
 
-            <p
-              style={{
-                marginTop: 0,
-                marginBottom: "20px",
-                color: "#6b7280",
-              }}
-            >
-              Publish an announcement for
-              campus users.
+            <p className="mt-2 mb-6 text-[var(--text-secondary)]">
+              Publish an announcement for campus users.
             </p>
 
-            <form
-              onSubmit={
-                handleCreateAnnouncement
-              }
-            >
-              {/* TITLE */}
-
-              <div
-                style={{
-                  marginBottom: "16px",
-                }}
-              >
+            <form onSubmit={handleCreateAnnouncement}>
+              <div className="mb-5">
                 <label
                   htmlFor="announcement-title"
-                  style={{
-                    display: "block",
-                    marginBottom: "6px",
-                    fontWeight: "600",
-                  }}
+                  className="mb-2 block font-semibold text-[var(--text-primary)]"
                 >
                   Title
                 </label>
@@ -929,40 +776,33 @@ export default function AnnouncementsPage() {
                   type="text"
                   value={title}
                   onChange={(event) =>
-                    setTitle(
-                      event.target.value
-                    )
+                    setTitle(event.target.value)
                   }
                   placeholder="Enter announcement title"
                   disabled={creating}
-                  style={{
-                    width: "100%",
-                    boxSizing: "border-box",
-                    padding: "12px",
-                    border:
-                      "1px solid #d1d5db",
-                    borderRadius: "8px",
-                    background: "white",
-                    color: "#111827",
-                    fontSize: "15px",
-                  }}
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-[var(--border)]
+                    bg-[var(--surface-solid)]
+                    px-4
+                    py-3
+                    text-[var(--text-primary)]
+                    placeholder:text-[var(--text-muted)]
+                    transition-all
+                    duration-200
+                    focus:border-primary
+                    focus:ring-2
+                    focus:ring-[var(--primary-soft)]
+                  "
                 />
               </div>
 
-              {/* CONTENT */}
-
-              <div
-                style={{
-                  marginBottom: "16px",
-                }}
-              >
+              <div className="mb-5">
                 <label
                   htmlFor="announcement-content"
-                  style={{
-                    display: "block",
-                    marginBottom: "6px",
-                    fontWeight: "600",
-                  }}
+                  className="mb-2 block font-semibold text-[var(--text-primary)]"
                 >
                   Content
                 </label>
@@ -971,46 +811,50 @@ export default function AnnouncementsPage() {
                   id="announcement-content"
                   value={content}
                   onChange={(event) =>
-                    setContent(
-                      event.target.value
-                    )
+                    setContent(event.target.value)
                   }
                   placeholder="Enter announcement content"
                   disabled={creating}
                   rows={6}
-                  style={{
-                    width: "100%",
-                    boxSizing: "border-box",
-                    padding: "12px",
-                    border:
-                      "1px solid #d1d5db",
-                    borderRadius: "8px",
-                    background: "white",
-                    color: "#111827",
-                    fontSize: "15px",
-                    resize: "vertical",
-                  }}
+                  className="
+                    w-full
+                    resize-y
+                    rounded-xl
+                    border
+                    border-[var(--border)]
+                    bg-[var(--surface-solid)]
+                    px-4
+                    py-3
+                    text-[var(--text-primary)]
+                    placeholder:text-[var(--text-muted)]
+                    transition-all
+                    duration-200
+                    focus:border-primary
+                    focus:ring-2
+                    focus:ring-[var(--primary-soft)]
+                  "
                 />
               </div>
-
-              {/* SUBMIT */}
 
               <button
                 type="submit"
                 disabled={creating}
-                style={{
-                  padding: "11px 20px",
-                  border: "none",
-                  borderRadius: "8px",
-                  background: creating
-                    ? "#9ca3af"
-                    : "#111827",
-                  color: "white",
-                  cursor: creating
-                    ? "not-allowed"
-                    : "pointer",
-                  fontWeight: "600",
-                }}
+                className="
+                  rounded-xl
+                  bg-primary
+                  px-6
+                  py-3
+                  font-semibold
+                  text-white
+                  shadow-[var(--shadow-sm)]
+                  transition-all
+                  duration-300
+                  hover:-translate-y-0.5
+                  hover:bg-primary-hover
+                  hover:shadow-[var(--shadow-md)]
+                  disabled:cursor-not-allowed
+                  disabled:opacity-50
+                "
               >
                 {creating
                   ? "Publishing..."
@@ -1020,68 +864,37 @@ export default function AnnouncementsPage() {
           </section>
         )}
 
-        {/* ================================================== */}
-        {/* ANNOUNCEMENTS LIST */}
-        {/* ================================================== */}
+        {/* ANNOUNCEMENTS */}
 
-        <section
-          style={{
-            background: "white",
-            padding: "24px",
-            borderRadius: "16px",
-            border: "1px solid #eef0f4",
-            boxShadow:
-              "0 4px 20px rgba(0, 0, 0, 0.05)",
-          }}
-        >
-          <h2
-            style={{
-              marginTop: 0,
-              marginBottom: "8px",
-            }}
-          >
+        <section className="glass rounded-3xl p-6 sm:p-8">
+          <h2 className="text-2xl font-bold text-[var(--text-primary)]">
             Latest Announcements
           </h2>
 
-          <p
-            style={{
-              marginTop: 0,
-              marginBottom: "20px",
-              color: "#6b7280",
-            }}
-          >
-            View the latest updates from
-            campus administration and faculty.
+          <p className="mt-2 mb-6 text-[var(--text-secondary)]">
+            View the latest updates from campus
+            administration and faculty.
           </p>
 
           {announcements.length === 0 && (
             <div
-              style={{
-                padding: "30px",
-                textAlign: "center",
-                background: "#f9fafb",
-                borderRadius: "10px",
-              }}
+              className="
+                rounded-2xl
+                border
+                border-[var(--border)]
+                bg-[var(--surface-muted)]
+                p-8
+                text-center
+              "
             >
-              <p
-                style={{
-                  margin: 0,
-                  color: "#6b7280",
-                }}
-              >
+              <p className="text-[var(--text-secondary)]">
                 No announcements available.
               </p>
             </div>
           )}
 
           {announcements.length > 0 && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "16px",
-              }}
-            >
+            <div className="flex flex-col gap-5">
               {announcements.map(
                 (announcement) => {
                   const canManage =
@@ -1100,54 +913,29 @@ export default function AnnouncementsPage() {
                   return (
                     <article
                       key={announcement.id}
-                      style={{
-                        padding: "20px",
-                        border:
-                          "1px solid #eef0f4",
-                        borderRadius: "12px",
-                        background: "#fafbfc",
-                      }}
+                      className="
+                        glass-subtle
+                        rounded-2xl
+                        p-5
+                        transition-all
+                        duration-300
+                        hover:-translate-y-0.5
+                      "
                     >
-                      {/* ================================================== */}
-                      {/* EDIT MODE */}
-                      {/* ================================================== */}
-
                       {isEditing ? (
                         <form
                           onSubmit={
                             handleUpdateAnnouncement
                           }
                         >
-                          <h3
-                            style={{
-                              marginTop: 0,
-                              marginBottom:
-                                "16px",
-                              fontSize:
-                                "20px",
-                            }}
-                          >
+                          <h3 className="mb-5 text-xl font-semibold text-[var(--text-primary)]">
                             Edit Announcement
                           </h3>
 
-                          {/* EDIT TITLE */}
-
-                          <div
-                            style={{
-                              marginBottom:
-                                "16px",
-                            }}
-                          >
+                          <div className="mb-5">
                             <label
                               htmlFor={`edit-title-${announcement.id}`}
-                              style={{
-                                display:
-                                  "block",
-                                marginBottom:
-                                  "6px",
-                                fontWeight:
-                                  "600",
-                              }}
+                              className="mb-2 block font-semibold text-[var(--text-primary)]"
                             >
                               Title
                             </label>
@@ -1156,132 +944,73 @@ export default function AnnouncementsPage() {
                               id={`edit-title-${announcement.id}`}
                               type="text"
                               value={editTitle}
-                              onChange={(
-                                event
-                              ) =>
+                              onChange={(event) =>
                                 setEditTitle(
-                                  event.target
-                                    .value
+                                  event.target.value
                                 )
                               }
-                              disabled={
-                                updating
-                              }
-                              style={{
-                                width: "100%",
-                                boxSizing:
-                                  "border-box",
-                                padding:
-                                  "12px",
-                                border:
-                                  "1px solid #d1d5db",
-                                borderRadius:
-                                  "8px",
-                                background:
-                                  "white",
-                                color:
-                                  "#111827",
-                                fontSize:
-                                  "15px",
-                              }}
+                              disabled={updating}
+                              className="
+                                w-full
+                                rounded-xl
+                                border
+                                border-[var(--border)]
+                                bg-[var(--surface-solid)]
+                                px-4
+                                py-3
+                                text-[var(--text-primary)]
+                              "
                             />
                           </div>
 
-                          {/* EDIT CONTENT */}
-
-                          <div
-                            style={{
-                              marginBottom:
-                                "16px",
-                            }}
-                          >
+                          <div className="mb-5">
                             <label
                               htmlFor={`edit-content-${announcement.id}`}
-                              style={{
-                                display:
-                                  "block",
-                                marginBottom:
-                                  "6px",
-                                fontWeight:
-                                  "600",
-                              }}
+                              className="mb-2 block font-semibold text-[var(--text-primary)]"
                             >
                               Content
                             </label>
 
                             <textarea
                               id={`edit-content-${announcement.id}`}
-                              value={
-                                editContent
-                              }
-                              onChange={(
-                                event
-                              ) =>
+                              value={editContent}
+                              onChange={(event) =>
                                 setEditContent(
-                                  event.target
-                                    .value
+                                  event.target.value
                                 )
                               }
-                              disabled={
-                                updating
-                              }
+                              disabled={updating}
                               rows={6}
-                              style={{
-                                width: "100%",
-                                boxSizing:
-                                  "border-box",
-                                padding:
-                                  "12px",
-                                border:
-                                  "1px solid #d1d5db",
-                                borderRadius:
-                                  "8px",
-                                background:
-                                  "white",
-                                color:
-                                  "#111827",
-                                fontSize:
-                                  "15px",
-                                resize:
-                                  "vertical",
-                              }}
+                              className="
+                                w-full
+                                resize-y
+                                rounded-xl
+                                border
+                                border-[var(--border)]
+                                bg-[var(--surface-solid)]
+                                px-4
+                                py-3
+                                text-[var(--text-primary)]
+                              "
                             />
                           </div>
 
-                          {/* EDIT ACTIONS */}
-
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: "10px",
-                              flexWrap:
-                                "wrap",
-                            }}
-                          >
+                          <div className="flex flex-wrap gap-3">
                             <button
                               type="submit"
-                              disabled={
-                                updating
-                              }
-                              style={{
-                                padding:
-                                  "10px 18px",
-                                border: "none",
-                                borderRadius:
-                                  "8px",
-                                background:
-                                  updating
-                                    ? "#9ca3af"
-                                    : "#111827",
-                                color:
-                                  "white",
-                                cursor:
-                                  updating
-                                    ? "not-allowed"
-                                    : "pointer",
-                                fontWeight:
-                                  "600",
-                              }}
+                              disabled={updating}
+                              className="
+                                rounded-xl
+                                bg-primary
+                                px-5
+                                py-2.5
+                                font-semibold
+                                text-white
+                                transition-all
+                                duration-300
+                                hover:bg-primary-hover
+                                disabled:opacity-50
+                              "
                             >
                               {updating
                                 ? "Saving..."
@@ -1293,27 +1022,20 @@ export default function AnnouncementsPage() {
                               onClick={
                                 handleCancelEdit
                               }
-                              disabled={
-                                updating
-                              }
-                              style={{
-                                padding:
-                                  "10px 18px",
-                                border:
-                                  "1px solid #d1d5db",
-                                borderRadius:
-                                  "8px",
-                                background:
-                                  "white",
-                                color:
-                                  "#111827",
-                                cursor:
-                                  updating
-                                    ? "not-allowed"
-                                    : "pointer",
-                                fontWeight:
-                                  "600",
-                              }}
+                              disabled={updating}
+                              className="
+                                rounded-xl
+                                border
+                                border-[var(--border)]
+                                bg-[var(--surface-muted)]
+                                px-5
+                                py-2.5
+                                font-semibold
+                                text-[var(--text-primary)]
+                                transition-all
+                                duration-300
+                                hover:bg-[var(--glass-bg-hover)]
+                              "
                             >
                               Cancel
                             </button>
@@ -1321,143 +1043,45 @@ export default function AnnouncementsPage() {
                         </form>
                       ) : (
                         <>
-                          {/* ================================================== */}
-                          {/* NORMAL ANNOUNCEMENT VIEW */}
-                          {/* ================================================== */}
-
-                          <h3
-                            style={{
-                              marginTop: 0,
-                              marginBottom:
-                                "8px",
-                              fontSize:
-                                "20px",
-                            }}
-                          >
+                          <h3 className="text-xl font-semibold text-[var(--text-primary)]">
                             {announcement.title}
                           </h3>
 
-                          <p
-                            style={{
-                              margin:
-                                "0 0 16px",
-                              color:
-                                "#374151",
-                              lineHeight:
-                                "1.6",
-                              whiteSpace:
-                                "pre-wrap",
-                            }}
-                          >
-                            {
-                              announcement.content
-                            }
+                          <p className="mt-3 whitespace-pre-wrap leading-7 text-[var(--text-secondary)]">
+                            {announcement.content}
                           </p>
 
-                          {/* ================================================== */}
-                          {/* FOOTER */}
-                          {/* ================================================== */}
-
-                          <div
-                            style={{
-                              display: "flex",
-                              justifyContent:
-                                "space-between",
-                              alignItems:
-                                "center",
-                              gap: "12px",
-                              flexWrap:
-                                "wrap",
-                              paddingTop:
-                                "12px",
-                              borderTop:
-                                "1px solid #e5e7eb",
-                            }}
-                          >
+                          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-4">
                             <div>
-                              <strong
-                                style={{
-                                  fontSize:
-                                    "14px",
-                                }}
-                              >
-                                {
-                                  announcement
-                                    .createdBy
-                                    .name
-                                }
+                              <strong className="text-sm text-[var(--text-primary)]">
+                                {announcement.createdBy.name}
                               </strong>
 
                               <span
-                                style={{
-                                  marginLeft:
-                                    "8px",
-                                  padding:
-                                    "4px 8px",
-                                  borderRadius:
-                                    "5px",
-                                  background:
-                                    announcement
-                                      .createdBy
-                                      .role ===
-                                    "ADMIN"
-                                      ? "#ede9fe"
-                                      : "#dbeafe",
-                                  color:
-                                    announcement
-                                      .createdBy
-                                      .role ===
-                                    "ADMIN"
-                                      ? "#6d28d9"
-                                      : "#1d4ed8",
-                                  fontSize:
-                                    "11px",
-                                  fontWeight:
-                                    "700",
-                                }}
+                                className="
+                                  ml-2
+                                  rounded-full
+                                  bg-primary-soft
+                                  px-2.5
+                                  py-1
+                                  text-xs
+                                  font-semibold
+                                  text-primary
+                                "
                               >
-                                {
-                                  announcement
-                                    .createdBy
-                                    .role
-                                }
+                                {announcement.createdBy.role}
                               </span>
                             </div>
 
-                            <span
-                              style={{
-                                fontSize:
-                                  "13px",
-                                color:
-                                  "#6b7280",
-                              }}
-                            >
+                            <span className="text-sm text-[var(--text-muted)]">
                               {formatDate(
                                 announcement.createdAt
                               )}
                             </span>
                           </div>
 
-                          {/* ================================================== */}
-                          {/* EDIT / DELETE ACTIONS */}
-                          {/* ================================================== */}
-
                           {canManage && (
-                            <div
-                              style={{
-                                display:
-                                  "flex",
-                                gap: "10px",
-                                flexWrap:
-                                  "wrap",
-                                marginTop:
-                                  "16px",
-                                paddingTop:
-                                  "16px",
-                                borderTop:
-                                  "1px solid #e5e7eb",
-                              }}
-                            >
+                            <div className="mt-4 flex flex-wrap gap-3 border-t border-[var(--border)] pt-4">
                               <button
                                 type="button"
                                 onClick={() =>
@@ -1465,27 +1089,21 @@ export default function AnnouncementsPage() {
                                     announcement
                                   )
                                 }
-                                disabled={
-                                  isDeleting
-                                }
-                                style={{
-                                  padding:
-                                    "9px 16px",
-                                  border:
-                                    "1px solid #d1d5db",
-                                  borderRadius:
-                                    "8px",
-                                  background:
-                                    "white",
-                                  color:
-                                    "#111827",
-                                  cursor:
-                                    isDeleting
-                                      ? "not-allowed"
-                                      : "pointer",
-                                  fontWeight:
-                                    "600",
-                                }}
+                                disabled={isDeleting}
+                                className="
+                                  rounded-xl
+                                  border
+                                  border-[var(--border)]
+                                  bg-[var(--surface-muted)]
+                                  px-4
+                                  py-2
+                                  font-semibold
+                                  text-[var(--text-primary)]
+                                  transition-all
+                                  duration-300
+                                  hover:bg-[var(--glass-bg-hover)]
+                                  disabled:opacity-50
+                                "
                               >
                                 ✏️ Edit
                               </button>
@@ -1497,29 +1115,19 @@ export default function AnnouncementsPage() {
                                     announcement.id
                                   )
                                 }
-                                disabled={
-                                  isDeleting
-                                }
-                                style={{
-                                  padding:
-                                    "9px 16px",
-                                  border:
-                                    "none",
-                                  borderRadius:
-                                    "8px",
-                                  background:
-                                    isDeleting
-                                      ? "#9ca3af"
-                                      : "#dc2626",
-                                  color:
-                                    "white",
-                                  cursor:
-                                    isDeleting
-                                      ? "not-allowed"
-                                      : "pointer",
-                                  fontWeight:
-                                    "600",
-                                }}
+                                disabled={isDeleting}
+                                className="
+                                  rounded-xl
+                                  bg-danger
+                                  px-4
+                                  py-2
+                                  font-semibold
+                                  text-white
+                                  transition-all
+                                  duration-300
+                                  hover:opacity-90
+                                  disabled:opacity-50
+                                "
                               >
                                 {isDeleting
                                   ? "Deleting..."

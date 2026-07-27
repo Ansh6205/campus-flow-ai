@@ -1,26 +1,380 @@
 @import "tailwindcss";
 
+/* =========================================================
+   CAMPUS FLOW AI — GLOBAL DESIGN SYSTEM
+   Liquid Glass UI Foundation
+   ========================================================= */
+
+/* =========================================================
+   LIGHT THEME
+   ========================================================= */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f5f7fb;
+  --foreground: #111827;
+
+  --surface: rgba(255, 255, 255, 0.68);
+  --surface-solid: #ffffff;
+  --surface-muted: rgba(255, 255, 255, 0.48);
+
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
+  --text-inverse: #ffffff;
+
+  --border: rgba(17, 24, 39, 0.1);
+  --border-strong: rgba(17, 24, 39, 0.16);
+
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-soft: rgba(37, 99, 235, 0.1);
+
+  --accent: #7c3aed;
+  --accent-soft: rgba(124, 58, 237, 0.1);
+
+  --success: #16a34a;
+  --success-soft: rgba(22, 163, 74, 0.1);
+
+  --warning: #d97706;
+  --warning-soft: rgba(217, 119, 6, 0.1);
+
+  --danger: #dc2626;
+  --danger-soft: rgba(220, 38, 38, 0.1);
+
+  --info: #0284c7;
+  --info-soft: rgba(2, 132, 199, 0.1);
+
+  --glass-bg: rgba(255, 255, 255, 0.58);
+  --glass-bg-hover: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.6);
+
+  --glass-blur: 24px;
+  --glass-saturation: 160%;
+
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.05);
+
+  --shadow-md: 0 8px 30px rgba(15, 23, 42, 0.08);
+
+  --shadow-lg: 0 20px 60px rgba(15, 23, 42, 0.12);
+
+  --shadow-glow: 0 0 40px rgba(37, 99, 235, 0.12);
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-full: 9999px;
+
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 450ms;
 }
+
+/* =========================================================
+   DARK THEME
+   ========================================================= */
+
+.dark {
+  --background: #080a0f;
+  --foreground: #f3f4f6;
+
+  --surface: rgba(20, 24, 34, 0.68);
+  --surface-solid: #141822;
+  --surface-muted: rgba(20, 24, 34, 0.48);
+
+  --text-primary: #f3f4f6;
+  --text-secondary: #c4c8d0;
+  --text-muted: #8b93a1;
+  --text-inverse: #111827;
+
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+
+  --primary: #60a5fa;
+  --primary-hover: #93c5fd;
+  --primary-soft: rgba(96, 165, 250, 0.14);
+
+  --accent: #a78bfa;
+  --accent-soft: rgba(167, 139, 250, 0.14);
+
+  --success: #4ade80;
+  --success-soft: rgba(74, 222, 128, 0.12);
+
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.12);
+
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.12);
+
+  --info: #38bdf8;
+  --info-soft: rgba(56, 189, 248, 0.12);
+
+  --glass-bg: rgba(20, 24, 34, 0.58);
+  --glass-bg-hover: rgba(30, 35, 48, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.1);
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.18);
+
+  --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.24);
+
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.35);
+
+  --shadow-glow: 0 0 50px rgba(96, 165, 250, 0.14);
+}
+
+/* =========================================================
+   TAILWIND THEME TOKENS
+   ========================================================= */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  --color-surface: var(--surface);
+  --color-surface-solid: var(--surface-solid);
+  --color-surface-muted: var(--surface-muted);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* =========================================================
+   GLOBAL RESET
+   ========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  min-height: 100%;
 }
 
 body {
-  background: var(--background);
+  margin: 0;
+
+  background:
+    radial-gradient(
+      circle at 10% 10%,
+      rgba(37, 99, 235, 0.07),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 90% 20%,
+      rgba(124, 58, 237, 0.06),
+      transparent 30%
+    ),
+    var(--background);
+
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+
+  font-family:
+    var(--font-geist-sans),
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  transition:
+    background-color var(--duration-normal) var(--ease-standard),
+    color var(--duration-normal) var(--ease-standard);
+}
+
+/* =========================================================
+   LIQUID GLASS
+   ========================================================= */
+
+.glass {
+  background: var(--glass-bg);
+
+  border: 1px solid var(--glass-border);
+
+  backdrop-filter:
+    blur(var(--glass-blur))
+    saturate(var(--glass-saturation));
+
+  -webkit-backdrop-filter:
+    blur(var(--glass-blur))
+    saturate(var(--glass-saturation));
+
+  box-shadow: var(--shadow-md);
+
+  transition:
+    background var(--duration-normal) var(--ease-standard),
+    border-color var(--duration-normal) var(--ease-standard),
+    box-shadow var(--duration-normal) var(--ease-standard),
+    transform var(--duration-normal) var(--ease-smooth);
+}
+
+.glass:hover {
+  background: var(--glass-bg-hover);
+}
+
+.glass-subtle {
+  background: var(--surface-muted);
+
+  border: 1px solid var(--border);
+
+  backdrop-filter:
+    blur(16px)
+    saturate(140%);
+
+  -webkit-backdrop-filter:
+    blur(16px)
+    saturate(140%);
+}
+
+.glass-strong {
+  background: var(--surface);
+
+  border: 1px solid var(--glass-border);
+
+  backdrop-filter:
+    blur(32px)
+    saturate(180%);
+
+  -webkit-backdrop-filter:
+    blur(32px)
+    saturate(180%);
+
+  box-shadow: var(--shadow-lg);
+}
+
+/* =========================================================
+   FOCUS
+   ========================================================= */
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+/* =========================================================
+   SELECTION
+   ========================================================= */
+
+::selection {
+  background: var(--primary);
+  color: var(--text-inverse);
+}
+
+/* =========================================================
+   BUTTONS AND LINKS
+   ========================================================= */
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  transition:
+    transform var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-normal) var(--ease-standard),
+    background-color var(--duration-normal) var(--ease-standard),
+    border-color var(--duration-normal) var(--ease-standard),
+    color var(--duration-normal) var(--ease-standard);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* =========================================================
+   INPUTS
+   ========================================================= */
+
+input,
+textarea,
+select {
+  color: var(--text-primary);
+
+  background: var(--surface-solid);
+
+  border-color: var(--border);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 640px) {
+  :root {
+    --glass-blur: 18px;
+  }
+
+  body {
+    background:
+      radial-gradient(
+        circle at 20% 10%,
+        rgba(37, 99, 235, 0.05),
+        transparent 35%
+      ),
+      var(--background);
+  }
+}
+
+/* =========================================================
+   BACKDROP FILTER FALLBACK
+   ========================================================= */
+
+@supports not (backdrop-filter: blur(1px)) {
+  .glass,
+  .glass-subtle,
+  .glass-strong {
+    background: var(--surface-solid);
+  }
 }

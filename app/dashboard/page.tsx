@@ -42,14 +42,21 @@ type Announcement = {
 export default function DashboardPage() {
   const router = useRouter();
 
-  const [data, setData] = useState<ProfileResponse | null>(null);
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [data, setData] =
+    useState<ProfileResponse | null>(null);
 
-  const [loading, setLoading] = useState(true);
+  const [announcements, setAnnouncements] =
+    useState<Announcement[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
   const [announcementsLoading, setAnnouncementsLoading] =
     useState(true);
 
-  const [error, setError] = useState("");
+  const [error, setError] =
+    useState("");
+
   const [announcementError, setAnnouncementError] =
     useState("");
 
@@ -233,14 +240,18 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <main
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "20px",
-          color: "#111827",
-        }}
+        className="
+          flex
+          min-h-screen
+          items-center
+          justify-center
+          bg-background
+          px-6
+          text-xl
+          text-[var(--text-primary)]
+          transition-colors
+          duration-300
+        "
       >
         Loading dashboard...
       </main>
@@ -254,21 +265,26 @@ export default function DashboardPage() {
   if (error) {
     return (
       <main
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "24px",
-          color: "#111827",
-        }}
+        className="
+          flex
+          min-h-screen
+          items-center
+          justify-center
+          bg-background
+          px-6
+          text-[var(--text-primary)]
+          transition-colors
+          duration-300
+        "
       >
-        <div>
-          <h1>
+        <div className="glass max-w-lg rounded-3xl p-8 text-center">
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
             Something went wrong
           </h1>
 
-          <p>{error}</p>
+          <p className="mt-3 text-[var(--text-secondary)]">
+            {error}
+          </p>
         </div>
       </main>
     );
@@ -289,68 +305,73 @@ export default function DashboardPage() {
 
   return (
     <main
-      style={{
-        minHeight: "100vh",
-        background: "#f5f7fb",
-        padding: "32px",
-        color: "#111827",
-      }}
+      className="
+        min-h-screen
+        bg-background
+        px-4
+        py-8
+        text-foreground
+        transition-colors
+        duration-300
+        sm:px-6
+        lg:px-8
+      "
     >
-      <div
-        style={{
-          maxWidth: "1100px",
-          margin: "0 auto",
-        }}
-      >
+      <div className="mx-auto max-w-7xl">
+
         {/* ====================================== */}
         {/* HEADER */}
         {/* ====================================== */}
 
         <header
-          style={{
-            display: "flex",
-            justifyContent:
-              "space-between",
-            alignItems: "center",
-            marginBottom: "32px",
-            gap: "20px",
-            flexWrap: "wrap",
-          }}
+          className="
+            mb-8
+            flex
+            flex-wrap
+            items-center
+            justify-between
+            gap-5
+          "
         >
           <div>
             <h1
-              style={{
-                fontSize: "32px",
-                margin: 0,
-                color: "#111827",
-              }}
+              className="
+                text-3xl
+                font-bold
+                tracking-tight
+                text-[var(--text-primary)]
+                sm:text-4xl
+              "
             >
               Welcome, {user.name} 👋
             </h1>
 
             <p
-              style={{
-                color: "#6b7280",
-                marginTop: "8px",
-              }}
+              className="
+                mt-2
+                text-[var(--text-secondary)]
+              "
             >
-              Welcome to your Campus Flow AI
-              dashboard
+              Welcome to your Campus Flow AI dashboard
             </p>
           </div>
 
           <button
             type="button"
             onClick={handleLogout}
-            style={{
-              padding: "10px 18px",
-              border: "none",
-              borderRadius: "8px",
-              background: "#111827",
-              color: "white",
-              cursor: "pointer",
-              fontWeight: "600",
-            }}
+            className="
+              rounded-xl
+              bg-danger
+              px-5
+              py-2.5
+              font-semibold
+              text-white
+              shadow-[var(--shadow-sm)]
+              transition-all
+              duration-300
+              hover:-translate-y-0.5
+              hover:shadow-[var(--shadow-md)]
+            "
           >
             Logout
           </button>
@@ -361,50 +382,48 @@ export default function DashboardPage() {
         {/* ====================================== */}
 
         <section
-          style={{
-            background: "white",
-            padding: "24px",
-            borderRadius: "16px",
-            marginBottom: "24px",
-            boxShadow:
-              "0 4px 20px rgba(0, 0, 0, 0.05)",
-          }}
+          className="
+            glass
+            mb-6
+            rounded-3xl
+            p-6
+            transition-all
+            duration-300
+            sm:p-8
+          "
         >
           <h2
-            style={{
-              marginTop: 0,
-              color: "#111827",
-            }}
+            className="
+              text-2xl
+              font-bold
+              text-[var(--text-primary)]
+            "
           >
             Account Information
           </h2>
 
-          <p
-            style={{
-              color: "#374151",
-            }}
-          >
-            <strong>Name:</strong>{" "}
-            {user.name}
-          </p>
+          <div className="mt-5 space-y-3">
+            <p className="text-[var(--text-secondary)]">
+              <strong className="text-[var(--text-primary)]">
+                Name:
+              </strong>{" "}
+              {user.name}
+            </p>
 
-          <p
-            style={{
-              color: "#374151",
-            }}
-          >
-            <strong>Email:</strong>{" "}
-            {user.email}
-          </p>
+            <p className="text-[var(--text-secondary)]">
+              <strong className="text-[var(--text-primary)]">
+                Email:
+              </strong>{" "}
+              {user.email}
+            </p>
 
-          <p
-            style={{
-              color: "#374151",
-            }}
-          >
-            <strong>Role:</strong>{" "}
-            {user.role}
-          </p>
+            <p className="text-[var(--text-secondary)]">
+              <strong className="text-[var(--text-primary)]">
+                Role:
+              </strong>{" "}
+              {user.role}
+            </p>
+          </div>
         </section>
 
         {/* ====================================== */}
@@ -412,156 +431,129 @@ export default function DashboardPage() {
         {/* ====================================== */}
 
         <section
-          style={{
-            background: "white",
-            padding: "24px",
-            borderRadius: "16px",
-            marginBottom: "24px",
-            boxShadow:
-              "0 4px 20px rgba(0, 0, 0, 0.05)",
-          }}
+          className="
+            glass
+            mb-6
+            rounded-3xl
+            p-6
+            transition-all
+            duration-300
+            sm:p-8
+          "
         >
           <h2
-            style={{
-              marginTop: 0,
-              color: "#111827",
-            }}
+            className="
+              text-2xl
+              font-bold
+              text-[var(--text-primary)]
+            "
           >
             Student Profile
           </h2>
 
           {profile ? (
-            <div>
-              <p
-                style={{
-                  color: "#374151",
-                }}
-              >
-                <strong>
-                  College:
-                </strong>{" "}
-                {profile.college ||
-                  "Not provided"}
-              </p>
+            <div className="mt-5">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <p className="text-[var(--text-secondary)]">
+                  <strong className="text-[var(--text-primary)]">
+                    College:
+                  </strong>{" "}
+                  {profile.college ||
+                    "Not provided"}
+                </p>
 
-              <p
-                style={{
-                  color: "#374151",
-                }}
-              >
-                <strong>
-                  Department:
-                </strong>{" "}
-                {profile.department ||
-                  "Not provided"}
-              </p>
+                <p className="text-[var(--text-secondary)]">
+                  <strong className="text-[var(--text-primary)]">
+                    Department:
+                  </strong>{" "}
+                  {profile.department ||
+                    "Not provided"}
+                </p>
 
-              <p
-                style={{
-                  color: "#374151",
-                }}
-              >
-                <strong>
-                  Year:
-                </strong>{" "}
-                {profile.year ||
-                  "Not provided"}
-              </p>
+                <p className="text-[var(--text-secondary)]">
+                  <strong className="text-[var(--text-primary)]">
+                    Year:
+                  </strong>{" "}
+                  {profile.year ||
+                    "Not provided"}
+                </p>
 
-              <p
-                style={{
-                  color: "#374151",
-                }}
-              >
-                <strong>
-                  Division:
-                </strong>{" "}
-                {profile.division ||
-                  "Not provided"}
-              </p>
+                <p className="text-[var(--text-secondary)]">
+                  <strong className="text-[var(--text-primary)]">
+                    Division:
+                  </strong>{" "}
+                  {profile.division ||
+                    "Not provided"}
+                </p>
 
-              <p
-                style={{
-                  color: "#374151",
-                }}
-              >
-                <strong>
-                  Roll Number:
-                </strong>{" "}
-                {profile.rollNumber ||
-                  "Not provided"}
-              </p>
+                <p className="text-[var(--text-secondary)]">
+                  <strong className="text-[var(--text-primary)]">
+                    Roll Number:
+                  </strong>{" "}
+                  {profile.rollNumber ||
+                    "Not provided"}
+                </p>
 
-              <p
-                style={{
-                  color: "#374151",
-                }}
-              >
-                <strong>
-                  Phone:
-                </strong>{" "}
-                {profile.phone ||
-                  "Not provided"}
-              </p>
+                <p className="text-[var(--text-secondary)]">
+                  <strong className="text-[var(--text-primary)]">
+                    Phone:
+                  </strong>{" "}
+                  {profile.phone ||
+                    "Not provided"}
+                </p>
+              </div>
 
               <button
                 type="button"
                 onClick={() =>
-                  router.push(
-                    "/profile"
-                  )
+                  router.push("/profile")
                 }
-                style={{
-                  marginTop: "10px",
-                  padding:
-                    "10px 18px",
-                  border: "none",
-                  borderRadius: "8px",
-                  background:
-                    "#111827",
-                  color: "white",
-                  cursor:
-                    "pointer",
-                  fontWeight:
-                    "600",
-                }}
+                className="
+                  mt-6
+                  rounded-xl
+                  bg-primary
+                  px-5
+                  py-2.5
+                  font-semibold
+                  text-white
+                  shadow-[var(--shadow-sm)]
+                  transition-all
+                  duration-300
+                  hover:-translate-y-0.5
+                  hover:bg-primary-hover
+                  hover:shadow-[var(--shadow-md)]
+                "
               >
                 Edit Profile
               </button>
             </div>
           ) : (
-            <div>
-              <p
-                style={{
-                  color: "#374151",
-                }}
-              >
-                You haven&apos;t
-                created your
-                student profile
-                yet.
+            <div className="mt-5">
+              <p className="text-[var(--text-secondary)]">
+                You haven&apos;t created your student
+                profile yet.
               </p>
 
               <button
                 type="button"
                 onClick={() =>
-                  router.push(
-                    "/profile"
-                  )
+                  router.push("/profile")
                 }
-                style={{
-                  padding:
-                    "10px 18px",
-                  border: "none",
-                  borderRadius: "8px",
-                  background:
-                    "#111827",
-                  color: "white",
-                  cursor:
-                    "pointer",
-                  fontWeight:
-                    "600",
-                }}
+                className="
+                  mt-5
+                  rounded-xl
+                  bg-primary
+                  px-5
+                  py-2.5
+                  font-semibold
+                  text-white
+                  shadow-[var(--shadow-sm)]
+                  transition-all
+                  duration-300
+                  hover:-translate-y-0.5
+                  hover:bg-primary-hover
+                  hover:shadow-[var(--shadow-md)]
+                "
               >
                 Create Profile
               </button>
@@ -574,69 +566,67 @@ export default function DashboardPage() {
         {/* ====================================== */}
 
         <section
-          style={{
-            background: "white",
-            padding: "24px",
-            borderRadius: "16px",
-            marginBottom: "24px",
-            boxShadow:
-              "0 4px 20px rgba(0, 0, 0, 0.05)",
-          }}
+          className="
+            glass
+            mb-6
+            rounded-3xl
+            p-6
+            transition-all
+            duration-300
+            sm:p-8
+          "
         >
           <div
-            style={{
-              display: "flex",
-              justifyContent:
-                "space-between",
-              alignItems: "center",
-              gap: "16px",
-              flexWrap: "wrap",
-              marginBottom: "20px",
-            }}
+            className="
+              mb-6
+              flex
+              flex-wrap
+              items-center
+              justify-between
+              gap-4
+            "
           >
             <div>
               <h2
-                style={{
-                  margin: 0,
-                  color: "#111827",
-                }}
+                className="
+                  text-2xl
+                  font-bold
+                  text-[var(--text-primary)]
+                "
               >
                 📢 Latest Announcements
               </h2>
 
               <p
-                style={{
-                  margin:
-                    "6px 0 0",
-                  color: "#6b7280",
-                }}
+                className="
+                  mt-2
+                  text-[var(--text-secondary)]
+                "
               >
-                Stay updated with
-                the latest campus
-                news and notices.
+                Stay updated with the latest campus news
+                and notices.
               </p>
             </div>
 
             <button
               type="button"
               onClick={() =>
-                router.push(
-                  "/announcements"
-                )
+                router.push("/announcements")
               }
-              style={{
-                padding:
-                  "10px 16px",
-                border: "none",
-                borderRadius: "8px",
-                background:
-                  "#111827",
-                color: "white",
-                cursor:
-                  "pointer",
-                fontWeight:
-                  "600",
-              }}
+              className="
+                rounded-xl
+                bg-primary
+                px-5
+                py-2.5
+                font-semibold
+                text-white
+                shadow-[var(--shadow-sm)]
+                transition-all
+                duration-300
+                hover:-translate-y-0.5
+                hover:bg-primary-hover
+                hover:shadow-[var(--shadow-md)]
+              "
             >
               View All
             </button>
@@ -645,13 +635,20 @@ export default function DashboardPage() {
           {/* Announcement Loading */}
 
           {announcementsLoading && (
-            <p
-              style={{
-                color: "#6b7280",
-              }}
+            <div
+              className="
+                rounded-2xl
+                border
+                border-[var(--border)]
+                bg-[var(--surface-muted)]
+                p-6
+                text-center
+              "
             >
-              Loading announcements...
-            </p>
+              <p className="text-[var(--text-secondary)]">
+                Loading announcements...
+              </p>
+            </div>
           )}
 
           {/* Announcement Error */}
@@ -659,13 +656,14 @@ export default function DashboardPage() {
           {!announcementsLoading &&
             announcementError && (
               <div
-                style={{
-                  padding: "14px",
-                  background:
-                    "#fee2e2",
-                  color: "#b91c1c",
-                  borderRadius: "8px",
-                }}
+                className="
+                  rounded-2xl
+                  border
+                  border-[var(--danger-soft)]
+                  bg-[var(--danger-soft)]
+                  p-4
+                  text-[var(--danger)]
+                "
               >
                 {announcementError}
               </div>
@@ -675,29 +673,19 @@ export default function DashboardPage() {
 
           {!announcementsLoading &&
             !announcementError &&
-            announcements.length ===
-              0 && (
+            announcements.length === 0 && (
               <div
-                style={{
-                  padding: "30px",
-                  textAlign:
-                    "center",
-                  background:
-                    "#f9fafb",
-                  borderRadius:
-                    "10px",
-                }}
+                className="
+                  rounded-2xl
+                  border
+                  border-[var(--border)]
+                  bg-[var(--surface-muted)]
+                  p-8
+                  text-center
+                "
               >
-                <p
-                  style={{
-                    margin: 0,
-                    color:
-                      "#6b7280",
-                  }}
-                >
-                  No announcements
-                  available
-                  right now.
+                <p className="text-[var(--text-secondary)]">
+                  No announcements available right now.
                 </p>
               </div>
             )}
@@ -706,122 +694,68 @@ export default function DashboardPage() {
 
           {!announcementsLoading &&
             !announcementError &&
-            announcements.length >
-              0 && (
-              <div
-                style={{
-                  display:
-                    "flex",
-                  flexDirection:
-                    "column",
-                  gap: "14px",
-                }}
-              >
+            announcements.length > 0 && (
+              <div className="flex flex-col gap-4">
                 {announcements
                   .slice(0, 3)
-                  .map(
-                    (
-                      announcement
-                    ) => (
-                      <article
-                        key={
-                          announcement.id
-                        }
-                        style={{
-                          padding:
-                            "18px",
-                          border:
-                            "1px solid #eef0f4",
-                          borderRadius:
-                            "12px",
-                          background:
-                            "#fafbfc",
-                        }}
+                  .map((announcement) => (
+                    <article
+                      key={announcement.id}
+                      className="
+                        glass-subtle
+                        rounded-2xl
+                        p-5
+                        transition-all
+                        duration-300
+                        hover:-translate-y-0.5
+                      "
+                    >
+                      <h3
+                        className="
+                          text-lg
+                          font-semibold
+                          text-[var(--text-primary)]
+                        "
                       >
-                        <h3
-                          style={{
-                            margin:
-                              "0 0 8px",
-                            color:
-                              "#111827",
-                            fontSize:
-                              "18px",
-                          }}
-                        >
-                          {
-                            announcement.title
-                          }
-                        </h3>
+                        {announcement.title}
+                      </h3>
 
-                        <p
-                          style={{
-                            margin:
-                              "0 0 12px",
-                            color:
-                              "#374151",
-                            lineHeight:
-                              "1.5",
-                            whiteSpace:
-                              "pre-wrap",
-                          }}
-                        >
-                          {
-                            announcement.content
-                          }
-                        </p>
+                      <p
+                        className="
+                          mt-2
+                          whitespace-pre-wrap
+                          leading-7
+                          text-[var(--text-secondary)]
+                        "
+                      >
+                        {announcement.content}
+                      </p>
 
-                        <div
-                          style={{
-                            display:
-                              "flex",
-                            justifyContent:
-                              "space-between",
-                            alignItems:
-                              "center",
-                            gap: "10px",
-                            flexWrap:
-                              "wrap",
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontSize:
-                                "14px",
-                              color:
-                                "#6b7280",
-                            }}
-                          >
-                            Posted by{" "}
-                            <strong
-                              style={{
-                                color:
-                                  "#374151",
-                              }}
-                            >
-                              {
-                                announcement
-                                  .createdBy
-                                  .name
-                              }
-                            </strong>
-                          </span>
+                      <div
+                        className="
+                          mt-4
+                          flex
+                          flex-wrap
+                          items-center
+                          justify-between
+                          gap-3
+                        "
+                      >
+                        <span className="text-sm text-[var(--text-muted)]">
+                          Posted by{" "}
+                          <strong className="text-[var(--text-secondary)]">
+                            {announcement.createdBy.name}
+                          </strong>
+                        </span>
 
-                          <span
-                            style={{
-                              fontSize:
-                                "14px",
-                              color:
-                                "#6b7280",
-                            }}
-                          >
-                            {formatDate(
-                              announcement.createdAt
-                            )}
-                          </span>
-                        </div>
-                      </article>
-                    )
-                  )}
+                        <span className="text-sm text-[var(--text-muted)]">
+                          {formatDate(
+                            announcement.createdAt
+                          )}
+                        </span>
+                      </div>
+                    </article>
+                  ))}
               </div>
             )}
         </section>
@@ -832,71 +766,65 @@ export default function DashboardPage() {
 
         <section>
           <h2
-            style={{
-              color: "#111827",
-              marginBottom:
-                "16px",
-            }}
+            className="
+              mb-5
+              text-2xl
+              font-bold
+              text-[var(--text-primary)]
+            "
           >
             Quick Actions
           </h2>
 
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: "16px",
-            }}
+            className="
+              grid
+              gap-5
+              sm:grid-cols-2
+              lg:grid-cols-4
+            "
           >
             {/* Campus Events */}
 
             <button
               type="button"
               onClick={() =>
-                router.push(
-                  "/events"
-                )
+                router.push("/events")
               }
-              style={{
-                background: "white",
-                padding: "24px",
-                borderRadius:
-                  "16px",
-                boxShadow:
-                  "0 4px 20px rgba(0, 0, 0, 0.05)",
-                border:
-                  "1px solid #eef0f4",
-                textAlign:
-                  "left",
-                cursor:
-                  "pointer",
-                width: "100%",
-              }}
+              className="
+                glass
+                rounded-3xl
+                p-6
+                text-left
+                transition-all
+                duration-300
+                hover:-translate-y-1
+                hover:shadow-[var(--shadow-lg)]
+              "
             >
+              <div className="mb-4 text-3xl">
+                📅
+              </div>
+
               <h3
-                style={{
-                  margin:
-                    "0 0 8px",
-                  color:
-                    "#111827",
-                }}
+                className="
+                  text-lg
+                  font-semibold
+                  text-[var(--text-primary)]
+                "
               >
-                📅 Campus Events
+                Campus Events
               </h3>
 
               <p
-                style={{
-                  margin: 0,
-                  color:
-                    "#6b7280",
-                  lineHeight:
-                    "1.5",
-                }}
+                className="
+                  mt-2
+                  leading-6
+                  text-[var(--text-secondary)]
+                "
               >
-                View upcoming
-                campus events
-                and activities.
+                View upcoming campus events and
+                activities.
               </p>
             </button>
 
@@ -905,49 +833,41 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={() =>
-                router.push(
-                  "/announcements"
-                )
+                router.push("/announcements")
               }
-              style={{
-                background: "white",
-                padding: "24px",
-                borderRadius:
-                  "16px",
-                boxShadow:
-                  "0 4px 20px rgba(0, 0, 0, 0.05)",
-                border:
-                  "1px solid #eef0f4",
-                textAlign:
-                  "left",
-                cursor:
-                  "pointer",
-                width: "100%",
-              }}
+              className="
+                glass
+                rounded-3xl
+                p-6
+                text-left
+                transition-all
+                duration-300
+                hover:-translate-y-1
+                hover:shadow-[var(--shadow-lg)]
+              "
             >
+              <div className="mb-4 text-3xl">
+                📢
+              </div>
+
               <h3
-                style={{
-                  margin:
-                    "0 0 8px",
-                  color:
-                    "#111827",
-                }}
+                className="
+                  text-lg
+                  font-semibold
+                  text-[var(--text-primary)]
+                "
               >
-                📢 Notices
+                Notices
               </h3>
 
               <p
-                style={{
-                  margin: 0,
-                  color:
-                    "#6b7280",
-                  lineHeight:
-                    "1.5",
-                }}
+                className="
+                  mt-2
+                  leading-6
+                  text-[var(--text-secondary)]
+                "
               >
-                Stay updated
-                with the latest
-                campus
+                Stay updated with the latest campus
                 announcements.
               </p>
             </button>
@@ -957,70 +877,55 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={() =>
-                router.push(
-                  "/complaints"
-                )
+                router.push("/complaints")
               }
-              style={{
-                background: "white",
-                padding: "24px",
-                borderRadius:
-                  "16px",
-                boxShadow:
-                  "0 4px 20px rgba(0, 0, 0, 0.05)",
-                border:
-                  "1px solid #eef0f4",
-                textAlign:
-                  "left",
-                cursor:
-                  "pointer",
-                width: "100%",
-              }}
+              className="
+                glass
+                rounded-3xl
+                p-6
+                text-left
+                transition-all
+                duration-300
+                hover:-translate-y-1
+                hover:shadow-[var(--shadow-lg)]
+              "
             >
+              <div className="mb-4 text-3xl">
+                📝
+              </div>
+
               <h3
-                style={{
-                  margin:
-                    "0 0 8px",
-                  color:
-                    "#111827",
-                }}
+                className="
+                  text-lg
+                  font-semibold
+                  text-[var(--text-primary)]
+                "
               >
-                📝 Complaints
+                Complaints
               </h3>
 
               <p
-                style={{
-                  margin: 0,
-                  color:
-                    "#6b7280",
-                  lineHeight:
-                    "1.5",
-                }}
+                className="
+                  mt-2
+                  leading-6
+                  text-[var(--text-secondary)]
+                "
               >
-                Submit and track
-                campus
-                complaints.
+                Submit and track campus complaints.
               </p>
 
               <span
-                style={{
-                  display:
-                    "inline-block",
-                  marginTop:
-                    "12px",
-                  fontSize:
-                    "12px",
-                  fontWeight:
-                    "600",
-                  color:
-                    "#166534",
-                  background:
-                    "#dcfce7",
-                  padding:
-                    "5px 8px",
-                  borderRadius:
-                    "6px",
-                }}
+                className="
+                  mt-4
+                  inline-block
+                  rounded-lg
+                  bg-success-soft
+                  px-2.5
+                  py-1
+                  text-xs
+                  font-semibold
+                  text-success
+                "
               >
                 Available
               </span>
@@ -1031,69 +936,55 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={() =>
-                router.push(
-                  "/notifications"
-                )
+                router.push("/notifications")
               }
-              style={{
-                background: "white",
-                padding: "24px",
-                borderRadius:
-                  "16px",
-                boxShadow:
-                  "0 4px 20px rgba(0, 0, 0, 0.05)",
-                border:
-                  "1px solid #eef0f4",
-                textAlign:
-                  "left",
-                cursor:
-                  "pointer",
-                width: "100%",
-              }}
+              className="
+                glass
+                rounded-3xl
+                p-6
+                text-left
+                transition-all
+                duration-300
+                hover:-translate-y-1
+                hover:shadow-[var(--shadow-lg)]
+              "
             >
+              <div className="mb-4 text-3xl">
+                🔔
+              </div>
+
               <h3
-                style={{
-                  margin:
-                    "0 0 8px",
-                  color:
-                    "#111827",
-                }}
+                className="
+                  text-lg
+                  font-semibold
+                  text-[var(--text-primary)]
+                "
               >
-                🔔 Notifications
+                Notifications
               </h3>
 
               <p
-                style={{
-                  margin: 0,
-                  color:
-                    "#6b7280",
-                  lineHeight:
-                    "1.5",
-                }}
+                className="
+                  mt-2
+                  leading-6
+                  text-[var(--text-secondary)]
+                "
               >
-                View your latest
-                notifications.
+                View your latest notifications.
               </p>
 
               <span
-                style={{
-                  display:
-                    "inline-block",
-                  marginTop:
-                    "12px",
-                  fontSize:
-                    "12px",
-                  fontWeight:
-                    "600",
-                  color:
-                    "#166534",
-                  background:
-                    "#dcfce7",
-                  padding:
-                    "5px 8px",
-                  borderRadius:
-                    "6px",
-                }}
+                className="
+                  mt-4
+                  inline-block
+                  rounded-lg
+                  bg-success-soft
+                  px-2.5
+                  py-1
+                  text-xs
+                  font-semibold
+                  text-success
+                "
               >
                 Available
               </span>
