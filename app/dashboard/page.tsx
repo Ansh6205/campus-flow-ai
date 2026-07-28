@@ -39,6 +39,25 @@ type Announcement = {
   };
 };
 
+function Info({
+  title,
+  value,
+}: {
+  title: string;
+  value: string;
+}) {
+  return (
+    <div className="glass-subtle rounded-2xl p-4">
+      <p className="text-xs uppercase tracking-widest text-[var(--text-muted)]">
+        {title}
+      </p>
+
+      <p className="mt-2 text-lg font-semibold text-[var(--text-primary)]">
+        {value}
+      </p>
+    </div>
+  );
+}
 export default function DashboardPage() {
   const router = useRouter();
 
@@ -299,6 +318,46 @@ export default function DashboardPage() {
     profile,
   } = data;
 
+  const greeting =
+  new Date().getHours() < 12
+    ? "Good Morning"
+    : new Date().getHours() < 17
+      ? "Good Afternoon"
+      : "Good Evening";
+
+const today = new Date().toLocaleDateString("en-IN", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
+const stats = [
+  {
+    title: "Announcements",
+    value: announcements.length,
+    icon: "📢",
+    color: "bg-primary-soft text-primary",
+  },
+  {
+    title: "Events",
+    value: "--",
+    icon: "📅",
+    color: "bg-accent-soft text-accent",
+  },
+  {
+    title: "Complaints",
+    value: "--",
+    icon: "📝",
+    color: "bg-warning-soft text-warning",
+  },
+  {
+    title: "Notifications",
+    value: "--",
+    icon: "🔔",
+    color: "bg-success-soft text-success",
+  },
+];
   // ============================================
   // MAIN DASHBOARD
   // ============================================
@@ -323,442 +382,494 @@ export default function DashboardPage() {
         {/* HEADER */}
         {/* ====================================== */}
 
-        <header
-          className="
-            mb-8
-            flex
-            flex-wrap
-            items-center
-            justify-between
-            gap-5
-          "
-        >
-          <div>
-            <h1
-              className="
-                text-3xl
-                font-bold
-                tracking-tight
-                text-[var(--text-primary)]
-                sm:text-4xl
-              "
-            >
-              Welcome, {user.name} 👋
-            </h1>
+        <header className="relative mb-10 overflow-hidden rounded-[36px] glass p-8 lg:p-10">
 
-            <p
-              className="
-                mt-2
-                text-[var(--text-secondary)]
-              "
-            >
-              Welcome to your Campus Flow AI dashboard
+  <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-primary-soft blur-3xl opacity-70" />
+
+  <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-accent-soft blur-3xl opacity-70" />
+
+  <div className="relative z-10 flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
+
+    <div className="max-w-2xl">
+
+      <div className="inline-flex items-center gap-2 rounded-full bg-primary-soft px-4 py-2 text-sm font-semibold text-primary">
+        👋 {greeting}
+      </div>
+
+      <h1 className="mt-6 text-5xl font-bold leading-tight text-[var(--text-primary)]">
+        Welcome back,
+        <span className="block text-primary">
+          {user.name}
+        </span>
+      </h1>
+
+      <p className="mt-5 text-lg leading-8 text-[var(--text-secondary)]">
+        Manage announcements, complaints, events and your academic profile
+        through one intelligent dashboard.
+      </p>
+
+      <div className="mt-8 flex flex-wrap gap-3">
+
+        <span className="rounded-full bg-success-soft px-4 py-2 text-sm font-semibold text-success">
+          🎓 {user.role}
+        </span>
+
+        <span className="rounded-full bg-accent-soft px-4 py-2 text-sm font-semibold text-accent">
+          📅 {today}
+        </span>
+
+      </div>
+
+    </div>
+
+    <div className="flex flex-col gap-4">
+
+      <button
+        onClick={() => router.push("/profile")}
+        className="rounded-2xl bg-primary px-8 py-3 font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-primary-hover"
+      >
+        Edit Profile
+      </button>
+
+      <button
+        onClick={handleLogout}
+        className="rounded-2xl border border-danger bg-danger-soft px-8 py-3 font-semibold text-danger transition-all duration-300 hover:-translate-y-1"
+      >
+        Logout
+      </button>
+
+    </div>
+
+  </div>
+
+</header>
+
+{/* ====================================== */}
+{/* DASHBOARD STATS */}
+{/* ====================================== */}
+
+<section className="mb-10">
+  <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+    {stats.map((stat) => (
+      <div
+        key={stat.title}
+        className="
+          glass
+          group
+          relative
+          overflow-hidden
+          rounded-[28px]
+          p-6
+          transition-all
+          duration-500
+          hover:-translate-y-2
+          hover:shadow-[var(--shadow-lg)]
+        "
+      >
+        <div
+          className="
+            absolute
+            -right-10
+            -top-10
+            h-32
+            w-32
+            rounded-full
+            bg-primary-soft
+            blur-3xl
+            opacity-40
+            transition-all
+            duration-500
+            group-hover:scale-125
+          "
+        />
+
+        <div className="relative z-10 flex items-start justify-between">
+          <div>
+            <p className="text-sm text-[var(--text-secondary)]">
+              {stat.title}
             </p>
+
+            <h3 className="mt-3 text-4xl font-bold text-[var(--text-primary)]">
+              {stat.value}
+            </h3>
+          </div>
+
+          <div
+            className={`flex h-14 w-14 items-center justify-center rounded-2xl text-3xl ${stat.color}`}
+          >
+            {stat.icon}
+          </div>
+        </div>
+
+        <div className="mt-8 h-1 w-full overflow-hidden rounded-full bg-[var(--border)]">
+          <div className="h-full w-2/3 rounded-full bg-primary transition-all duration-700 group-hover:w-full" />
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
+        {/* ====================================== */}
+{/* PROFILE CARD */}
+{/* ====================================== */}
+
+<section className="mb-10">
+  <div className="glass relative overflow-hidden rounded-[34px] p-8">
+
+    <div className="absolute -right-20 -top-20 h-60 w-60 rounded-full bg-primary-soft blur-3xl opacity-40" />
+
+    <div className="relative z-10">
+
+      <div className="flex flex-col gap-8 lg:flex-row">
+
+        {/* Avatar */}
+
+        <div className="flex flex-col items-center">
+
+          <div className="flex h-32 w-32 items-center justify-center rounded-full bg-primary text-5xl font-bold text-white shadow-[var(--shadow-lg)]">
+            {user.name.charAt(0).toUpperCase()}
+          </div>
+
+          <span className="mt-5 rounded-full bg-success-soft px-4 py-2 text-sm font-semibold text-success">
+            {user.role}
+          </span>
+
+        </div>
+
+        {/* Details */}
+
+        <div className="flex-1">
+
+          <h2 className="text-4xl font-bold text-[var(--text-primary)]">
+            {user.name}
+          </h2>
+
+          <p className="mt-2 text-lg text-[var(--text-secondary)]">
+            {profile?.department || "Department not added"}
+          </p>
+
+          <div className="mt-8 grid gap-5 md:grid-cols-2">
+
+            <Info title="Email" value={user.email} />
+
+            <Info
+              title="College"
+              value={profile?.college || "Not provided"}
+            />
+
+            <Info
+              title="Department"
+              value={profile?.department || "Not provided"}
+            />
+
+            <Info
+              title="Year"
+              value={profile?.year?.toString() || "Not provided"}
+            />
+
+            <Info
+              title="Division"
+              value={profile?.division || "Not provided"}
+            />
+
+            <Info
+              title="Roll Number"
+              value={profile?.rollNumber || "Not provided"}
+            />
+
+            <Info
+              title="Phone"
+              value={profile?.phone || "Not provided"}
+            />
+
           </div>
 
           <button
-            type="button"
-            onClick={handleLogout}
+            onClick={() => router.push("/profile")}
             className="
-              rounded-xl
-              bg-danger
-              px-5
-              py-2.5
+              mt-10
+              rounded-2xl
+              bg-primary
+              px-7
+              py-3
               font-semibold
               text-white
-              shadow-[var(--shadow-sm)]
               transition-all
               duration-300
-              hover:-translate-y-0.5
-              hover:shadow-[var(--shadow-md)]
+              hover:-translate-y-1
+              hover:bg-primary-hover
             "
           >
-            Logout
+            Edit Profile
           </button>
-        </header>
 
-        {/* ====================================== */}
-        {/* ACCOUNT INFORMATION */}
-        {/* ====================================== */}
+        </div>
 
-        <section
-          className="
-            glass
-            mb-6
-            rounded-3xl
-            p-6
-            transition-all
-            duration-300
-            sm:p-8
-          "
-        >
-          <h2
-            className="
-              text-2xl
-              font-bold
-              text-[var(--text-primary)]
-            "
-          >
-            Account Information
-          </h2>
+      </div>
 
-          <div className="mt-5 space-y-3">
-            <p className="text-[var(--text-secondary)]">
-              <strong className="text-[var(--text-primary)]">
-                Name:
-              </strong>{" "}
-              {user.name}
-            </p>
+    </div>
 
-            <p className="text-[var(--text-secondary)]">
-              <strong className="text-[var(--text-primary)]">
-                Email:
-              </strong>{" "}
-              {user.email}
-            </p>
+  </div>
+</section>
 
-            <p className="text-[var(--text-secondary)]">
-              <strong className="text-[var(--text-primary)]">
-                Role:
-              </strong>{" "}
-              {user.role}
-            </p>
-          </div>
-        </section>
+       {/* ====================================== */}
+{/* LATEST ANNOUNCEMENTS */}
+{/* ====================================== */}
 
-        {/* ====================================== */}
-        {/* STUDENT PROFILE */}
-        {/* ====================================== */}
+<section className="mb-10">
+  <div className="glass relative overflow-hidden rounded-[34px] p-6 sm:p-8">
 
-        <section
-          className="
-            glass
-            mb-6
-            rounded-3xl
-            p-6
-            transition-all
-            duration-300
-            sm:p-8
-          "
-        >
-          <h2
-            className="
-              text-2xl
-              font-bold
-              text-[var(--text-primary)]
-            "
-          >
-            Student Profile
-          </h2>
+    {/* Background Glow */}
 
-          {profile ? (
-            <div className="mt-5">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <p className="text-[var(--text-secondary)]">
-                  <strong className="text-[var(--text-primary)]">
-                    College:
-                  </strong>{" "}
-                  {profile.college ||
-                    "Not provided"}
-                </p>
+    <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-primary-soft blur-3xl opacity-40" />
 
-                <p className="text-[var(--text-secondary)]">
-                  <strong className="text-[var(--text-primary)]">
-                    Department:
-                  </strong>{" "}
-                  {profile.department ||
-                    "Not provided"}
-                </p>
+    <div className="relative z-10">
 
-                <p className="text-[var(--text-secondary)]">
-                  <strong className="text-[var(--text-primary)]">
-                    Year:
-                  </strong>{" "}
-                  {profile.year ||
-                    "Not provided"}
-                </p>
+      {/* Section Header */}
 
-                <p className="text-[var(--text-secondary)]">
-                  <strong className="text-[var(--text-primary)]">
-                    Division:
-                  </strong>{" "}
-                  {profile.division ||
-                    "Not provided"}
-                </p>
+      <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
 
-                <p className="text-[var(--text-secondary)]">
-                  <strong className="text-[var(--text-primary)]">
-                    Roll Number:
-                  </strong>{" "}
-                  {profile.rollNumber ||
-                    "Not provided"}
-                </p>
+        <div>
+          <div className="flex items-center gap-3">
 
-                <p className="text-[var(--text-secondary)]">
-                  <strong className="text-[var(--text-primary)]">
-                    Phone:
-                  </strong>{" "}
-                  {profile.phone ||
-                    "Not provided"}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  router.push("/profile")
-                }
-                className="
-                  mt-6
-                  rounded-xl
-                  bg-primary
-                  px-5
-                  py-2.5
-                  font-semibold
-                  text-white
-                  shadow-[var(--shadow-sm)]
-                  transition-all
-                  duration-300
-                  hover:-translate-y-0.5
-                  hover:bg-primary-hover
-                  hover:shadow-[var(--shadow-md)]
-                "
-              >
-                Edit Profile
-              </button>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-soft text-2xl">
+              📢
             </div>
-          ) : (
-            <div className="mt-5">
-              <p className="text-[var(--text-secondary)]">
-                You haven&apos;t created your student
-                profile yet.
-              </p>
 
-              <button
-                type="button"
-                onClick={() =>
-                  router.push("/profile")
-                }
-                className="
-                  mt-5
-                  rounded-xl
-                  bg-primary
-                  px-5
-                  py-2.5
-                  font-semibold
-                  text-white
-                  shadow-[var(--shadow-sm)]
-                  transition-all
-                  duration-300
-                  hover:-translate-y-0.5
-                  hover:bg-primary-hover
-                  hover:shadow-[var(--shadow-md)]
-                "
-              >
-                Create Profile
-              </button>
-            </div>
-          )}
-        </section>
-
-        {/* ====================================== */}
-        {/* LATEST ANNOUNCEMENTS */}
-        {/* ====================================== */}
-
-        <section
-          className="
-            glass
-            mb-6
-            rounded-3xl
-            p-6
-            transition-all
-            duration-300
-            sm:p-8
-          "
-        >
-          <div
-            className="
-              mb-6
-              flex
-              flex-wrap
-              items-center
-              justify-between
-              gap-4
-            "
-          >
             <div>
-              <h2
-                className="
-                  text-2xl
-                  font-bold
-                  text-[var(--text-primary)]
-                "
-              >
-                📢 Latest Announcements
+              <h2 className="text-2xl font-bold text-[var(--text-primary)]">
+                Latest Announcements
               </h2>
 
-              <p
-                className="
-                  mt-2
-                  text-[var(--text-secondary)]
-                "
-              >
-                Stay updated with the latest campus news
-                and notices.
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                Stay updated with the latest campus news and notices.
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={() =>
-                router.push("/announcements")
-              }
-              className="
-                rounded-xl
-                bg-primary
-                px-5
-                py-2.5
-                font-semibold
-                text-white
-                shadow-[var(--shadow-sm)]
-                transition-all
-                duration-300
-                hover:-translate-y-0.5
-                hover:bg-primary-hover
-                hover:shadow-[var(--shadow-md)]
-              "
-            >
-              View All
-            </button>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => router.push("/announcements")}
+          className="
+            rounded-2xl
+            border
+            border-[var(--border-strong)]
+            bg-[var(--glass-bg)]
+            px-5
+            py-3
+            font-semibold
+            text-[var(--text-primary)]
+            transition-all
+            duration-300
+            hover:-translate-y-1
+            hover:bg-[var(--glass-bg-hover)]
+            hover:shadow-[var(--shadow-md)]
+          "
+        >
+          View All →
+        </button>
+
+      </div>
+
+      {/* Loading */}
+
+      {announcementsLoading && (
+        <div className="glass-subtle rounded-3xl p-10 text-center">
+
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-[var(--border)] border-t-primary" />
+
+          <p className="mt-4 text-[var(--text-secondary)]">
+            Loading announcements...
+          </p>
+
+        </div>
+      )}
+
+      {/* Error */}
+
+      {!announcementsLoading && announcementError && (
+        <div className="rounded-3xl border border-danger bg-danger-soft p-6">
+
+          <div className="flex items-start gap-4">
+
+            <div className="text-2xl">
+              ⚠️
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-danger">
+                Unable to load announcements
+              </h3>
+
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                {announcementError}
+              </p>
+            </div>
+
           </div>
 
-          {/* Announcement Loading */}
+        </div>
+      )}
 
-          {announcementsLoading && (
-            <div
-              className="
-                rounded-2xl
-                border
-                border-[var(--border)]
-                bg-[var(--surface-muted)]
-                p-6
-                text-center
-              "
-            >
-              <p className="text-[var(--text-secondary)]">
-                Loading announcements...
-              </p>
+      {/* Empty State */}
+
+      {!announcementsLoading &&
+        !announcementError &&
+        announcements.length === 0 && (
+          <div className="glass-subtle rounded-3xl p-10 text-center">
+
+            <div className="text-5xl">
+              📭
             </div>
-          )}
 
-          {/* Announcement Error */}
+            <h3 className="mt-4 text-xl font-semibold text-[var(--text-primary)]">
+              No announcements yet
+            </h3>
 
-          {!announcementsLoading &&
-            announcementError && (
-              <div
-                className="
-                  rounded-2xl
-                  border
-                  border-[var(--danger-soft)]
-                  bg-[var(--danger-soft)]
-                  p-4
-                  text-[var(--danger)]
-                "
-              >
-                {announcementError}
-              </div>
-            )}
+            <p className="mt-2 text-[var(--text-secondary)]">
+              There are no campus announcements available right now.
+            </p>
 
-          {/* No Announcements */}
+          </div>
+        )}
 
-          {!announcementsLoading &&
-            !announcementError &&
-            announcements.length === 0 && (
-              <div
-                className="
-                  rounded-2xl
-                  border
-                  border-[var(--border)]
-                  bg-[var(--surface-muted)]
-                  p-8
-                  text-center
-                "
-              >
-                <p className="text-[var(--text-secondary)]">
-                  No announcements available right now.
-                </p>
-              </div>
-            )}
+      {/* Announcement Feed */}
 
-          {/* Announcement List */}
+      {!announcementsLoading &&
+        !announcementError &&
+        announcements.length > 0 && (
+          <div className="relative">
 
-          {!announcementsLoading &&
-            !announcementError &&
-            announcements.length > 0 && (
-              <div className="flex flex-col gap-4">
-                {announcements
-                  .slice(0, 3)
-                  .map((announcement) => (
-                    <article
-                      key={announcement.id}
+            {/* Timeline */}
+
+            <div className="absolute left-[23px] top-6 bottom-6 hidden w-px bg-[var(--border)] sm:block" />
+
+            <div className="space-y-5">
+
+              {announcements
+                .slice(0, 3)
+                .map((announcement, index) => (
+
+                  <article
+                    key={announcement.id}
+                    className="
+                      group
+                      relative
+                      rounded-3xl
+                      border
+                      border-[var(--border)]
+                      bg-[var(--surface-muted)]
+                      p-5
+                      transition-all
+                      duration-500
+                      hover:-translate-y-1
+                      hover:border-[var(--border-strong)]
+                      hover:bg-[var(--glass-bg-hover)]
+                      hover:shadow-[var(--shadow-md)]
+                      sm:pl-16
+                    "
+                  >
+
+                    {/* Timeline Dot */}
+
+                    <div
                       className="
-                        glass-subtle
-                        rounded-2xl
-                        p-5
-                        transition-all
-                        duration-300
-                        hover:-translate-y-0.5
+                        absolute
+                        left-4
+                        top-6
+                        hidden
+                        h-4
+                        w-4
+                        rounded-full
+                        border-4
+                        border-[var(--background)]
+                        bg-primary
+                        shadow-[0_0_0_4px_var(--primary-soft)]
+                        sm:block
                       "
-                    >
-                      <h3
-                        className="
-                          text-lg
-                          font-semibold
-                          text-[var(--text-primary)]
-                        "
-                      >
-                        {announcement.title}
-                      </h3>
+                    />
 
-                      <p
-                        className="
-                          mt-2
-                          whitespace-pre-wrap
-                          leading-7
-                          text-[var(--text-secondary)]
-                        "
-                      >
-                        {announcement.content}
-                      </p>
+                    {/* Announcement Top Row */}
 
-                      <div
-                        className="
-                          mt-4
-                          flex
-                          flex-wrap
-                          items-center
-                          justify-between
-                          gap-3
-                        "
-                      >
-                        <span className="text-sm text-[var(--text-muted)]">
-                          Posted by{" "}
-                          <strong className="text-[var(--text-secondary)]">
-                            {announcement.createdBy.name}
-                          </strong>
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+
+                      <div className="flex items-center gap-2">
+
+                        {index === 0 && (
+                          <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-bold text-primary">
+                            Latest
+                          </span>
+                        )}
+
+                        <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent">
+                          Announcement
                         </span>
 
-                        <span className="text-sm text-[var(--text-muted)]">
-                          {formatDate(
-                            announcement.createdAt
-                          )}
-                        </span>
                       </div>
-                    </article>
-                  ))}
-              </div>
-            )}
-        </section>
+
+                      <span className="text-sm text-[var(--text-muted)]">
+                        {formatDate(announcement.createdAt)}
+                      </span>
+
+                    </div>
+
+                    {/* Title */}
+
+                    <h3 className="mt-4 text-xl font-bold text-[var(--text-primary)]">
+                      {announcement.title}
+                    </h3>
+
+                    {/* Content */}
+
+                    <p className="mt-3 whitespace-pre-wrap leading-7 text-[var(--text-secondary)]">
+                      {announcement.content}
+                    </p>
+
+                    {/* Footer */}
+
+                    <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-[var(--border)] pt-4">
+
+                      <div className="flex items-center gap-3">
+
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft font-semibold text-primary">
+                          {announcement.createdBy.name
+                            .charAt(0)
+                            .toUpperCase()}
+                        </div>
+
+                        <div>
+                          <p className="text-xs text-[var(--text-muted)]">
+                            Posted by
+                          </p>
+
+                          <p className="text-sm font-semibold text-[var(--text-primary)]">
+                            {announcement.createdBy.name}
+                          </p>
+                        </div>
+
+                      </div>
+
+                      <span className="text-xs font-medium text-[var(--text-muted)]">
+                        {announcement.createdBy.role}
+                      </span>
+
+                    </div>
+
+                  </article>
+
+                ))}
+
+            </div>
+
+          </div>
+        )}
+
+    </div>
+
+  </div>
+</section>
 
         {/* ====================================== */}
         {/* QUICK ACTIONS */}
