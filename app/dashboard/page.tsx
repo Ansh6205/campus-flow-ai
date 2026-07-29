@@ -67,6 +67,11 @@ export default function DashboardPage() {
   const [announcements, setAnnouncements] =
     useState<Announcement[]>([]);
 
+  const [eventsCount, setEventsCount] = useState(0);
+
+const [complaintsCount, setComplaintsCount] = useState(0);
+
+const [notificationsCount, setNotificationsCount] = useState(0);
   const [loading, setLoading] =
     useState(true);
 
@@ -209,6 +214,62 @@ export default function DashboardPage() {
     };
   }, [router]);
 
+  useEffect(() => {
+  async function loadEvents() {
+    try {
+      const response = await fetch("/api/events");
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setEventsCount(result.events?.length || 0);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  loadEvents();
+}, []);
+
+useEffect(() => {
+  async function loadComplaints() {
+    try {
+      const response = await fetch("/api/complaint");
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setComplaintsCount(result.complaints?.length || 0);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  loadComplaints();
+}, []);
+
+useEffect(() => {
+  async function loadNotifications() {
+    try {
+      const response = await fetch("/api/notifications");
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setNotificationsCount(
+          result.notifications?.length || 0
+        );
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  loadNotifications();
+}, []);
+
   // ============================================
   // LOGOUT
   // ============================================
@@ -341,19 +402,19 @@ const stats = [
   },
   {
     title: "Events",
-    value: "--",
+    value: eventsCount,
     icon: "📅",
     color: "bg-accent-soft text-accent",
   },
   {
     title: "Complaints",
-    value: "--",
+    value: complaintsCount,
     icon: "📝",
     color: "bg-warning-soft text-warning",
   },
   {
     title: "Notifications",
-    value: "--",
+    value: notificationsCount,
     icon: "🔔",
     color: "bg-success-soft text-success",
   },
