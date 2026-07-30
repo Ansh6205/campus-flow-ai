@@ -509,171 +509,174 @@ const stats = [
 {/* DASHBOARD STATS */}
 {/* ====================================== */}
 
-<section className="mb-10">
-  <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-    {stats.map((stat) => (
-      <div
-        key={stat.title}
-        className="
-          glass
-          group
-          relative
-          overflow-hidden
-          rounded-[28px]
-          p-6
-          transition-all
-          duration-500
-          hover:-translate-y-2
-          hover:shadow-[var(--shadow-lg)]
-        "
-      >
-        <div
-          className="
-            absolute
-            -right-10
-            -top-10
-            h-32
-            w-32
-            rounded-full
-            bg-primary-soft
-            blur-3xl
-            opacity-40
-            transition-all
-            duration-500
-            group-hover:scale-125
-          "
-        />
+<section className="mb-8">
 
-        <div className="relative z-10 flex items-start justify-between">
+  <div className="glass overflow-hidden rounded-[32px]">
+
+    {/* Top */}
+
+    <div className="relative overflow-hidden border-b border-[var(--border)] p-8">
+
+      <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary-soft blur-3xl opacity-70" />
+
+      <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+
+        <div className="flex items-center gap-6">
+
+          {/* Avatar */}
+
+          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 via-indigo-500 to-violet-500 text-4xl font-bold text-white shadow-[var(--shadow-lg)]">
+
+            {user.name.charAt(0).toUpperCase()}
+
+          </div>
+
           <div>
-            <p className="text-sm text-[var(--text-secondary)]">
-              {stat.title}
+
+            <h2 className="text-3xl font-bold text-[var(--text-primary)]">
+
+              {user.name}
+
+            </h2>
+
+            <p className="mt-2 text-[var(--text-secondary)]">
+
+              {profile?.department || "Student"} • {user.role}
+
             </p>
 
-            <h3 className="mt-3 text-4xl font-bold text-[var(--text-primary)]">
-              {stat.value}
-            </h3>
-          </div>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
 
-          <div
-            className={`flex h-14 w-14 items-center justify-center rounded-2xl text-3xl ${stat.color}`}
-          >
-            {stat.icon}
-          </div>
-        </div>
+              {user.email}
 
-        <div className="mt-8 h-1 w-full overflow-hidden rounded-full bg-[var(--border)]">
-          <div className="h-full w-2/3 rounded-full bg-primary transition-all duration-700 group-hover:w-full" />
-        </div>
-      </div>
-    ))}
-  </div>
-</section>
-
-        {/* ====================================== */}
-{/* PROFILE CARD */}
-{/* ====================================== */}
-
-<section className="mb-10">
-  <div className="glass relative overflow-hidden rounded-[34px] p-8">
-
-    <div className="absolute -right-20 -top-20 h-60 w-60 rounded-full bg-primary-soft blur-3xl opacity-40" />
-
-    <div className="relative z-10">
-
-      <div className="flex flex-col gap-8 lg:flex-row">
-
-        {/* Avatar */}
-
-        <div className="flex flex-col items-center">
-
-          <div className="flex h-32 w-32 items-center justify-center rounded-full bg-primary text-5xl font-bold text-white shadow-[var(--shadow-lg)]">
-            {user.name.charAt(0).toUpperCase()}
-          </div>
-
-          <span className="mt-5 rounded-full bg-success-soft px-4 py-2 text-sm font-semibold text-success">
-            {user.role}
-          </span>
-
-        </div>
-
-        {/* Details */}
-
-        <div className="flex-1">
-
-          <h2 className="text-4xl font-bold text-[var(--text-primary)]">
-            {user.name}
-          </h2>
-
-          <p className="mt-2 text-lg text-[var(--text-secondary)]">
-            {profile?.department || "Department not added"}
-          </p>
-
-          <div className="mt-8 grid gap-5 md:grid-cols-2">
-
-            <Info title="Email" value={user.email} />
-
-            <Info
-              title="College"
-              value={profile?.college || "Not provided"}
-            />
-
-            <Info
-              title="Department"
-              value={profile?.department || "Not provided"}
-            />
-
-            <Info
-              title="Year"
-              value={profile?.year?.toString() || "Not provided"}
-            />
-
-            <Info
-              title="Division"
-              value={profile?.division || "Not provided"}
-            />
-
-            <Info
-              title="Roll Number"
-              value={profile?.rollNumber || "Not provided"}
-            />
-
-            <Info
-              title="Phone"
-              value={profile?.phone || "Not provided"}
-            />
+            </p>
 
           </div>
 
-          <button
-            onClick={() => router.push("/profile")}
-            className="
-              mt-10
-              rounded-2xl
-              bg-primary
-              px-7
-              py-3
-              font-semibold
-              text-white
-              transition-all
-              duration-300
-              hover:-translate-y-1
-              hover:bg-primary-hover
-            "
-          >
-            Edit Profile
-          </button>
-
         </div>
+
+        <button
+          onClick={() => router.push("/profile")}
+          className="rounded-2xl bg-primary px-6 py-3 font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-primary-hover"
+        >
+          Edit Profile
+        </button>
 
       </div>
 
     </div>
 
+    {/* Details */}
+
+        {/* Dashboard Stats */}
+
+    <div className="grid grid-cols-2 gap-5 border-b border-[var(--border)] p-6 lg:grid-cols-4">
+
+      {stats.map((stat) => (
+        <button
+          key={stat.title}
+          type="button"
+          onClick={() => {
+            if (stat.title === "Announcements") {
+              router.push("/announcements");
+            }
+
+            if (stat.title === "Events") {
+              router.push("/events");
+            }
+
+            if (stat.title === "Complaints") {
+              router.push("/complaints");
+            }
+
+            if (stat.title === "Notifications") {
+              router.push("/notifications");
+            }
+          }}
+          className="
+            glass-subtle
+            min-w-0
+            rounded-3xl
+            p-5
+            text-left
+            transition-all
+            duration-300
+            hover:-translate-y-1
+            hover:shadow-[var(--shadow-lg)]
+          "
+        >
+          <div
+            className={`
+              flex
+              h-14
+              w-14
+              items-center
+              justify-center
+              rounded-2xl
+              text-2xl
+              ${stat.color}
+            `}
+          >
+            {stat.icon}
+          </div>
+
+          <p className="mt-5 truncate text-sm font-medium text-[var(--text-secondary)]">
+            {stat.title}
+          </p>
+
+          <p className="mt-1 text-4xl font-bold text-[var(--text-primary)]">
+            {stat.value}
+          </p>
+        </button>
+      ))}
+
+    </div>
+
+    {/* Student Details */}
+
+    <div className="grid gap-6 p-8 sm:grid-cols-2 lg:grid-cols-3">
+
+      <Info
+        title="🏫 College"
+        value={profile?.college || "Not Added"}
+      />
+
+      <Info
+        title="💻 Department"
+        value={profile?.department || "Not Added"}
+      />
+
+      <Info
+        title="🎓 Year"
+        value={
+          profile?.year
+            ? String(profile.year)
+            : "Not Added"
+        }
+      />
+
+      <Info
+        title="📘 Division"
+        value={profile?.division || "Not Added"}
+      />
+
+      <Info
+        title="🆔 Roll Number"
+        value={profile?.rollNumber || "Not Added"}
+      />
+
+      <Info
+        title="📱 Phone"
+        value={profile?.phone || "Not Added"}
+      />
+
+    </div>
+
   </div>
+
 </section>
 
-       {/* ====================================== */}
+{/* ====================================== */}
 {/* LATEST ANNOUNCEMENTS */}
 {/* ====================================== */}
 
