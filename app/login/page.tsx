@@ -34,7 +34,7 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Login failed");
+        setError(data.error || "Login failed.");
         return;
       }
 
@@ -42,70 +42,144 @@ export default function LoginPage() {
       router.refresh();
     } catch (error) {
       console.error("Login error:", error);
-      setError("Something went wrong. Please try again.");
+
+      setError(
+        "Something went wrong. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6 py-12 transition-colors duration-300">
+    <main className="
+      relative
+      flex
+      min-h-screen
+      items-center
+      justify-center
+      overflow-hidden
+      bg-background
+      px-5
+      py-10
+      text-[var(--text-primary)]
+      transition-colors
+      duration-300
+    ">
 
-      {/* Background glow */}
-      <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-primary-soft opacity-60 blur-3xl" />
+      {/* Background Glow */}
 
-      <div className="pointer-events-none absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-accent-soft opacity-50 blur-3xl" />
+      <div className="
+        pointer-events-none
+        absolute
+        -left-32
+        -top-32
+        h-96
+        w-96
+        rounded-full
+        bg-primary-soft
+        opacity-40
+        blur-3xl
+      " />
 
-      {/* Main Card */}
+      <div className="
+        pointer-events-none
+        absolute
+        -bottom-32
+        -right-32
+        h-96
+        w-96
+        rounded-full
+        bg-accent-soft
+        opacity-40
+        blur-3xl
+      " />
+
+      {/* Main Container */}
+
       <div className="relative z-10 w-full max-w-md">
 
-        <div className="glass overflow-hidden rounded-[32px] p-8 shadow-[var(--shadow-lg)] sm:p-10">
-
-          {/* Logo / Icon */}
-          <div className="mb-8 flex justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-soft text-3xl shadow-[var(--shadow-md)]">
-              🎓
-            </div>
-          </div>
-
-          {/* Heading */}
-          <div className="text-center">
-
-            <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)]">
-              Welcome Back
-            </h1>
-
-            <p className="mt-3 text-sm leading-6 text-[var(--text-secondary)]">
-              Login to your Campus Flow AI account
-            </p>
-
-          </div>
+        <div className="
+          glass
+          rounded-[32px]
+          border
+          border-[var(--border)]
+          p-7
+          shadow-[var(--shadow-lg)]
+          sm:p-9
+        ">
 
           {/* Back Button */}
+
           <button
             type="button"
             onClick={() => router.push("/")}
             className="
-              mt-6
+              mb-7
+              inline-flex
+              items-center
+              gap-2
+              rounded-xl
+              px-3
+              py-2
               text-sm
               font-medium
-              text-[var(--text-muted)]
+              text-[var(--text-secondary)]
               transition-all
               duration-300
-              hover:-translate-x-1
-              hover:text-primary
+              hover:bg-[var(--glass-bg-hover)]
+              hover:text-[var(--text-primary)]
             "
           >
             ← Back to Home
           </button>
 
+          {/* Logo / Icon */}
+
+          <div className="
+            mb-6
+            flex
+            h-14
+            w-14
+            items-center
+            justify-center
+            rounded-2xl
+            bg-primary-soft
+            text-2xl
+            shadow-[var(--shadow-sm)]
+          ">
+            🔐
+          </div>
+
+          {/* Heading */}
+
+          <h1 className="
+            text-3xl
+            font-bold
+            tracking-tight
+            text-[var(--text-primary)]
+          ">
+            Welcome back
+          </h1>
+
+          <p className="
+            mt-3
+            leading-6
+            text-[var(--text-secondary)]
+          ">
+            Login to your Campus Flow AI account and continue managing your
+            campus experience.
+          </p>
+
           {/* Form */}
+
           <form
             onSubmit={handleLogin}
-            className="mt-7 space-y-5"
+            className="mt-8 space-y-5"
           >
 
             {/* Email */}
+
             <div>
 
               <label
@@ -145,15 +219,16 @@ export default function LoginPage() {
                   transition-all
                   duration-300
                   focus:border-primary
-                  focus:bg-[var(--surface-muted)]
-                  focus:ring-2
-                  focus:ring-primary-soft
+                  focus:bg-[var(--glass-bg-hover)]
+                  focus:ring-4
+                  focus:ring-[var(--primary-soft)]
                 "
               />
 
             </div>
 
             {/* Password */}
+
             <div>
 
               <label
@@ -193,25 +268,40 @@ export default function LoginPage() {
                   transition-all
                   duration-300
                   focus:border-primary
-                  focus:bg-[var(--surface-muted)]
-                  focus:ring-2
-                  focus:ring-primary-soft
+                  focus:bg-[var(--glass-bg-hover)]
+                  focus:ring-4
+                  focus:ring-[var(--primary-soft)]
                 "
               />
 
             </div>
 
             {/* Error */}
-            {error && (
-              <div className="rounded-2xl border border-danger bg-danger-soft p-4">
 
-                <div className="flex items-start gap-3">
+            {error && (
+              <div className="
+                rounded-2xl
+                border
+                border-danger
+                bg-danger-soft
+                p-4
+              ">
+
+                <div className="
+                  flex
+                  items-start
+                  gap-3
+                ">
 
                   <span className="text-lg">
                     ⚠️
                   </span>
 
-                  <p className="text-sm font-medium text-danger">
+                  <p className="
+                    text-sm
+                    leading-6
+                    text-danger
+                  ">
                     {error}
                   </p>
 
@@ -221,14 +311,12 @@ export default function LoginPage() {
             )}
 
             {/* Login Button */}
+
             <button
               type="submit"
               disabled={loading}
               className="
-                group
-                relative
                 w-full
-                overflow-hidden
                 rounded-2xl
                 bg-primary
                 px-5
@@ -238,28 +326,35 @@ export default function LoginPage() {
                 shadow-[var(--shadow-md)]
                 transition-all
                 duration-300
-                hover:-translate-y-1
+                hover:-translate-y-0.5
                 hover:bg-primary-hover
                 hover:shadow-[var(--shadow-lg)]
                 disabled:cursor-not-allowed
                 disabled:opacity-60
+                disabled:hover:translate-y-0
               "
             >
-
-              <span className="relative z-10">
-                {loading
-                  ? "Logging in..."
-                  : "Login"}
-              </span>
-
+              {loading
+                ? "Logging in..."
+                : "Login"}
             </button>
 
           </form>
 
-          {/* Signup */}
-          <div className="mt-7 border-t border-[var(--border)] pt-6 text-center">
+          {/* Signup Link */}
 
-            <p className="text-sm text-[var(--text-secondary)]">
+          <div className="
+            mt-7
+            border-t
+            border-[var(--border)]
+            pt-6
+            text-center
+          ">
+
+            <p className="
+              text-sm
+              text-[var(--text-secondary)]
+            ">
               Don&apos;t have an account?{" "}
 
               <button
@@ -282,12 +377,19 @@ export default function LoginPage() {
 
         </div>
 
-        {/* Bottom text */}
-        <p className="mt-6 text-center text-xs text-[var(--text-muted)]">
+        {/* Bottom Text */}
+
+        <p className="
+          mt-5
+          text-center
+          text-xs
+          text-[var(--text-muted)]
+        ">
           Campus Flow AI • Smart Campus Management
         </p>
 
       </div>
+
     </main>
   );
 }
