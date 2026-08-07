@@ -19,13 +19,11 @@ export default function SignupPage() {
 
     setError("");
 
-    // Check password confirmation
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
 
-    // Check password length before sending request
     if (password.length < 6) {
       setError("Password must be at least 6 characters.");
       return;
@@ -54,12 +52,11 @@ export default function SignupPage() {
         return;
       }
 
-      // Signup successful.
-      // The API automatically creates the session cookie.
       router.push("/dashboard");
       router.refresh();
     } catch (error) {
       console.error("Signup error:", error);
+
       setError(
         "Something went wrong while creating your account. Please try again."
       );
@@ -69,266 +66,315 @@ export default function SignupPage() {
   }
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "24px",
-        background: "#f5f7fb",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "420px",
-          background: "white",
-          padding: "32px",
-          borderRadius: "16px",
-          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.08)",
-        }}
-      >
-        {/* Back to Home */}
-        <button
-          type="button"
-          onClick={() => router.push("/")}
-          style={{
-            border: "none",
-            background: "transparent",
-            padding: 0,
-            marginBottom: "24px",
-            color: "#4b5563",
-            fontSize: "14px",
-            fontWeight: "500",
-            cursor: "pointer",
-          }}
-        >
-          ← Back to Home
-        </button>
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-5 py-10 text-[var(--text-primary)] transition-colors duration-300">
 
-        {/* Heading */}
-        <h1
-          style={{
-            fontSize: "28px",
-            fontWeight: "700",
-            marginBottom: "8px",
-            color: "#111827",
-          }}
-        >
-          Create Your Account
-        </h1>
+      {/* Background Glow */}
 
-        <p
-          style={{
-            color: "#666",
-            marginBottom: "24px",
-          }}
-        >
-          Join Campus Flow AI and manage your campus experience.
-        </p>
+      <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-primary-soft opacity-40 blur-3xl" />
 
-        <form onSubmit={handleSignup}>
-          {/* Name */}
-          <div style={{ marginBottom: "16px" }}>
-            <label
-              htmlFor="name"
-              style={{
-                display: "block",
-                marginBottom: "6px",
-                fontWeight: "500",
-                color: "#374151",
-              }}
-            >
-              Full Name
-            </label>
+      <div className="pointer-events-none absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-accent-soft opacity-40 blur-3xl" />
 
-            <input
-              id="name"
-              type="text"
-              placeholder="Enter your full name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              required
-              minLength={2}
-              autoComplete="name"
-              style={{
-                width: "100%",
-                padding: "12px",
-                border: "1px solid #ddd",
-                borderRadius: "8px",
-                fontSize: "16px",
-                boxSizing: "border-box",
-              }}
-            />
-          </div>
+      {/* Main Card */}
 
-          {/* Email */}
-          <div style={{ marginBottom: "16px" }}>
-            <label
-              htmlFor="email"
-              style={{
-                display: "block",
-                marginBottom: "6px",
-                fontWeight: "500",
-                color: "#374151",
-              }}
-            >
-              Email
-            </label>
+      <div className="relative z-10 w-full max-w-md">
 
-            <input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-              autoComplete="email"
-              style={{
-                width: "100%",
-                padding: "12px",
-                border: "1px solid #ddd",
-                borderRadius: "8px",
-                fontSize: "16px",
-                boxSizing: "border-box",
-              }}
-            />
-          </div>
+        <div className="glass rounded-[32px] border border-[var(--border)] p-7 shadow-[var(--shadow-lg)] sm:p-9">
 
-          {/* Password */}
-          <div style={{ marginBottom: "16px" }}>
-            <label
-              htmlFor="password"
-              style={{
-                display: "block",
-                marginBottom: "6px",
-                fontWeight: "500",
-                color: "#374151",
-              }}
-            >
-              Password
-            </label>
+          {/* Back Button */}
 
-            <input
-              id="password"
-              type="password"
-              placeholder="Create a password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-              minLength={6}
-              autoComplete="new-password"
-              style={{
-                width: "100%",
-                padding: "12px",
-                border: "1px solid #ddd",
-                borderRadius: "8px",
-                fontSize: "16px",
-                boxSizing: "border-box",
-              }}
-            />
-          </div>
-
-          {/* Confirm Password */}
-          <div style={{ marginBottom: "16px" }}>
-            <label
-              htmlFor="confirmPassword"
-              style={{
-                display: "block",
-                marginBottom: "6px",
-                fontWeight: "500",
-                color: "#374151",
-              }}
-            >
-              Confirm Password
-            </label>
-
-            <input
-              id="confirmPassword"
-              type="password"
-              placeholder="Confirm your password"
-              value={confirmPassword}
-              onChange={(event) =>
-                setConfirmPassword(event.target.value)
-              }
-              required
-              minLength={6}
-              autoComplete="new-password"
-              style={{
-                width: "100%",
-                padding: "12px",
-                border: "1px solid #ddd",
-                borderRadius: "8px",
-                fontSize: "16px",
-                boxSizing: "border-box",
-              }}
-            />
-          </div>
-
-          {/* Error */}
-          {error && (
-            <div
-              style={{
-                marginBottom: "16px",
-                padding: "12px",
-                background: "#fee2e2",
-                color: "#b91c1c",
-                borderRadius: "8px",
-                lineHeight: "1.5",
-              }}
-            >
-              {error}
-            </div>
-          )}
-
-          {/* Signup Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: "100%",
-              padding: "12px",
-              border: "none",
-              borderRadius: "8px",
-              background: loading ? "#999" : "#111827",
-              color: "white",
-              fontSize: "16px",
-              fontWeight: "600",
-              cursor: loading ? "not-allowed" : "pointer",
-            }}
-          >
-            {loading ? "Creating Account..." : "Create Account"}
-          </button>
-        </form>
-
-        {/* Login Link */}
-        <p
-          style={{
-            marginTop: "24px",
-            textAlign: "center",
-            color: "#6b7280",
-            fontSize: "14px",
-          }}
-        >
-          Already have an account?{" "}
           <button
             type="button"
-            onClick={() => router.push("/login")}
-            style={{
-              border: "none",
-              background: "transparent",
-              padding: 0,
-              color: "#111827",
-              fontWeight: "600",
-              cursor: "pointer",
-              fontSize: "14px",
-            }}
+            onClick={() => router.push("/")}
+            className="
+              mb-7
+              inline-flex
+              items-center
+              gap-2
+              rounded-xl
+              px-3
+              py-2
+              text-sm
+              font-medium
+              text-[var(--text-secondary)]
+              transition-all
+              duration-300
+              hover:bg-[var(--glass-bg-hover)]
+              hover:text-[var(--text-primary)]
+            "
           >
-            Login
+            ← Back to Home
           </button>
+
+          {/* Logo / Icon */}
+
+          <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-soft text-2xl shadow-[var(--shadow-sm)]">
+            ✨
+          </div>
+
+          {/* Heading */}
+
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+            Create your account
+          </h1>
+
+          <p className="mt-3 leading-6 text-[var(--text-secondary)]">
+            Join Campus Flow AI and manage your campus experience from one
+            place.
+          </p>
+
+          {/* Form */}
+
+          <form
+            onSubmit={handleSignup}
+            className="mt-8 space-y-5"
+          >
+
+            {/* Name */}
+
+            <div>
+              <label
+                htmlFor="name"
+                className="mb-2 block text-sm font-semibold text-[var(--text-primary)]"
+              >
+                Full Name
+              </label>
+
+              <input
+                id="name"
+                type="text"
+                placeholder="Enter your full name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                required
+                minLength={2}
+                autoComplete="name"
+                className="
+                  w-full
+                  rounded-2xl
+                  border
+                  border-[var(--border)]
+                  bg-[var(--surface-muted)]
+                  px-4
+                  py-3.5
+                  text-[var(--text-primary)]
+                  outline-none
+                  placeholder:text-[var(--text-muted)]
+                  transition-all
+                  duration-300
+                  focus:border-primary
+                  focus:bg-[var(--glass-bg-hover)]
+                  focus:ring-4
+                  focus:ring-[var(--primary-soft)]
+                "
+              />
+            </div>
+
+            {/* Email */}
+
+            <div>
+              <label
+                htmlFor="email"
+                className="mb-2 block text-sm font-semibold text-[var(--text-primary)]"
+              >
+                Email
+              </label>
+
+              <input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+                autoComplete="email"
+                className="
+                  w-full
+                  rounded-2xl
+                  border
+                  border-[var(--border)]
+                  bg-[var(--surface-muted)]
+                  px-4
+                  py-3.5
+                  text-[var(--text-primary)]
+                  outline-none
+                  placeholder:text-[var(--text-muted)]
+                  transition-all
+                  duration-300
+                  focus:border-primary
+                  focus:bg-[var(--glass-bg-hover)]
+                  focus:ring-4
+                  focus:ring-[var(--primary-soft)]
+                "
+              />
+            </div>
+
+            {/* Password */}
+
+            <div>
+              <label
+                htmlFor="password"
+                className="mb-2 block text-sm font-semibold text-[var(--text-primary)]"
+              >
+                Password
+              </label>
+
+              <input
+                id="password"
+                type="password"
+                placeholder="Create a password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+                minLength={6}
+                autoComplete="new-password"
+                className="
+                  w-full
+                  rounded-2xl
+                  border
+                  border-[var(--border)]
+                  bg-[var(--surface-muted)]
+                  px-4
+                  py-3.5
+                  text-[var(--text-primary)]
+                  outline-none
+                  placeholder:text-[var(--text-muted)]
+                  transition-all
+                  duration-300
+                  focus:border-primary
+                  focus:bg-[var(--glass-bg-hover)]
+                  focus:ring-4
+                  focus:ring-[var(--primary-soft)]
+                "
+              />
+
+              <p className="mt-2 text-xs text-[var(--text-muted)]">
+                Password must contain at least 6 characters.
+              </p>
+            </div>
+
+            {/* Confirm Password */}
+
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="mb-2 block text-sm font-semibold text-[var(--text-primary)]"
+              >
+                Confirm Password
+              </label>
+
+              <input
+                id="confirmPassword"
+                type="password"
+                placeholder="Confirm your password"
+                value={confirmPassword}
+                onChange={(event) =>
+                  setConfirmPassword(event.target.value)
+                }
+                required
+                minLength={6}
+                autoComplete="new-password"
+                className="
+                  w-full
+                  rounded-2xl
+                  border
+                  border-[var(--border)]
+                  bg-[var(--surface-muted)]
+                  px-4
+                  py-3.5
+                  text-[var(--text-primary)]
+                  outline-none
+                  placeholder:text-[var(--text-muted)]
+                  transition-all
+                  duration-300
+                  focus:border-primary
+                  focus:bg-[var(--glass-bg-hover)]
+                  focus:ring-4
+                  focus:ring-[var(--primary-soft)]
+                "
+              />
+            </div>
+
+            {/* Error */}
+
+            {error && (
+              <div className="rounded-2xl border border-danger bg-danger-soft p-4">
+                <div className="flex items-start gap-3">
+
+                  <span className="text-lg">
+                    ⚠️
+                  </span>
+
+                  <p className="text-sm leading-6 text-danger">
+                    {error}
+                  </p>
+
+                </div>
+              </div>
+            )}
+
+            {/* Signup Button */}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="
+                w-full
+                rounded-2xl
+                bg-primary
+                px-5
+                py-3.5
+                font-semibold
+                text-white
+                shadow-[var(--shadow-md)]
+                transition-all
+                duration-300
+                hover:-translate-y-0.5
+                hover:bg-primary-hover
+                hover:shadow-[var(--shadow-lg)]
+                disabled:cursor-not-allowed
+                disabled:opacity-60
+                disabled:hover:translate-y-0
+              "
+            >
+              {loading ? "Creating Account..." : "Create Account"}
+            </button>
+
+          </form>
+
+          {/* Login Link */}
+
+          <div className="mt-7 border-t border-[var(--border)] pt-6 text-center">
+
+            <p className="text-sm text-[var(--text-secondary)]">
+              Already have an account?{" "}
+
+              <button
+                type="button"
+                onClick={() => router.push("/login")}
+                className="
+                  font-semibold
+                  text-primary
+                  transition-colors
+                  duration-300
+                  hover:text-primary-hover
+                "
+              >
+                Login
+              </button>
+            </p>
+
+          </div>
+
+        </div>
+
+        {/* Bottom Text */}
+
+        <p className="mt-5 text-center text-xs text-[var(--text-muted)]">
+          Campus Flow AI • Smart Campus Management
         </p>
+
       </div>
+
     </main>
   );
 }
