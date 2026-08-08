@@ -47,42 +47,33 @@ function Info({
   value: string;
 }) {
   return (
-    <div className="glass-subtle rounded-2xl p-4">
-      <p className="text-xs uppercase tracking-widest text-[var(--text-muted)]">
+    <div className="min-w-0 rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">
         {title}
       </p>
 
-      <p className="mt-2 text-lg font-semibold text-[var(--text-primary)]">
+      <p className="mt-1 truncate text-base font-semibold text-[var(--text-primary)]">
         {value}
       </p>
     </div>
   );
 }
+
 export default function DashboardPage() {
   const router = useRouter();
 
-  const [data, setData] =
-    useState<ProfileResponse | null>(null);
-
-  const [announcements, setAnnouncements] =
-    useState<Announcement[]>([]);
+  const [data, setData] = useState<ProfileResponse | null>(null);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
 
   const [eventsCount, setEventsCount] = useState(0);
+  const [complaintsCount, setComplaintsCount] = useState(0);
+  const [notificationsCount, setNotificationsCount] = useState(0);
 
-const [complaintsCount, setComplaintsCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(true);
 
-const [notificationsCount, setNotificationsCount] = useState(0);
-  const [loading, setLoading] =
-    useState(true);
-
-  const [announcementsLoading, setAnnouncementsLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState("");
-
-  const [announcementError, setAnnouncementError] =
-    useState("");
+  const [error, setError] = useState("");
+  const [announcementError, setAnnouncementError] = useState("");
 
   // ============================================
   // LOAD USER PROFILE
@@ -93,19 +84,14 @@ const [notificationsCount, setNotificationsCount] = useState(0);
 
     async function loadProfile() {
       try {
-        const response = await fetch(
-          "/api/profile/student",
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
+        const response = await fetch("/api/profile/student", {
+          method: "GET",
+          credentials: "include",
+        });
 
         const result = await response.json();
 
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
 
         if (response.status === 401) {
           router.push("/login");
@@ -113,27 +99,16 @@ const [notificationsCount, setNotificationsCount] = useState(0);
         }
 
         if (!response.ok) {
-          setError(
-            result.error ||
-              "Failed to load profile"
-          );
+          setError(result.error || "Failed to load profile");
           return;
         }
 
         setData(result);
       } catch (error) {
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
 
-        console.error(
-          "Dashboard Error:",
-          error
-        );
-
-        setError(
-          "Something went wrong. Please try again."
-        );
+        console.error("Dashboard Error:", error);
+        setError("Something went wrong. Please try again.");
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -157,19 +132,14 @@ const [notificationsCount, setNotificationsCount] = useState(0);
 
     async function loadAnnouncements() {
       try {
-        const response = await fetch(
-          "/api/announcements",
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
+        const response = await fetch("/api/announcements", {
+          method: "GET",
+          credentials: "include",
+        });
 
         const result = await response.json();
 
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
 
         if (response.status === 401) {
           router.push("/login");
@@ -178,24 +148,16 @@ const [notificationsCount, setNotificationsCount] = useState(0);
 
         if (!response.ok) {
           setAnnouncementError(
-            result.error ||
-              "Failed to load announcements"
+            result.error || "Failed to load announcements"
           );
           return;
         }
 
-        setAnnouncements(
-          result.announcements || []
-        );
+        setAnnouncements(result.announcements || []);
       } catch (error) {
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
 
-        console.error(
-          "Announcements Error:",
-          error
-        );
+        console.error("Announcements Error:", error);
 
         setAnnouncementError(
           "Something went wrong while loading announcements."
@@ -214,61 +176,68 @@ const [notificationsCount, setNotificationsCount] = useState(0);
     };
   }, [router]);
 
+  // ============================================
+  // LOAD EVENTS COUNT
+  // ============================================
+
   useEffect(() => {
-  async function loadEvents() {
-    try {
-      const response = await fetch("/api/events");
+    async function loadEvents() {
+      try {
+        const response = await fetch("/api/events");
+        const result = await response.json();
 
-      const result = await response.json();
-
-      if (response.ok) {
-        setEventsCount(result.events?.length || 0);
+        if (response.ok) {
+          setEventsCount(result.events?.length || 0);
+        }
+      } catch (error) {
+        console.error("Events Error:", error);
       }
-    } catch (error) {
-      console.error(error);
     }
-  }
 
-  loadEvents();
-}, []);
+    loadEvents();
+  }, []);
 
-useEffect(() => {
-  async function loadComplaints() {
-    try {
-      const response = await fetch("/api/complaint");
+  // ============================================
+  // LOAD COMPLAINTS COUNT
+  // ============================================
 
-      const result = await response.json();
+  useEffect(() => {
+    async function loadComplaints() {
+      try {
+        const response = await fetch("/api/complaint");
+        const result = await response.json();
 
-      if (response.ok) {
-        setComplaintsCount(result.complaints?.length || 0);
+        if (response.ok) {
+          setComplaintsCount(result.complaints?.length || 0);
+        }
+      } catch (error) {
+        console.error("Complaints Error:", error);
       }
-    } catch (error) {
-      console.error(error);
     }
-  }
 
-  loadComplaints();
-}, []);
+    loadComplaints();
+  }, []);
 
-useEffect(() => {
-  async function loadNotifications() {
-    try {
-      const response = await fetch("/api/notifications");
+  // ============================================
+  // LOAD NOTIFICATIONS COUNT
+  // ============================================
 
-      const result = await response.json();
+  useEffect(() => {
+    async function loadNotifications() {
+      try {
+        const response = await fetch("/api/notifications");
+        const result = await response.json();
 
-      if (response.ok) {
-        setNotificationsCount(
-          result.notifications?.length || 0
-        );
+        if (response.ok) {
+          setNotificationsCount(result.notifications?.length || 0);
+        }
+      } catch (error) {
+        console.error("Notifications Error:", error);
       }
-    } catch (error) {
-      console.error(error);
     }
-  }
 
-  loadNotifications();
-}, []);
+    loadNotifications();
+  }, []);
 
   // ============================================
   // LOGOUT
@@ -276,41 +245,28 @@ useEffect(() => {
 
   async function handleLogout() {
     try {
-      await fetch(
-        "/api/auth/logout",
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
 
       router.push("/login");
       router.refresh();
     } catch (error) {
-      console.error(
-        "Logout Error:",
-        error
-      );
+      console.error("Logout Error:", error);
     }
   }
 
   // ============================================
-  // FORMAT ANNOUNCEMENT DATE
+  // FORMAT DATE
   // ============================================
 
-  function formatDate(
-    dateString: string
-  ) {
-    return new Date(
-      dateString
-    ).toLocaleDateString(
-      "en-IN",
-      {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      }
-    );
+  function formatDate(dateString: string) {
+    return new Date(dateString).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
   }
 
   // ============================================
@@ -319,21 +275,16 @@ useEffect(() => {
 
   if (loading) {
     return (
-      <main
-        className="
-          flex
-          min-h-screen
-          items-center
-          justify-center
-          bg-background
-          px-6
-          text-xl
-          text-[var(--text-primary)]
-          transition-colors
-          duration-300
-        "
-      >
-        Loading dashboard...
+      <main className="min-h-screen bg-[var(--background)] px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto flex min-h-[70vh] max-w-7xl items-center justify-center">
+          <div className="text-center">
+            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-[var(--border)] border-t-primary" />
+
+            <p className="mt-4 text-[var(--text-secondary)]">
+              Loading dashboard...
+            </p>
+          </div>
+        </div>
       </main>
     );
   }
@@ -344,27 +295,27 @@ useEffect(() => {
 
   if (error) {
     return (
-      <main
-        className="
-          flex
-          min-h-screen
-          items-center
-          justify-center
-          bg-background
-          px-6
-          text-[var(--text-primary)]
-          transition-colors
-          duration-300
-        "
-      >
-        <div className="glass max-w-lg rounded-3xl p-8 text-center">
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-            Something went wrong
-          </h1>
+      <main className="min-h-screen bg-[var(--background)] px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto flex min-h-[70vh] max-w-7xl items-center justify-center">
+          <div className="w-full max-w-md rounded-3xl border border-danger bg-danger-soft p-8 text-center">
+            <div className="text-4xl">⚠️</div>
 
-          <p className="mt-3 text-[var(--text-secondary)]">
-            {error}
-          </p>
+            <h2 className="mt-4 text-2xl font-bold text-[var(--text-primary)]">
+              Something went wrong
+            </h2>
+
+            <p className="mt-3 text-[var(--text-secondary)]">
+              {error}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="mt-6 rounded-xl bg-primary px-5 py-3 font-semibold text-white transition hover:bg-primary-hover"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       </main>
     );
@@ -374,793 +325,474 @@ useEffect(() => {
     return null;
   }
 
-  const {
-    user,
-    profile,
-  } = data;
+  const { user, profile } = data;
+
+  // ============================================
+  // GREETING
+  // ============================================
+
+  const currentHour = new Date().getHours();
 
   const greeting =
-  new Date().getHours() < 12
-    ? "Good Morning"
-    : new Date().getHours() < 17
-      ? "Good Afternoon"
-      : "Good Evening";
+    currentHour < 12
+      ? "Good Morning"
+      : currentHour < 17
+        ? "Good Afternoon"
+        : "Good Evening";
 
-const today = new Date().toLocaleDateString("en-IN", {
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
+  // ============================================
+  // TODAY
+  // ============================================
 
-const stats = [
-  {
-    title: "Announcements",
-    value: announcements.length,
-    icon: "📢",
-    color: "bg-primary-soft text-primary",
-  },
-  {
-    title: "Events",
-    value: eventsCount,
-    icon: "📅",
-    color: "bg-accent-soft text-accent",
-  },
-  {
-    title: "Complaints",
-    value: complaintsCount,
-    icon: "📝",
-    color: "bg-warning-soft text-warning",
-  },
-  {
-    title: "Notifications",
-    value: notificationsCount,
-    icon: "🔔",
-    color: "bg-success-soft text-success",
-  },
-];
+  const today = new Date().toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
   // ============================================
-  // MAIN DASHBOARD
+  // STATS
   // ============================================
+
+  const stats = [
+    {
+      title: "Announcements",
+      value: announcements.length,
+      icon: "📢",
+      color: "bg-primary-soft text-primary",
+      route: "/announcements",
+    },
+    {
+      title: "Events",
+      value: eventsCount,
+      icon: "📅",
+      color: "bg-accent-soft text-accent",
+      route: "/events",
+    },
+    {
+      title: "Complaints",
+      value: complaintsCount,
+      icon: "📝",
+      color: "bg-warning-soft text-warning",
+      route: "/complaints",
+    },
+    {
+      title: "Notifications",
+      value: notificationsCount,
+      icon: "🔔",
+      color: "bg-success-soft text-success",
+      route: "/notifications",
+    },
+  ];
 
   return (
-    <main
-      className="
-        min-h-screen
-        bg-background
-        px-4
-        py-8
-        text-foreground
-        transition-colors
-        duration-300
-        sm:px-6
-        lg:px-8
-      "
-    >
-      <div className="mx-auto max-w-7xl">
-
+    <main className="min-h-screen overflow-x-hidden bg-[var(--background)] px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl space-y-6">
         {/* ====================================== */}
-        {/* HEADER */}
+        {/* HERO */}
         {/* ====================================== */}
 
-        <header className="relative mb-10 overflow-hidden rounded-[36px] glass p-8 lg:p-10">
+        <section className="relative overflow-hidden rounded-[28px] glass p-6 sm:p-8 lg:p-10">
+          <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary-soft blur-3xl opacity-60" />
 
-  <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-primary-soft blur-3xl opacity-70" />
+          <div className="pointer-events-none absolute -bottom-32 left-1/3 h-56 w-56 rounded-full bg-accent-soft blur-3xl opacity-40" />
 
-  <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-accent-soft blur-3xl opacity-70" />
+          <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
+              <div className="inline-flex items-center rounded-full bg-primary-soft px-4 py-2 text-sm font-semibold text-primary">
+                👋 {greeting}
+              </div>
 
-  <div className="relative z-10 flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
+              <h1 className="mt-5 text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl lg:text-5xl">
+                Welcome back,
+                <span className="mt-1 block break-words text-primary">
+                  {user.name}
+                </span>
+              </h1>
 
-    <div className="max-w-2xl">
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--text-secondary)] sm:text-base">
+                Your campus activity, announcements, events, complaints,
+                notifications and academic information — all in one place.
+              </p>
 
-      <div className="inline-flex items-center gap-2 rounded-full bg-primary-soft px-4 py-2 text-sm font-semibold text-primary">
-        👋 {greeting}
-      </div>
+              <div className="mt-6 flex flex-wrap gap-2">
+                <span className="rounded-full bg-success-soft px-3 py-1.5 text-xs font-semibold text-success sm:text-sm">
+                  🎓 {user.role}
+                </span>
 
-      <h1 className="mt-6 text-5xl font-bold leading-tight text-[var(--text-primary)]">
-        Welcome back,
-        <span className="block text-primary">
-          {user.name}
-        </span>
-      </h1>
+                <span className="rounded-full bg-accent-soft px-3 py-1.5 text-xs font-semibold text-accent sm:text-sm">
+                  📅 {today}
+                </span>
+              </div>
+            </div>
 
-      <p className="mt-5 text-lg leading-8 text-[var(--text-secondary)]">
-        Manage announcements, complaints, events and your academic profile
-        through one intelligent dashboard.
-      </p>
+            <div className="flex w-full shrink-0 flex-col gap-3 sm:w-auto sm:flex-row lg:flex-col">
+              <button
+                type="button"
+                onClick={() => router.push("/profile")}
+                className="rounded-xl bg-primary px-6 py-3 font-semibold text-white shadow-[var(--shadow-sm)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-[var(--shadow-md)]"
+              >
+                Edit Profile
+              </button>
 
-      <div className="mt-8 flex flex-wrap gap-3">
-
-        <span className="rounded-full bg-success-soft px-4 py-2 text-sm font-semibold text-success">
-          🎓 {user.role}
-        </span>
-
-        <span className="rounded-full bg-accent-soft px-4 py-2 text-sm font-semibold text-accent">
-          📅 {today}
-        </span>
-
-      </div>
-
-    </div>
-
-    <div className="flex flex-col gap-4">
-
-      <button
-        onClick={() => router.push("/profile")}
-        className="rounded-2xl bg-primary px-8 py-3 font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-primary-hover"
-      >
-        Edit Profile
-      </button>
-
-      <button
-        onClick={handleLogout}
-        className="rounded-2xl border border-danger bg-danger-soft px-8 py-3 font-semibold text-danger transition-all duration-300 hover:-translate-y-1"
-      >
-        Logout
-      </button>
-
-    </div>
-
-  </div>
-
-</header>
-
-{/* ====================================== */}
-{/* DASHBOARD STATS */}
-{/* ====================================== */}
-
-<section className="mb-8">
-
-  <div className="glass overflow-hidden rounded-[32px]">
-
-    {/* Top */}
-
-    <div className="relative overflow-hidden border-b border-[var(--border)] p-8">
-
-      <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary-soft blur-3xl opacity-70" />
-
-      <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-
-        <div className="flex items-center gap-6">
-
-          {/* Avatar */}
-
-          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 via-indigo-500 to-violet-500 text-4xl font-bold text-white shadow-[var(--shadow-lg)]">
-
-            {user.name.charAt(0).toUpperCase()}
-
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded-xl border border-danger bg-danger-soft px-6 py-3 font-semibold text-danger transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
+              >
+                Logout
+              </button>
+            </div>
           </div>
+        </section>
 
-          <div>
+        {/* ====================================== */}
+        {/* CAMPUS OVERVIEW */}
+        {/* ====================================== */}
 
-            <h2 className="text-3xl font-bold text-[var(--text-primary)]">
-
-              {user.name}
-
+        <section>
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-[var(--text-primary)] sm:text-2xl">
+              Campus Overview
             </h2>
 
-            <p className="mt-2 text-[var(--text-secondary)]">
-
-              {profile?.department || "Student"} • {user.role}
-
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+              Everything important at a glance.
             </p>
-
-            <p className="mt-1 text-sm text-[var(--text-muted)]">
-
-              {user.email}
-
-            </p>
-
           </div>
 
-        </div>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+            {stats.map((stat) => (
+              <button
+                key={stat.title}
+                type="button"
+                onClick={() => router.push(stat.route)}
+                className="glass-subtle min-w-0 rounded-2xl p-4 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lg)] sm:rounded-3xl sm:p-5"
+              >
+                <div
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl text-lg sm:h-12 sm:w-12 sm:rounded-2xl sm:text-xl ${stat.color}`}
+                >
+                  {stat.icon}
+                </div>
 
-        <button
-          onClick={() => router.push("/profile")}
-          className="rounded-2xl bg-primary px-6 py-3 font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-primary-hover"
-        >
-          Edit Profile
-        </button>
+                <p className="mt-4 truncate text-xs font-medium text-[var(--text-secondary)] sm:mt-5 sm:text-sm">
+                  {stat.title}
+                </p>
 
-      </div>
+                <p className="mt-1 text-2xl font-bold text-[var(--text-primary)] sm:text-3xl">
+                  {stat.value}
+                </p>
+              </button>
+            ))}
+          </div>
+        </section>
 
-    </div>
+        {/* ====================================== */}
+        {/* PROFILE SUMMARY */}
+        {/* ====================================== */}
 
-    {/* Details */}
+        <section className="overflow-hidden rounded-[28px] glass">
+          <div className="border-b border-[var(--border)] p-5 sm:p-6">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-center gap-4">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-500 to-violet-500 text-2xl font-bold text-white shadow-[var(--shadow-md)] sm:h-20 sm:w-20 sm:text-3xl">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
 
-        {/* Dashboard Stats */}
+                <div className="min-w-0">
+                  <h2 className="truncate text-xl font-bold text-[var(--text-primary)] sm:text-2xl">
+                    {user.name}
+                  </h2>
 
-    <div className="grid grid-cols-2 gap-5 border-b border-[var(--border)] p-6 lg:grid-cols-4">
+                  <p className="mt-1 truncate text-sm text-[var(--text-secondary)]">
+                    {profile?.department || "Student"} • {user.role}
+                  </p>
 
-      {stats.map((stat) => (
-        <button
-          key={stat.title}
-          type="button"
-          onClick={() => {
-            if (stat.title === "Announcements") {
-              router.push("/announcements");
-            }
+                  <p className="mt-1 truncate text-xs text-[var(--text-muted)] sm:text-sm">
+                    {user.email}
+                  </p>
+                </div>
+              </div>
 
-            if (stat.title === "Events") {
-              router.push("/events");
-            }
-
-            if (stat.title === "Complaints") {
-              router.push("/complaints");
-            }
-
-            if (stat.title === "Notifications") {
-              router.push("/notifications");
-            }
-          }}
-          className="
-            glass-subtle
-            min-w-0
-            rounded-3xl
-            p-5
-            text-left
-            transition-all
-            duration-300
-            hover:-translate-y-1
-            hover:shadow-[var(--shadow-lg)]
-          "
-        >
-          <div
-            className={`
-              flex
-              h-14
-              w-14
-              items-center
-              justify-center
-              rounded-2xl
-              text-2xl
-              ${stat.color}
-            `}
-          >
-            {stat.icon}
+              <button
+                type="button"
+                onClick={() => router.push("/profile")}
+                className="w-full rounded-xl border border-[var(--border-strong)] bg-[var(--glass-bg)] px-5 py-2.5 text-sm font-semibold text-[var(--text-primary)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--glass-bg-hover)] hover:shadow-[var(--shadow-md)] sm:w-auto"
+              >
+                View Profile →
+              </button>
+            </div>
           </div>
 
-          <p className="mt-5 truncate text-sm font-medium text-[var(--text-secondary)]">
-            {stat.title}
-          </p>
+          <div className="grid gap-3 p-5 sm:grid-cols-2 sm:p-6 lg:grid-cols-3">
+            <Info
+              title="🏫 College"
+              value={profile?.college || "Not Added"}
+            />
 
-          <p className="mt-1 text-4xl font-bold text-[var(--text-primary)]">
-            {stat.value}
-          </p>
-        </button>
-      ))}
+            <Info
+              title="💻 Department"
+              value={profile?.department || "Not Added"}
+            />
 
-    </div>
+            <Info
+              title="🎓 Year"
+              value={profile?.year ? String(profile.year) : "Not Added"}
+            />
 
-    {/* Student Details */}
+            <Info
+              title="📘 Division"
+              value={profile?.division || "Not Added"}
+            />
 
-    <div className="grid gap-6 p-8 sm:grid-cols-2 lg:grid-cols-3">
+            <Info
+              title="🆔 Roll Number"
+              value={profile?.rollNumber || "Not Added"}
+            />
 
-      <Info
-        title="🏫 College"
-        value={profile?.college || "Not Added"}
-      />
-
-      <Info
-        title="💻 Department"
-        value={profile?.department || "Not Added"}
-      />
-
-      <Info
-        title="🎓 Year"
-        value={
-          profile?.year
-            ? String(profile.year)
-            : "Not Added"
-        }
-      />
-
-      <Info
-        title="📘 Division"
-        value={profile?.division || "Not Added"}
-      />
-
-      <Info
-        title="🆔 Roll Number"
-        value={profile?.rollNumber || "Not Added"}
-      />
-
-      <Info
-        title="📱 Phone"
-        value={profile?.phone || "Not Added"}
-      />
-
-    </div>
-
-  </div>
-
-</section>
-
-{/* ====================================== */}
-{/* LATEST ANNOUNCEMENTS */}
-{/* ====================================== */}
-
-<section className="mb-10">
-  <div className="glass relative overflow-hidden rounded-[34px] p-6 sm:p-8">
-
-    {/* Background Glow */}
-
-    <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-primary-soft blur-3xl opacity-40" />
-
-    <div className="relative z-10">
-
-      {/* Section Header */}
-
-      <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-
-        <div>
-          <div className="flex items-center gap-3">
-
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-soft text-2xl">
-              📢
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-bold text-[var(--text-primary)]">
-                Latest Announcements
-              </h2>
-
-              <p className="mt-1 text-sm text-[var(--text-secondary)]">
-                Stay updated with the latest campus news and notices.
-              </p>
-            </div>
-
+            <Info
+              title="📱 Phone"
+              value={profile?.phone || "Not Added"}
+            />
           </div>
-        </div>
+        </section>
 
-        <button
-          type="button"
-          onClick={() => router.push("/announcements")}
-          className="
-            rounded-2xl
-            border
-            border-[var(--border-strong)]
-            bg-[var(--glass-bg)]
-            px-5
-            py-3
-            font-semibold
-            text-[var(--text-primary)]
-            transition-all
-            duration-300
-            hover:-translate-y-1
-            hover:bg-[var(--glass-bg-hover)]
-            hover:shadow-[var(--shadow-md)]
-          "
-        >
-          View All →
-        </button>
+        {/* ====================================== */}
+        {/* ANNOUNCEMENTS */}
+        {/* ====================================== */}
 
-      </div>
+        <section className="relative overflow-hidden rounded-[28px] glass p-5 sm:p-6 lg:p-8">
+          <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary-soft blur-3xl opacity-40" />
 
-      {/* Loading */}
+          <div className="relative z-10">
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-xl">
+                  📢
+                </div>
 
-      {announcementsLoading && (
-        <div className="glass-subtle rounded-3xl p-10 text-center">
+                <div className="min-w-0">
+                  <h2 className="truncate text-xl font-bold text-[var(--text-primary)] sm:text-2xl">
+                    Latest Announcements
+                  </h2>
 
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-[var(--border)] border-t-primary" />
+                  <p className="mt-1 hidden text-sm text-[var(--text-secondary)] sm:block">
+                    Stay updated with the latest campus news and notices.
+                  </p>
+                </div>
+              </div>
 
-          <p className="mt-4 text-[var(--text-secondary)]">
-            Loading announcements...
-          </p>
-
-        </div>
-      )}
-
-      {/* Error */}
-
-      {!announcementsLoading && announcementError && (
-        <div className="rounded-3xl border border-danger bg-danger-soft p-6">
-
-          <div className="flex items-start gap-4">
-
-            <div className="text-2xl">
-              ⚠️
+              <button
+                type="button"
+                onClick={() => router.push("/announcements")}
+                className="w-full rounded-xl border border-[var(--border-strong)] bg-[var(--glass-bg)] px-5 py-2.5 text-sm font-semibold text-[var(--text-primary)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--glass-bg-hover)] hover:shadow-[var(--shadow-md)] sm:w-auto"
+              >
+                View All →
+              </button>
             </div>
 
-            <div>
-              <h3 className="font-semibold text-danger">
-                Unable to load announcements
-              </h3>
+            {announcementsLoading && (
+              <div className="glass-subtle rounded-2xl p-8 text-center">
+                <div className="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-[var(--border)] border-t-primary" />
 
-              <p className="mt-1 text-sm text-[var(--text-secondary)]">
-                {announcementError}
-              </p>
-            </div>
+                <p className="mt-3 text-sm text-[var(--text-secondary)]">
+                  Loading announcements...
+                </p>
+              </div>
+            )}
 
-          </div>
+            {!announcementsLoading && announcementError && (
+              <div className="rounded-2xl border border-danger bg-danger-soft p-5">
+                <div className="flex items-start gap-3">
+                  <div className="text-xl">⚠️</div>
 
-        </div>
-      )}
-
-      {/* Empty State */}
-
-      {!announcementsLoading &&
-        !announcementError &&
-        announcements.length === 0 && (
-          <div className="glass-subtle rounded-3xl p-10 text-center">
-
-            <div className="text-5xl">
-              📭
-            </div>
-
-            <h3 className="mt-4 text-xl font-semibold text-[var(--text-primary)]">
-              No announcements yet
-            </h3>
-
-            <p className="mt-2 text-[var(--text-secondary)]">
-              There are no campus announcements available right now.
-            </p>
-
-          </div>
-        )}
-
-      {/* Announcement Feed */}
-
-      {!announcementsLoading &&
-        !announcementError &&
-        announcements.length > 0 && (
-          <div className="relative">
-
-            {/* Timeline */}
-
-            <div className="absolute left-[23px] top-6 bottom-6 hidden w-px bg-[var(--border)] sm:block" />
-
-            <div className="space-y-5">
-
-              {announcements
-                .slice(0, 3)
-                .map((announcement, index) => (
-
-                  <article
-                    key={announcement.id}
-                    className="
-                      group
-                      relative
-                      rounded-3xl
-                      border
-                      border-[var(--border)]
-                      bg-[var(--surface-muted)]
-                      p-5
-                      transition-all
-                      duration-500
-                      hover:-translate-y-1
-                      hover:border-[var(--border-strong)]
-                      hover:bg-[var(--glass-bg-hover)]
-                      hover:shadow-[var(--shadow-md)]
-                      sm:pl-16
-                    "
-                  >
-
-                    {/* Timeline Dot */}
-
-                    <div
-                      className="
-                        absolute
-                        left-4
-                        top-6
-                        hidden
-                        h-4
-                        w-4
-                        rounded-full
-                        border-4
-                        border-[var(--background)]
-                        bg-primary
-                        shadow-[0_0_0_4px_var(--primary-soft)]
-                        sm:block
-                      "
-                    />
-
-                    {/* Announcement Top Row */}
-
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-
-                      <div className="flex items-center gap-2">
-
-                        {index === 0 && (
-                          <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-bold text-primary">
-                            Latest
-                          </span>
-                        )}
-
-                        <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent">
-                          Announcement
-                        </span>
-
-                      </div>
-
-                      <span className="text-sm text-[var(--text-muted)]">
-                        {formatDate(announcement.createdAt)}
-                      </span>
-
-                    </div>
-
-                    {/* Title */}
-
-                    <h3 className="mt-4 text-xl font-bold text-[var(--text-primary)]">
-                      {announcement.title}
+                  <div>
+                    <h3 className="font-semibold text-danger">
+                      Unable to load announcements
                     </h3>
 
-                    {/* Content */}
-
-                    <p className="mt-3 whitespace-pre-wrap leading-7 text-[var(--text-secondary)]">
-                      {announcement.content}
+                    <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                      {announcementError}
                     </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
-                    {/* Footer */}
+            {!announcementsLoading &&
+              !announcementError &&
+              announcements.length === 0 && (
+                <div className="glass-subtle rounded-2xl p-8 text-center">
+                  <div className="text-4xl">📭</div>
 
-                    <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-[var(--border)] pt-4">
+                  <h3 className="mt-3 text-lg font-semibold text-[var(--text-primary)]">
+                    No announcements yet
+                  </h3>
 
-                      <div className="flex items-center gap-3">
+                  <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                    There are no campus announcements available right now.
+                  </p>
+                </div>
+              )}
 
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft font-semibold text-primary">
-                          {announcement.createdBy.name
-                            .charAt(0)
-                            .toUpperCase()}
+            {!announcementsLoading &&
+              !announcementError &&
+              announcements.length > 0 && (
+                <div className="space-y-4">
+                  {announcements.slice(0, 3).map((announcement, index) => (
+                    <article
+                      key={announcement.id}
+                      className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-md)] sm:p-5"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {index === 0 && (
+                            <span className="rounded-full bg-primary-soft px-2.5 py-1 text-xs font-bold text-primary">
+                              Latest
+                            </span>
+                          )}
+
+                          <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent">
+                            Announcement
+                          </span>
                         </div>
 
-                        <div>
-                          <p className="text-xs text-[var(--text-muted)]">
-                            Posted by
-                          </p>
-
-                          <p className="text-sm font-semibold text-[var(--text-primary)]">
-                            {announcement.createdBy.name}
-                          </p>
-                        </div>
-
+                        <span className="text-xs text-[var(--text-muted)]">
+                          {formatDate(announcement.createdAt)}
+                        </span>
                       </div>
 
-                      <span className="text-xs font-medium text-[var(--text-muted)]">
-                        {announcement.createdBy.role}
-                      </span>
+                      <h3 className="mt-3 text-lg font-bold text-[var(--text-primary)]">
+                        {announcement.title}
+                      </h3>
 
-                    </div>
+                      <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm leading-6 text-[var(--text-secondary)]">
+                        {announcement.content}
+                      </p>
 
-                  </article>
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-4">
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary">
+                            {announcement.createdBy.name
+                              .charAt(0)
+                              .toUpperCase()}
+                          </div>
 
-                ))}
+                          <div>
+                            <p className="text-[10px] text-[var(--text-muted)]">
+                              Posted by
+                            </p>
 
-            </div>
+                            <p className="text-xs font-semibold text-[var(--text-primary)]">
+                              {announcement.createdBy.name}
+                            </p>
+                          </div>
+                        </div>
 
+                        <span className="text-[10px] font-medium text-[var(--text-muted)]">
+                          {announcement.createdBy.role}
+                        </span>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
           </div>
-        )}
-
-    </div>
-
-  </div>
-</section>
+        </section>
 
         {/* ====================================== */}
         {/* QUICK ACTIONS */}
         {/* ====================================== */}
 
         <section>
-          <h2
-            className="
-              mb-5
-              text-2xl
-              font-bold
-              text-[var(--text-primary)]
-            "
-          >
-            Quick Actions
-          </h2>
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-[var(--text-primary)] sm:text-2xl">
+              Quick Actions
+            </h2>
 
-          <div
-            className="
-              grid
-              gap-5
-              sm:grid-cols-2
-              lg:grid-cols-4
-            "
-          >
-            {/* Campus Events */}
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+              Jump directly to the things you use most.
+            </p>
+          </div>
 
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <button
               type="button"
-              onClick={() =>
-                router.push("/events")
-              }
-              className="
-                glass
-                rounded-3xl
-                p-6
-                text-left
-                transition-all
-                duration-300
-                hover:-translate-y-1
-                hover:shadow-[var(--shadow-lg)]
-              "
+              onClick={() => router.push("/events")}
+              className="glass rounded-2xl p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lg)]"
             >
-              <div className="mb-4 text-3xl">
-                📅
-              </div>
+              <div className="text-2xl">📅</div>
 
-              <h3
-                className="
-                  text-lg
-                  font-semibold
-                  text-[var(--text-primary)]
-                "
-              >
+              <h3 className="mt-4 font-semibold text-[var(--text-primary)]">
                 Campus Events
               </h3>
 
-              <p
-                className="
-                  mt-2
-                  leading-6
-                  text-[var(--text-secondary)]
-                "
-              >
-                View upcoming campus events and
-                activities.
+              <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+                View upcoming campus events and activities.
               </p>
-            </button>
 
-            {/* Announcements */}
+              <span className="mt-4 inline-block text-sm font-semibold text-primary">
+                Explore →
+              </span>
+            </button>
 
             <button
               type="button"
-              onClick={() =>
-                router.push("/announcements")
-              }
-              className="
-                glass
-                rounded-3xl
-                p-6
-                text-left
-                transition-all
-                duration-300
-                hover:-translate-y-1
-                hover:shadow-[var(--shadow-lg)]
-              "
+              onClick={() => router.push("/announcements")}
+              className="glass rounded-2xl p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lg)]"
             >
-              <div className="mb-4 text-3xl">
-                📢
-              </div>
+              <div className="text-2xl">📢</div>
 
-              <h3
-                className="
-                  text-lg
-                  font-semibold
-                  text-[var(--text-primary)]
-                "
-              >
+              <h3 className="mt-4 font-semibold text-[var(--text-primary)]">
                 Notices
               </h3>
 
-              <p
-                className="
-                  mt-2
-                  leading-6
-                  text-[var(--text-secondary)]
-                "
-              >
-                Stay updated with the latest campus
-                announcements.
+              <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+                Stay updated with the latest campus announcements.
               </p>
-            </button>
 
-            {/* Complaints */}
+              <span className="mt-4 inline-block text-sm font-semibold text-primary">
+                View Notices →
+              </span>
+            </button>
 
             <button
               type="button"
-              onClick={() =>
-                router.push("/complaints")
-              }
-              className="
-                glass
-                rounded-3xl
-                p-6
-                text-left
-                transition-all
-                duration-300
-                hover:-translate-y-1
-                hover:shadow-[var(--shadow-lg)]
-              "
+              onClick={() => router.push("/complaints")}
+              className="glass rounded-2xl p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lg)]"
             >
-              <div className="mb-4 text-3xl">
-                📝
-              </div>
+              <div className="text-2xl">📝</div>
 
-              <h3
-                className="
-                  text-lg
-                  font-semibold
-                  text-[var(--text-primary)]
-                "
-              >
+              <h3 className="mt-4 font-semibold text-[var(--text-primary)]">
                 Complaints
               </h3>
 
-              <p
-                className="
-                  mt-2
-                  leading-6
-                  text-[var(--text-secondary)]
-                "
-              >
+              <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
                 Submit and track campus complaints.
               </p>
 
-              <span
-                className="
-                  mt-4
-                  inline-block
-                  rounded-lg
-                  bg-success-soft
-                  px-2.5
-                  py-1
-                  text-xs
-                  font-semibold
-                  text-success
-                "
-              >
+              <span className="mt-4 inline-block rounded-lg bg-success-soft px-2.5 py-1 text-xs font-semibold text-success">
                 Available
               </span>
             </button>
 
-            {/* Notifications */}
-
             <button
               type="button"
-              onClick={() =>
-                router.push("/notifications")
-              }
-              className="
-                glass
-                rounded-3xl
-                p-6
-                text-left
-                transition-all
-                duration-300
-                hover:-translate-y-1
-                hover:shadow-[var(--shadow-lg)]
-              "
+              onClick={() => router.push("/notifications")}
+              className="glass rounded-2xl p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lg)]"
             >
-              <div className="mb-4 text-3xl">
-                🔔
-              </div>
+              <div className="text-2xl">🔔</div>
 
-              <h3
-                className="
-                  text-lg
-                  font-semibold
-                  text-[var(--text-primary)]
-                "
-              >
+              <h3 className="mt-4 font-semibold text-[var(--text-primary)]">
                 Notifications
               </h3>
 
-              <p
-                className="
-                  mt-2
-                  leading-6
-                  text-[var(--text-secondary)]
-                "
-              >
+              <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
                 View your latest notifications.
               </p>
 
-              <span
-                className="
-                  mt-4
-                  inline-block
-                  rounded-lg
-                  bg-success-soft
-                  px-2.5
-                  py-1
-                  text-xs
-                  font-semibold
-                  text-success
-                "
-              >
+              <span className="mt-4 inline-block rounded-lg bg-success-soft px-2.5 py-1 text-xs font-semibold text-success">
                 Available
               </span>
             </button>
