@@ -451,12 +451,6 @@ export default function AnnouncementsPage() {
   // FORMAT DATE
   // ============================================
 
-  function formatDate(dateString: string) {
-    return new Date(dateString).toLocaleString("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
-  }
 
   function formatShortDate(dateString: string) {
     return new Date(dateString).toLocaleDateString("en-IN", {

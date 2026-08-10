@@ -1,6 +1,11 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import {
+  FormEvent,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useRouter } from "next/navigation";
 
 type User = {
@@ -25,6 +30,8 @@ type Event = {
   };
 };
 
+type EventFilter = "ALL" | "UPCOMING" | "PAST";
+
 export default function EventsPage() {
   const router = useRouter();
 
@@ -41,12 +48,18 @@ export default function EventsPage() {
   const [location, setLocation] = useState("");
   const [eventDate, setEventDate] = useState("");
 
-  const [editingEventId, setEditingEventId] = useState<number | null>(null);
+  const [editingEventId, setEditingEventId] =
+    useState<number | null>(null);
 
   const [editTitle, setEditTitle] = useState("");
-  const [editDescription, setEditDescription] = useState("");
+  const [editDescription, setEditDescription] =
+    useState("");
   const [editLocation, setEditLocation] = useState("");
   const [editEventDate, setEditEventDate] = useState("");
+
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] =
+    useState<EventFilter>("UPCOMING");
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -75,7 +88,10 @@ export default function EventsPage() {
         }
 
         if (!response.ok) {
-          setError(data.error || "Failed to load user information.");
+          setError(
+            data.error ||
+              "Failed to load user information."
+          );
           return;
         }
 
@@ -84,7 +100,9 @@ export default function EventsPage() {
         if (cancelled) return;
 
         console.error("Load User Error:", error);
-        setError("Something went wrong while loading your account.");
+        setError(
+          "Something went wrong while loading your account."
+        );
       }
     }
 
@@ -116,14 +134,19 @@ export default function EventsPage() {
       }
 
       if (!response.ok) {
-        setError(data.error || "Failed to load events.");
+        setError(
+          data.error || "Failed to load events."
+        );
         return;
       }
 
       setEvents(data.events || []);
     } catch (error) {
       console.error("Load Events Error:", error);
-      setError("Something went wrong while loading events.");
+
+      setError(
+        "Something went wrong while loading events."
+      );
     }
   }
 
@@ -147,7 +170,9 @@ export default function EventsPage() {
         }
 
         if (!response.ok) {
-          setError(data.error || "Failed to load events.");
+          setError(
+            data.error || "Failed to load events."
+          );
           return;
         }
 
@@ -156,7 +181,10 @@ export default function EventsPage() {
         if (cancelled) return;
 
         console.error("Load Events Error:", error);
-        setError("Something went wrong while loading events.");
+
+        setError(
+          "Something went wrong while loading events."
+        );
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -175,7 +203,9 @@ export default function EventsPage() {
   // CREATE EVENT
   // ============================================================
 
-  async function handleCreateEvent(event: FormEvent<HTMLFormElement>) {
+  async function handleCreateEvent(
+    event: FormEvent<HTMLFormElement>
+  ) {
     event.preventDefault();
 
     setError("");
@@ -194,12 +224,16 @@ export default function EventsPage() {
     const selectedDate = new Date(eventDate);
 
     if (Number.isNaN(selectedDate.getTime())) {
-      setError("Please select a valid event date and time.");
+      setError(
+        "Please select a valid event date and time."
+      );
       return;
     }
 
     if (selectedDate <= new Date()) {
-      setError("Event date and time must be in the future.");
+      setError(
+        "Event date and time must be in the future."
+      );
       return;
     }
 
@@ -228,12 +262,16 @@ export default function EventsPage() {
       }
 
       if (response.status === 403) {
-        setError("You do not have permission to create events.");
+        setError(
+          "You do not have permission to create events."
+        );
         return;
       }
 
       if (!response.ok) {
-        setError(data.error || "Failed to create event.");
+        setError(
+          data.error || "Failed to create event."
+        );
         return;
       }
 
@@ -247,14 +285,17 @@ export default function EventsPage() {
       await loadEvents();
     } catch (error) {
       console.error("Create Event Error:", error);
-      setError("Something went wrong while creating the event.");
+
+      setError(
+        "Something went wrong while creating the event."
+      );
     } finally {
       setCreating(false);
     }
   }
 
   // ============================================================
-  // START EDITING
+  // START EDIT
   // ============================================================
 
   function handleStartEdit(event: Event) {
@@ -269,7 +310,8 @@ export default function EventsPage() {
     const date = new Date(event.eventDate);
 
     const localDate = new Date(
-      date.getTime() - date.getTimezoneOffset() * 60000
+      date.getTime() -
+        date.getTimezoneOffset() * 60000
     )
       .toISOString()
       .slice(0, 16);
@@ -306,7 +348,9 @@ export default function EventsPage() {
   // UPDATE EVENT
   // ============================================================
 
-  async function handleUpdateEvent(event: FormEvent<HTMLFormElement>) {
+  async function handleUpdateEvent(
+    event: FormEvent<HTMLFormElement>
+  ) {
     event.preventDefault();
 
     if (editingEventId === null) return;
@@ -327,31 +371,38 @@ export default function EventsPage() {
     const selectedDate = new Date(editEventDate);
 
     if (Number.isNaN(selectedDate.getTime())) {
-      setError("Please select a valid event date and time.");
+      setError(
+        "Please select a valid event date and time."
+      );
       return;
     }
 
     if (selectedDate <= new Date()) {
-      setError("Event date and time must be in the future.");
+      setError(
+        "Event date and time must be in the future."
+      );
       return;
     }
 
     setEditing(true);
 
     try {
-      const response = await fetch(`/api/events/${editingEventId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          title: editTitle.trim(),
-          description: editDescription.trim(),
-          location: editLocation.trim(),
-          eventDate: selectedDate.toISOString(),
-        }),
-      });
+      const response = await fetch(
+        `/api/events/${editingEventId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            title: editTitle.trim(),
+            description: editDescription.trim(),
+            location: editLocation.trim(),
+            eventDate: selectedDate.toISOString(),
+          }),
+        }
+      );
 
       const data = await response.json();
 
@@ -361,7 +412,9 @@ export default function EventsPage() {
       }
 
       if (response.status === 403) {
-        setError("You do not have permission to edit this event.");
+        setError(
+          "You do not have permission to edit this event."
+        );
         return;
       }
 
@@ -371,7 +424,9 @@ export default function EventsPage() {
       }
 
       if (!response.ok) {
-        setError(data.error || "Failed to update event.");
+        setError(
+          data.error || "Failed to update event."
+        );
         return;
       }
 
@@ -382,7 +437,10 @@ export default function EventsPage() {
       await loadEvents();
     } catch (error) {
       console.error("Update Event Error:", error);
-      setError("Something went wrong while updating the event.");
+
+      setError(
+        "Something went wrong while updating the event."
+      );
     } finally {
       setEditing(false);
     }
@@ -407,10 +465,13 @@ export default function EventsPage() {
     setDeletingId(eventId);
 
     try {
-      const response = await fetch(`/api/events/${eventId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
+      const response = await fetch(
+        `/api/events/${eventId}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
 
       const data = await response.json();
 
@@ -420,7 +481,9 @@ export default function EventsPage() {
       }
 
       if (response.status === 403) {
-        setError("You do not have permission to delete this event.");
+        setError(
+          "You do not have permission to delete this event."
+        );
         return;
       }
 
@@ -430,7 +493,9 @@ export default function EventsPage() {
       }
 
       if (!response.ok) {
-        setError(data.error || "Failed to delete event.");
+        setError(
+          data.error || "Failed to delete event."
+        );
         return;
       }
 
@@ -443,49 +508,121 @@ export default function EventsPage() {
       await loadEvents();
     } catch (error) {
       console.error("Delete Event Error:", error);
-      setError("Something went wrong while deleting the event.");
+
+      setError(
+        "Something went wrong while deleting the event."
+      );
     } finally {
       setDeletingId(null);
     }
   }
 
   // ============================================================
-  // FORMAT DATE
+  // HELPERS
   // ============================================================
 
   function formatEventDate(dateString: string) {
-    return new Date(dateString).toLocaleString("en-IN", {
-      dateStyle: "full",
-      timeStyle: "short",
-    });
+    return new Date(dateString).toLocaleString(
+      "en-IN",
+      {
+        dateStyle: "full",
+        timeStyle: "short",
+      }
+    );
+  }
+
+  function formatShortDate(dateString: string) {
+    return new Date(dateString).toLocaleDateString(
+      "en-IN",
+      {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }
+    );
+  }
+
+  function formatTime(dateString: string) {
+    return new Date(dateString).toLocaleTimeString(
+      "en-IN",
+      {
+        hour: "numeric",
+        minute: "2-digit",
+      }
+    );
   }
 
   // ============================================================
-  // EVENT FILTERS
+  // FILTERED EVENTS
   // ============================================================
 
-  const upcomingEvents = useMemo(() => {
-    const now = new Date();
+  const now = new Date();
 
-    return events.filter(
-      (event) => new Date(event.eventDate) >= now
-    );
+  const upcomingEvents = useMemo(() => {
+    return events
+      .filter(
+        (event) =>
+          new Date(event.eventDate) >= new Date()
+      )
+      .sort(
+        (a, b) =>
+          new Date(a.eventDate).getTime() -
+          new Date(b.eventDate).getTime()
+      );
   }, [events]);
 
   const pastEvents = useMemo(() => {
-    const now = new Date();
-
-    return events.filter(
-      (event) => new Date(event.eventDate) < now
-    );
+    return events
+      .filter(
+        (event) =>
+          new Date(event.eventDate) < new Date()
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.eventDate).getTime() -
+          new Date(a.eventDate).getTime()
+      );
   }, [events]);
+
+  const filteredEvents = useMemo(() => {
+    let result =
+      filter === "UPCOMING"
+        ? upcomingEvents
+        : filter === "PAST"
+          ? pastEvents
+          : events;
+
+    const query = search.trim().toLowerCase();
+
+    if (query) {
+      result = result.filter((event) =>
+        [
+          event.title,
+          event.description,
+          event.location,
+          event.createdBy.name,
+        ].some((value) =>
+          value.toLowerCase().includes(query)
+        )
+      );
+    }
+
+    return result;
+  }, [
+    events,
+    filter,
+    search,
+    upcomingEvents,
+    pastEvents,
+  ]);
 
   const totalEvents = events.length;
   const upcomingCount = upcomingEvents.length;
   const pastCount = pastEvents.length;
 
   const canManageEvents =
-    user?.role === "FACULTY" || user?.role === "ADMIN";
+    user?.role === "FACULTY" ||
+    user?.role === "ADMIN";
 
   const minDateTime = new Date()
     .toISOString()
@@ -498,12 +635,12 @@ export default function EventsPage() {
   if (loading) {
     return (
       <main className="min-h-screen bg-background px-5 py-10 text-foreground">
-        <div className="mx-auto flex max-w-5xl items-center justify-center py-32">
-          <div className="glass rounded-3xl px-8 py-6 text-center">
-            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <div className="mx-auto flex max-w-6xl items-center justify-center py-32">
+          <div className="glass rounded-3xl px-10 py-8 text-center shadow-lg">
+            <div className="mx-auto mb-5 h-9 w-9 animate-spin rounded-full border-2 border-primary border-t-transparent" />
 
-            <p className="text-sm font-medium text-secondary">
-              Loading events...
+            <p className="text-sm font-semibold text-secondary">
+              Preparing your event experience...
             </p>
           </div>
         </div>
@@ -515,80 +652,128 @@ export default function EventsPage() {
   // EVENT CARD
   // ============================================================
 
-  function renderEventCard(event: Event, isPast: boolean) {
-    const isEditing = editingEventId === event.id;
-    const isDeleting = deletingId === event.id;
+  function renderEventCard(
+    event: Event,
+    isPast: boolean
+  ) {
+    const isEditing =
+      editingEventId === event.id;
+
+    const isDeleting =
+      deletingId === event.id;
+
+    const eventDate = new Date(event.eventDate);
 
     return (
       <article
         id={`event-${event.id}`}
         key={event.id}
-        className={`glass rounded-3xl p-6 ${
-          isPast ? "opacity-70" : ""
+        className={`group relative overflow-hidden rounded-[2rem] border border-border bg-surface-solid shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-xl ${
+          isPast ? "opacity-75" : ""
         }`}
       >
-        {!isEditing && (
-          <>
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+        {/* Accent */}
+        <div
+          className={`absolute left-0 top-0 h-full w-1 ${
+            isPast
+              ? "bg-border"
+              : "bg-primary"
+          }`}
+        />
+
+        {!isEditing ? (
+          <div className="p-6 sm:p-7">
+            <div className="flex flex-col gap-6 lg:flex-row lg:justify-between">
               <div className="min-w-0 flex-1">
-                <div className="mb-3 flex flex-wrap items-center gap-2">
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      isPast
-                        ? "bg-surface text-muted"
-                        : "bg-primary-soft text-primary"
-                    }`}
-                  >
-                    {isPast ? "Past Event" : "Upcoming Event"}
-                  </span>
+                {/* Date Badge */}
+                <div className="mb-5 flex flex-wrap items-center gap-3">
+                  <div className="rounded-2xl bg-primary-soft px-4 py-3 text-center">
+                    <p className="text-xs font-bold uppercase tracking-wider text-primary">
+                      {eventDate.toLocaleDateString(
+                        "en-IN",
+                        { month: "short" }
+                      )}
+                    </p>
+
+                    <p className="text-2xl font-black text-primary">
+                      {eventDate.getDate()}
+                    </p>
+                  </div>
+
+                  <div>
+                    <span
+                      className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
+                        isPast
+                          ? "bg-surface text-muted"
+                          : "bg-primary-soft text-primary"
+                      }`}
+                    >
+                      {isPast
+                        ? "Past Event"
+                        : "Upcoming"}
+                    </span>
+
+                    <p className="mt-2 text-xs font-medium text-muted">
+                      {formatShortDate(
+                        event.eventDate
+                      )}{" "}
+                      •{" "}
+                      {formatTime(
+                        event.eventDate
+                      )}
+                    </p>
+                  </div>
                 </div>
 
-                <h3 className="text-2xl font-bold text-primary">
+                {/* Title */}
+                <h3 className="text-2xl font-bold tracking-tight text-primary sm:text-3xl">
                   {event.title}
                 </h3>
 
-                <p className="mt-3 whitespace-pre-wrap leading-7 text-secondary">
+                {/* Description */}
+                <p className="mt-3 max-w-3xl whitespace-pre-wrap leading-7 text-secondary">
                   {event.description}
                 </p>
 
-                <div className="mt-5 space-y-3 text-sm">
-                  <div className="flex gap-3">
-                    <span className="text-lg">📍</span>
+                {/* Metadata */}
+                <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-surface p-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted">
+                      Location
+                    </p>
 
-                    <div>
-                      <p className="font-semibold text-primary">
-                        Location
-                      </p>
-
-                      <p className="text-secondary">
-                        {event.location}
-                      </p>
-                    </div>
+                    <p className="mt-1 font-semibold text-primary">
+                      📍 {event.location}
+                    </p>
                   </div>
 
-                  <div className="flex gap-3">
-                    <span className="text-lg">🗓️</span>
+                  <div className="rounded-2xl bg-surface p-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted">
+                      Time
+                    </p>
 
-                    <div>
-                      <p className="font-semibold text-primary">
-                        Date & Time
-                      </p>
-
-                      <p className="text-secondary">
-                        {formatEventDate(event.eventDate)}
-                      </p>
-                    </div>
+                    <p className="mt-1 font-semibold text-primary">
+                      🕒{" "}
+                      {formatTime(
+                        event.eventDate
+                      )}
+                    </p>
                   </div>
                 </div>
               </div>
 
+              {/* Actions */}
               {canManageEvents && (
-                <div className="flex shrink-0 flex-wrap gap-2">
+                <div className="flex shrink-0 gap-2 lg:self-start">
                   <button
                     type="button"
-                    onClick={() => handleStartEdit(event)}
-                    disabled={isDeleting || editing}
-                    className="rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-primary transition hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50"
+                    onClick={() =>
+                      handleStartEdit(event)
+                    }
+                    disabled={
+                      isDeleting || editing
+                    }
+                    className="rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-primary transition-all hover:-translate-y-0.5 hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     ✏️ Edit
                   </button>
@@ -596,46 +781,56 @@ export default function EventsPage() {
                   <button
                     type="button"
                     onClick={() =>
-                      handleDeleteEvent(event.id, event.title)
+                      handleDeleteEvent(
+                        event.id,
+                        event.title
+                      )
                     }
-                    disabled={isDeleting || editing}
-                    className="rounded-xl bg-danger px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={
+                      isDeleting || editing
+                    }
+                    className="rounded-xl bg-danger px-4 py-2.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {isDeleting ? "Deleting..." : "🗑️ Delete"}
+                    {isDeleting
+                      ? "Deleting..."
+                      : "Delete"}
                   </button>
                 </div>
               )}
             </div>
 
-            <div className="mt-6 flex flex-col gap-2 border-t border-border pt-4 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+            {/* Footer */}
+            <div className="mt-7 flex flex-col gap-2 border-t border-border pt-5 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
               <span>
-                Created by{" "}
+                Hosted by{" "}
                 <strong className="text-secondary">
                   {event.createdBy.name}
                 </strong>
               </span>
 
               <span>
-                Posted {formatEventDate(event.createdAt)}
+                Posted{" "}
+                {formatEventDate(
+                  event.createdAt
+                )}
               </span>
             </div>
-          </>
-        )}
-
-        {isEditing && (
-          <div>
-            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          </div>
+        ) : (
+          /* EDIT MODE */
+          <div className="p-6 sm:p-8">
+            <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent">
+                <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-bold text-accent">
                   Editing Event
                 </span>
 
                 <h3 className="mt-3 text-2xl font-bold text-primary">
-                  Edit Event
+                  Update Event
                 </h3>
 
                 <p className="mt-1 text-sm text-muted">
-                  Update the event details below.
+                  Make changes to the event details.
                 </p>
               </div>
 
@@ -643,7 +838,7 @@ export default function EventsPage() {
                 type="button"
                 onClick={handleCancelEdit}
                 disabled={editing}
-                className="rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-primary hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-primary hover:bg-surface-muted disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -651,7 +846,7 @@ export default function EventsPage() {
 
             <form
               onSubmit={handleUpdateEvent}
-              className="flex flex-col gap-5"
+              className="grid gap-5"
             >
               <div>
                 <label
@@ -665,11 +860,13 @@ export default function EventsPage() {
                   id={`edit-title-${event.id}`}
                   type="text"
                   value={editTitle}
-                  onChange={(event) =>
-                    setEditTitle(event.target.value)
+                  onChange={(e) =>
+                    setEditTitle(
+                      e.target.value
+                    )
                   }
                   disabled={editing}
-                  className="w-full rounded-xl border border-border bg-surface-solid px-4 py-3 text-primary placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary-soft"
+                  className="w-full rounded-xl border border-border bg-surface-solid px-4 py-3 text-primary outline-none placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary-soft"
                 />
               </div>
 
@@ -684,64 +881,72 @@ export default function EventsPage() {
                 <textarea
                   id={`edit-description-${event.id}`}
                   value={editDescription}
-                  onChange={(event) =>
-                    setEditDescription(event.target.value)
+                  onChange={(e) =>
+                    setEditDescription(
+                      e.target.value
+                    )
                   }
                   rows={5}
                   disabled={editing}
-                  className="w-full resize-y rounded-xl border border-border bg-surface-solid px-4 py-3 text-primary placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary-soft"
+                  className="w-full resize-y rounded-xl border border-border bg-surface-solid px-4 py-3 text-primary outline-none placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary-soft"
                 />
               </div>
 
-              <div>
-                <label
-                  htmlFor={`edit-location-${event.id}`}
-                  className="mb-2 block text-sm font-semibold text-primary"
-                >
-                  Location
-                </label>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor={`edit-location-${event.id}`}
+                    className="mb-2 block text-sm font-semibold text-primary"
+                  >
+                    Location
+                  </label>
 
-                <input
-                  id={`edit-location-${event.id}`}
-                  type="text"
-                  value={editLocation}
-                  onChange={(event) =>
-                    setEditLocation(event.target.value)
-                  }
-                  disabled={editing}
-                  className="w-full rounded-xl border border-border bg-surface-solid px-4 py-3 text-primary placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary-soft"
-                />
-              </div>
+                  <input
+                    id={`edit-location-${event.id}`}
+                    type="text"
+                    value={editLocation}
+                    onChange={(e) =>
+                      setEditLocation(
+                        e.target.value
+                      )
+                    }
+                    disabled={editing}
+                    className="w-full rounded-xl border border-border bg-surface-solid px-4 py-3 text-primary outline-none placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary-soft"
+                  />
+                </div>
 
-              <div>
-                <label
-                  htmlFor={`edit-date-${event.id}`}
-                  className="mb-2 block text-sm font-semibold text-primary"
-                >
-                  Date & Time
-                </label>
+                <div>
+                  <label
+                    htmlFor={`edit-date-${event.id}`}
+                    className="mb-2 block text-sm font-semibold text-primary"
+                  >
+                    Date & Time
+                  </label>
 
-                <input
-                  id={`edit-date-${event.id}`}
-                  type="datetime-local"
-                  value={editEventDate}
-                  onChange={(event) =>
-                    setEditEventDate(event.target.value)
-                  }
-                  min={minDateTime}
-                  disabled={editing}
-                  className="w-full rounded-xl border border-border bg-surface-solid px-4 py-3 text-primary focus:border-primary focus:ring-2 focus:ring-primary-soft"
-                />
+                  <input
+                    id={`edit-date-${event.id}`}
+                    type="datetime-local"
+                    value={editEventDate}
+                    onChange={(e) =>
+                      setEditEventDate(
+                        e.target.value
+                      )
+                    }
+                    min={minDateTime}
+                    disabled={editing}
+                    className="w-full rounded-xl border border-border bg-surface-solid px-4 py-3 text-primary outline-none focus:border-primary focus:ring-2 focus:ring-primary-soft"
+                  />
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-3">
                 <button
                   type="submit"
                   disabled={editing}
-                  className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {editing
-                    ? "Saving Changes..."
+                    ? "Saving..."
                     : "Save Changes"}
                 </button>
 
@@ -749,7 +954,7 @@ export default function EventsPage() {
                   type="button"
                   onClick={handleCancelEdit}
                   disabled={editing}
-                  className="rounded-xl border border-border bg-surface px-5 py-3 text-sm font-semibold text-primary hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-xl border border-border bg-surface px-5 py-3 text-sm font-semibold text-primary hover:bg-surface-muted disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -768,87 +973,185 @@ export default function EventsPage() {
   return (
     <main className="min-h-screen bg-background px-5 py-8 text-foreground sm:px-8 lg:px-10">
       <div className="mx-auto max-w-6xl">
-        {/* HEADER */}
 
-        <header className="mb-8 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-          <div>
+        {/* HERO */}
+
+        <section className="glass relative mb-8 overflow-hidden rounded-[2rem] p-7 shadow-lg sm:p-10">
+          <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-primary opacity-10 blur-3xl" />
+
+          <div className="relative z-10">
             <button
               type="button"
-              onClick={() => router.push("/dashboard")}
-              className="mb-4 text-sm font-semibold text-secondary transition hover:text-primary"
+              onClick={() =>
+                router.push("/dashboard")
+              }
+              className="mb-6 text-sm font-semibold text-secondary transition hover:text-primary"
             >
               ← Back to Dashboard
             </button>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-4xl font-bold tracking-tight text-primary">
-                Campus Events
-              </h1>
+            <div className="flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary-soft px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-primary">
+                  ✦ Campus Discovery
+                </div>
 
-              <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary">
-                {totalEvents} Total
-              </span>
+                <h1 className="max-w-3xl text-4xl font-black tracking-tight text-primary sm:text-5xl">
+                  Discover what’s happening
+                  on campus.
+                </h1>
+
+                <p className="mt-4 max-w-2xl text-base leading-7 text-secondary sm:text-lg">
+                  Find workshops, activities,
+                  competitions and campus
+                  experiences worth showing up for.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  router.push("/notifications")
+                }
+                className="glass shrink-0 rounded-2xl px-5 py-3 text-sm font-bold text-primary transition-all hover:-translate-y-0.5 hover:bg-surface-muted"
+              >
+                🔔 Notifications
+              </button>
             </div>
-
-            <p className="mt-3 max-w-2xl text-secondary">
-              Stay updated with important campus events,
-              activities, workshops and announcements.
-            </p>
           </div>
-
-          <button
-            type="button"
-            onClick={() => router.push("/notifications")}
-            className="glass rounded-xl px-4 py-3 text-sm font-semibold text-primary hover:bg-surface-muted"
-          >
-            🔔 View Notifications
-          </button>
-        </header>
+        </section>
 
         {/* ALERTS */}
 
         {error && (
-          <div className="mb-6 rounded-2xl border border-danger bg-danger-soft px-5 py-4 text-sm font-medium text-danger">
-            {error}
+          <div className="mb-6 rounded-2xl border border-danger bg-danger-soft px-5 py-4 text-sm font-semibold text-danger">
+            ⚠️ {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-6 rounded-2xl border border-success bg-success-soft px-5 py-4 text-sm font-medium text-success">
-            {success}
+          <div className="mb-6 rounded-2xl border border-success bg-success-soft px-5 py-4 text-sm font-semibold text-success">
+            ✓ {success}
           </div>
         )}
 
-        {/* STATISTICS */}
+        {/* DISCOVERY CONTROLS */}
+
+        <section className="glass mb-8 rounded-3xl p-5 shadow-md sm:p-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+
+            {/* Search */}
+
+            <div className="relative flex-1">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg">
+                🔎
+              </span>
+
+              <input
+                type="search"
+                value={search}
+                onChange={(e) =>
+                  setSearch(e.target.value)
+                }
+                placeholder="Search events, locations, hosts..."
+                className="w-full rounded-2xl border border-border bg-surface-solid py-3.5 pl-12 pr-4 text-sm font-medium text-primary outline-none placeholder:text-muted transition-all focus:border-primary focus:ring-4 focus:ring-primary-soft"
+              />
+            </div>
+
+            {/* Filters */}
+
+            <div className="flex flex-wrap gap-2">
+              {(
+                [
+                  ["UPCOMING", "Upcoming"],
+                  ["ALL", "All Events"],
+                  ["PAST", "Past"],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() =>
+                    setFilter(value)
+                  }
+                  className={`rounded-xl px-4 py-2.5 text-sm font-bold transition-all ${
+                    filter === value
+                      ? "bg-primary text-white shadow-md"
+                      : "border border-border bg-surface text-secondary hover:bg-surface-muted hover:text-primary"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+            <span>
+              Showing{" "}
+              <strong className="text-secondary">
+                {filteredEvents.length}
+              </strong>{" "}
+              event
+              {filteredEvents.length !== 1
+                ? "s"
+                : ""}
+            </span>
+
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="font-semibold text-primary hover:underline"
+              >
+                Clear search
+              </button>
+            )}
+          </div>
+        </section>
+
+        {/* STATS */}
 
         <section className="mb-8 grid gap-4 sm:grid-cols-3">
-          <div className="glass rounded-3xl p-6">
-            <p className="text-sm font-medium text-muted">
-              Total Events
+          <div className="glass rounded-3xl p-5">
+            <p className="text-xs font-bold uppercase tracking-wider text-muted">
+              Total
             </p>
 
-            <p className="mt-3 text-4xl font-bold text-primary">
+            <p className="mt-2 text-3xl font-black text-primary">
               {totalEvents}
+            </p>
+
+            <p className="mt-1 text-sm text-secondary">
+              Campus events
             </p>
           </div>
 
-          <div className="glass rounded-3xl p-6">
-            <p className="text-sm font-medium text-muted">
+          <div className="glass rounded-3xl p-5">
+            <p className="text-xs font-bold uppercase tracking-wider text-muted">
               Upcoming
             </p>
 
-            <p className="mt-3 text-4xl font-bold text-primary">
+            <p className="mt-2 text-3xl font-black text-primary">
               {upcomingCount}
+            </p>
+
+            <p className="mt-1 text-sm text-secondary">
+              Worth checking out
             </p>
           </div>
 
-          <div className="glass rounded-3xl p-6">
-            <p className="text-sm font-medium text-muted">
-              Past Events
+          <div className="glass rounded-3xl p-5">
+            <p className="text-xs font-bold uppercase tracking-wider text-muted">
+              Past
             </p>
 
-            <p className="mt-3 text-4xl font-bold text-primary">
+            <p className="mt-2 text-3xl font-black text-primary">
               {pastCount}
+            </p>
+
+            <p className="mt-1 text-sm text-secondary">
+              Previously hosted
             </p>
           </div>
         </section>
@@ -856,19 +1159,19 @@ export default function EventsPage() {
         {/* CREATE EVENT */}
 
         {canManageEvents && (
-          <section className="glass mb-10 rounded-3xl p-6 sm:p-8">
-            <div className="mb-6">
-              <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent">
+          <section className="glass mb-10 rounded-[2rem] p-6 shadow-md sm:p-8">
+            <div className="mb-7">
+              <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-bold text-accent">
                 Faculty / Admin
               </span>
 
-              <h2 className="mt-4 text-2xl font-bold text-primary">
-                Create New Event
+              <h2 className="mt-4 text-2xl font-black text-primary">
+                Create an Event
               </h2>
 
-              <p className="mt-2 text-sm text-secondary">
-                Create a new campus event for students and
-                faculty.
+              <p className="mt-2 text-sm leading-6 text-secondary">
+                Publish a polished event listing
+                for your campus community.
               </p>
             </div>
 
@@ -879,7 +1182,7 @@ export default function EventsPage() {
               <div>
                 <label
                   htmlFor="event-title"
-                  className="mb-2 block text-sm font-semibold text-primary"
+                  className="mb-2 block text-sm font-bold text-primary"
                 >
                   Event Title
                 </label>
@@ -888,19 +1191,19 @@ export default function EventsPage() {
                   id="event-title"
                   type="text"
                   value={title}
-                  onChange={(event) =>
-                    setTitle(event.target.value)
+                  onChange={(e) =>
+                    setTitle(e.target.value)
                   }
-                  placeholder="Enter event title"
+                  placeholder="e.g. AI Innovation Workshop"
                   disabled={creating}
-                  className="w-full rounded-xl border border-border bg-surface-solid px-4 py-3 text-primary placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary-soft"
+                  className="w-full rounded-xl border border-border bg-surface-solid px-4 py-3 text-primary outline-none placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary-soft"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="event-description"
-                  className="mb-2 block text-sm font-semibold text-primary"
+                  className="mb-2 block text-sm font-bold text-primary"
                 >
                   Description
                 </label>
@@ -908,13 +1211,15 @@ export default function EventsPage() {
                 <textarea
                   id="event-description"
                   value={description}
-                  onChange={(event) =>
-                    setDescription(event.target.value)
+                  onChange={(e) =>
+                    setDescription(
+                      e.target.value
+                    )
                   }
-                  placeholder="Describe the event"
+                  placeholder="What should students know?"
                   rows={5}
                   disabled={creating}
-                  className="w-full resize-y rounded-xl border border-border bg-surface-solid px-4 py-3 text-primary placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary-soft"
+                  className="w-full resize-y rounded-xl border border-border bg-surface-solid px-4 py-3 leading-7 text-primary outline-none placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary-soft"
                 />
               </div>
 
@@ -922,7 +1227,7 @@ export default function EventsPage() {
                 <div>
                   <label
                     htmlFor="event-location"
-                    className="mb-2 block text-sm font-semibold text-primary"
+                    className="mb-2 block text-sm font-bold text-primary"
                   >
                     Location
                   </label>
@@ -931,19 +1236,21 @@ export default function EventsPage() {
                     id="event-location"
                     type="text"
                     value={location}
-                    onChange={(event) =>
-                      setLocation(event.target.value)
+                    onChange={(e) =>
+                      setLocation(
+                        e.target.value
+                      )
                     }
-                    placeholder="Enter event location"
+                    placeholder="e.g. Main Auditorium"
                     disabled={creating}
-                    className="w-full rounded-xl border border-border bg-surface-solid px-4 py-3 text-primary placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary-soft"
+                    className="w-full rounded-xl border border-border bg-surface-solid px-4 py-3 text-primary outline-none placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary-soft"
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="event-date"
-                    className="mb-2 block text-sm font-semibold text-primary"
+                    className="mb-2 block text-sm font-bold text-primary"
                   >
                     Date & Time
                   </label>
@@ -952,12 +1259,14 @@ export default function EventsPage() {
                     id="event-date"
                     type="datetime-local"
                     value={eventDate}
-                    onChange={(event) =>
-                      setEventDate(event.target.value)
+                    onChange={(e) =>
+                      setEventDate(
+                        e.target.value
+                      )
                     }
-                    disabled={creating}
                     min={minDateTime}
-                    className="w-full rounded-xl border border-border bg-surface-solid px-4 py-3 text-primary focus:border-primary focus:ring-2 focus:ring-primary-soft"
+                    disabled={creating}
+                    className="w-full rounded-xl border border-border bg-surface-solid px-4 py-3 text-primary outline-none focus:border-primary focus:ring-2 focus:ring-primary-soft"
                   />
                 </div>
               </div>
@@ -965,106 +1274,130 @@ export default function EventsPage() {
               <button
                 type="submit"
                 disabled={creating}
-                className="w-fit rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-fit rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {creating
-                  ? "Creating Event..."
-                  : "Create Event"}
+                  ? "Creating..."
+                  : "Create Event →"}
               </button>
             </form>
           </section>
         )}
 
-        {/* UPCOMING EVENTS */}
+        {/* RESULTS */}
 
         <section className="mb-10">
-          <div className="mb-5 flex items-end justify-between">
+          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-primary">
-                Upcoming Events
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
+                Event Feed
+              </p>
+
+              <h2 className="mt-2 text-2xl font-black text-primary sm:text-3xl">
+                {filter === "UPCOMING"
+                  ? "Upcoming Events"
+                  : filter === "PAST"
+                    ? "Past Events"
+                    : "All Events"}
               </h2>
 
-              <p className="mt-1 text-sm text-muted">
-                Events happening soon on campus.
+              <p className="mt-1 text-sm text-secondary">
+                Curated campus experiences,
+                sorted for discovery.
               </p>
             </div>
-
-            <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary">
-              {upcomingCount}
-            </span>
           </div>
 
-          {upcomingEvents.length === 0 ? (
-            <div className="glass rounded-3xl p-10 text-center">
-              <div className="mb-3 text-4xl">📅</div>
+          {filteredEvents.length === 0 ? (
+            <div className="glass rounded-[2rem] p-12 text-center">
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-soft text-3xl">
+                {search
+                  ? "🔎"
+                  : "📅"}
+              </div>
 
-              <h3 className="font-semibold text-primary">
-                No upcoming events
+              <h3 className="text-lg font-bold text-primary">
+                {search
+                  ? "No matching events"
+                  : filter === "UPCOMING"
+                    ? "No upcoming events"
+                    : filter === "PAST"
+                      ? "No past events"
+                      : "No events yet"}
               </h3>
 
-              <p className="mt-2 text-sm text-muted">
-                There are no upcoming events at the moment.
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-secondary">
+                {search
+                  ? "Try a different keyword, location or host name."
+                  : "New campus events will appear here when they are published."}
               </p>
+
+              {search && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSearch("")
+                  }
+                  className="mt-5 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white"
+                >
+                  Clear Search
+                </button>
+              )}
             </div>
           ) : (
             <div className="flex flex-col gap-5">
-              {upcomingEvents.map((event) =>
-                renderEventCard(event, false)
+              {filteredEvents.map((event) =>
+                renderEventCard(
+                  event,
+                  new Date(event.eventDate) <
+                    now
+                )
               )}
             </div>
           )}
         </section>
-
-        {/* PAST EVENTS */}
-
-        {pastEvents.length > 0 && (
-          <section className="mb-10">
-            <div className="mb-5">
-              <h2 className="text-2xl font-bold text-primary">
-                Past Events
-              </h2>
-
-              <p className="mt-1 text-sm text-muted">
-                Previous campus events and activities.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-5">
-              {pastEvents.map((event) =>
-                renderEventCard(event, true)
-              )}
-            </div>
-          </section>
-        )}
 
         {/* NAVIGATION */}
 
         <section className="flex flex-wrap gap-3 border-t border-border pt-6">
           <button
             type="button"
-            onClick={() => router.push("/dashboard")}
-            className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white hover:opacity-90"
+            onClick={() =>
+              router.push("/dashboard")
+            }
+            className="rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:opacity-90"
           >
             Dashboard
           </button>
 
           <button
             type="button"
-            onClick={() => router.push("/announcements")}
-            className="glass rounded-xl px-5 py-3 text-sm font-semibold text-primary hover:bg-surface-muted"
+            onClick={() =>
+              router.push("/announcements")
+            }
+            className="glass rounded-xl px-5 py-3 text-sm font-bold text-primary transition hover:bg-surface-muted"
           >
             Announcements
           </button>
 
           <button
             type="button"
-            onClick={() => router.push("/notifications")}
-            className="glass rounded-xl px-5 py-3 text-sm font-semibold text-primary hover:bg-surface-muted"
+            onClick={() =>
+              router.push("/notifications")
+            }
+            className="glass rounded-xl px-5 py-3 text-sm font-bold text-primary transition hover:bg-surface-muted"
           >
             Notifications
           </button>
         </section>
+
+        <footer className="py-8 text-center">
+          <p className="text-xs text-muted">
+            Campus Flow AI • Discover. Connect. Participate.
+          </p>
+        </footer>
       </div>
     </main>
   );
 }
+
