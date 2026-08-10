@@ -24,10 +24,6 @@ export default function NotificationsPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // ============================================
-  // LOAD NOTIFICATIONS
-  // ============================================
-
   useEffect(() => {
     let cancelled = false;
 
@@ -43,38 +39,24 @@ export default function NotificationsPage() {
 
         const data = await response.json();
 
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
 
-        // User is not logged in
         if (response.status === 401) {
           router.push("/login");
           return;
         }
 
-        // API error
         if (!response.ok) {
           setError(
-            data.error ||
-              "Failed to load notifications."
+            data.error || "Failed to load notifications."
           );
           return;
         }
 
-        // Save notifications
-        setNotifications(
-          data.notifications || []
-        );
-
-        // Save unread count
-        setUnreadCount(
-          data.unreadCount || 0
-        );
+        setNotifications(data.notifications || []);
+        setUnreadCount(data.unreadCount || 0);
       } catch (error) {
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
 
         console.error(
           "Load Notifications Error:",
@@ -98,41 +80,30 @@ export default function NotificationsPage() {
     };
   }, [router]);
 
-  // ============================================
-  // MARK NOTIFICATION AS READ
-  // ============================================
-
-  async function handleMarkAsRead(
-    notificationId: number
-  ) {
+  async function handleMarkAsRead(notificationId: number) {
     setUpdatingId(notificationId);
     setError("");
     setSuccess("");
 
     try {
-      const response = await fetch(
-        "/api/notifications",
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            notificationId,
-          }),
-        }
-      );
+      const response = await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          notificationId,
+        }),
+      });
 
       const data = await response.json();
 
-      // Session expired
       if (response.status === 401) {
         router.push("/login");
         return;
       }
 
-      // API error
       if (!response.ok) {
         setError(
           data.error ||
@@ -141,30 +112,22 @@ export default function NotificationsPage() {
         return;
       }
 
-      // Update notification locally
-      setNotifications(
-        (previousNotifications) =>
-          previousNotifications.map(
-            (notification) =>
-              notification.id ===
-              notificationId
-                ? {
-                    ...notification,
-                    isRead: true,
-                  }
-                : notification
-          )
+      setNotifications((previousNotifications) =>
+        previousNotifications.map((notification) =>
+          notification.id === notificationId
+            ? {
+                ...notification,
+                isRead: true,
+              }
+            : notification
+        )
       );
 
-      // Decrease unread count
-      setUnreadCount(
-        (previousCount) =>
-          Math.max(previousCount - 1, 0)
+      setUnreadCount((previousCount) =>
+        Math.max(previousCount - 1, 0)
       );
 
-      setSuccess(
-        "Notification marked as read."
-      );
+      setSuccess("Notification marked as read.");
     } catch (error) {
       console.error(
         "Mark Notification Read Error:",
@@ -179,452 +142,345 @@ export default function NotificationsPage() {
     }
   }
 
-  // ============================================
-  // FORMAT DATE
-  // ============================================
-
-  function formatDate(
-    dateString: string
-  ) {
-    return new Date(
-      dateString
-    ).toLocaleString("en-IN", {
+  function formatDate(dateString: string) {
+    return new Date(dateString).toLocaleString("en-IN", {
       dateStyle: "medium",
       timeStyle: "short",
     });
   }
 
-  // ============================================
-  // LOADING SCREEN
-  // ============================================
+  /*
+   * ============================================
+   * LOADING STATE
+   * ============================================
+   */
 
   if (loading) {
     return (
-      <main
-        style={{
-          minHeight: "100vh",
-          background: "#f5f7fb",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <p
-          style={{
-            fontSize: "18px",
-            color: "#374151",
-          }}
-        >
-          Loading notifications...
-        </p>
+      <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto flex min-h-[75vh] max-w-5xl items-center justify-center">
+          <div className="glass w-full max-w-md rounded-3xl p-10 text-center shadow-[var(--shadow-lg)]">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--primary-soft)]">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--border)] border-t-[var(--primary)]" />
+            </div>
+
+            <h2 className="text-xl font-bold text-[var(--text-primary)]">
+              Loading notifications
+            </h2>
+
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">
+              Checking your latest campus updates...
+            </p>
+          </div>
+        </div>
       </main>
     );
   }
 
-  // ============================================
-  // MAIN UI
-  // ============================================
+  /*
+   * ============================================
+   * MAIN UI
+   * ============================================
+   */
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#f5f7fb",
-        padding: "32px 20px",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "900px",
-          margin: "0 auto",
-        }}
-      >
-        {/* ====================================== */}
-        {/* HEADER */}
-        {/* ====================================== */}
+    <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl">
 
-        <header
-          style={{
-            marginBottom: "28px",
-          }}
-        >
-          <button
-            type="button"
-            onClick={() =>
-              router.push("/dashboard")
-            }
-            style={{
-              border: "none",
-              background: "transparent",
-              cursor: "pointer",
-              padding: 0,
-              marginBottom: "12px",
-              color: "#374151",
-              fontSize: "15px",
-            }}
-          >
-            ← Back to Dashboard
-          </button>
+        {/* ======================================
+            HEADER
+        ====================================== */}
 
-          <h1
-            style={{
-              margin: "0 0 8px",
-              fontSize: "32px",
-              color: "#111827",
-            }}
-          >
-            Notifications
-          </h1>
+        <header className="glass mb-6 overflow-hidden rounded-3xl p-6 shadow-[var(--shadow-lg)] sm:p-8">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
 
-          <p
-            style={{
-              margin: 0,
-              color: "#6b7280",
-            }}
-          >
-            Stay updated with important campus
-            activities and updates.
-          </p>
+            <div>
+              <button
+                type="button"
+                onClick={() => router.push("/dashboard")}
+                className="mb-5 inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2 text-sm font-semibold text-[var(--text-secondary)] transition-all duration-300 hover:-translate-x-0.5 hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
+              >
+                ← Dashboard
+              </button>
+
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--primary-soft)] text-2xl">
+                  🔔
+                </div>
+
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--primary)]">
+                    Campus Updates
+                  </p>
+
+                  <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">
+                    Notifications
+                  </h1>
+                </div>
+              </div>
+
+              <p className="mt-4 max-w-2xl leading-7 text-[var(--text-secondary)]">
+                Stay updated with important campus
+                activities, announcements, and alerts.
+              </p>
+            </div>
+
+            {/* Unread Badge */}
+
+            <div className="glass-subtle rounded-2xl border border-[var(--border)] p-5">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                Notification Status
+              </p>
+
+              <div className="mt-2 flex items-end gap-2">
+                <span className="text-3xl font-bold text-[var(--text-primary)]">
+                  {unreadCount}
+                </span>
+
+                <span className="pb-1 text-sm font-medium text-[var(--text-secondary)]">
+                  unread
+                </span>
+              </div>
+
+              <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[var(--surface-muted)]">
+                <div
+                  className="h-full rounded-full bg-[var(--primary)] transition-all duration-500"
+                  style={{
+                    width:
+                      notifications.length > 0
+                        ? `${Math.min(
+                            (unreadCount /
+                              notifications.length) *
+                              100,
+                            100
+                          )}%`
+                        : "0%",
+                  }}
+                />
+              </div>
+            </div>
+          </div>
         </header>
 
-        {/* ====================================== */}
-        {/* ERROR MESSAGE */}
-        {/* ====================================== */}
+        {/* ======================================
+            ERROR
+        ====================================== */}
 
         {error && (
-          <div
-            style={{
-              marginBottom: "20px",
-              padding: "14px",
-              background: "#fee2e2",
-              color: "#b91c1c",
-              borderRadius: "10px",
-            }}
-          >
-            {error}
+          <div className="mb-5 flex items-start gap-3 rounded-2xl border border-[var(--danger-soft)] bg-[var(--danger-soft)] px-5 py-4 text-sm font-medium text-[var(--danger)]">
+            <span>⚠️</span>
+            <span>{error}</span>
           </div>
         )}
 
-        {/* ====================================== */}
-        {/* SUCCESS MESSAGE */}
-        {/* ====================================== */}
+        {/* ======================================
+            SUCCESS
+        ====================================== */}
 
         {success && (
-          <div
-            style={{
-              marginBottom: "20px",
-              padding: "14px",
-              background: "#dcfce7",
-              color: "#166534",
-              borderRadius: "10px",
-            }}
-          >
-            {success}
+          <div className="mb-5 flex items-start gap-3 rounded-2xl border border-[var(--success-soft)] bg-[var(--success-soft)] px-5 py-4 text-sm font-medium text-[var(--success)]">
+            <span>✓</span>
+            <span>{success}</span>
           </div>
         )}
 
-        {/* ====================================== */}
-        {/* SUMMARY */}
-        {/* ====================================== */}
+        {/* ======================================
+            SUMMARY
+        ====================================== */}
 
-        <section
-          style={{
-            background: "white",
-            padding: "20px 24px",
-            borderRadius: "16px",
-            boxShadow:
-              "0 4px 20px rgba(0, 0, 0, 0.05)",
-            border: "1px solid #eef0f4",
-            marginBottom: "24px",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: "16px",
-              flexWrap: "wrap",
-            }}
-          >
+        <section className="glass mb-6 rounded-3xl p-6 shadow-[var(--shadow-md)] sm:p-7">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+
             <div>
-              <h2
-                style={{
-                  margin: "0 0 4px",
-                  fontSize: "20px",
-                  color: "#111827",
-                }}
-              >
-                Your Notifications
-              </h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-[var(--text-primary)]">
+                  Your Notifications
+                </h2>
 
-              <p
-                style={{
-                  margin: 0,
-                  color: "#6b7280",
-                }}
-              >
-                {notifications.length} total
-                notification
-                {notifications.length !== 1
-                  ? "s"
-                  : ""}
+                <span className="rounded-full bg-[var(--primary-soft)] px-3 py-1 text-xs font-bold text-[var(--primary)]">
+                  {notifications.length}
+                </span>
+              </div>
+
+              <p className="mt-2 text-sm text-[var(--text-secondary)]">
+                All your latest campus notifications in one
+                place.
               </p>
             </div>
 
             <div
-              style={{
-                padding: "8px 14px",
-                background:
-                  unreadCount > 0
-                    ? "#fee2e2"
-                    : "#f3f4f6",
-                color:
-                  unreadCount > 0
-                    ? "#b91c1c"
-                    : "#4b5563",
-                borderRadius: "999px",
-                fontWeight: "600",
-                fontSize: "14px",
-              }}
+              className={`inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 text-sm font-bold ${
+                unreadCount > 0
+                  ? "bg-[var(--primary-soft)] text-[var(--primary)]"
+                  : "bg-[var(--surface-muted)] text-[var(--text-secondary)]"
+              }`}
             >
-              {unreadCount} unread
+              <span
+                className={`h-2 w-2 rounded-full ${
+                  unreadCount > 0
+                    ? "animate-pulse bg-[var(--primary)]"
+                    : "bg-[var(--text-muted)]"
+                }`}
+              />
+
+              {unreadCount > 0
+                ? `${unreadCount} unread`
+                : "All caught up"}
             </div>
           </div>
         </section>
 
-        {/* ====================================== */}
-        {/* EMPTY STATE */}
-        {/* ====================================== */}
+        {/* ======================================
+            EMPTY STATE
+        ====================================== */}
 
         {notifications.length === 0 && (
-          <section
-            style={{
-              background: "white",
-              padding: "60px 30px",
-              borderRadius: "16px",
-              textAlign: "center",
-              boxShadow:
-                "0 4px 20px rgba(0, 0, 0, 0.05)",
-              border: "1px solid #eef0f4",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "48px",
-                marginBottom: "16px",
-              }}
-            >
+          <section className="glass rounded-3xl p-10 text-center shadow-[var(--shadow-md)] sm:p-16">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-[var(--primary-soft)] text-4xl">
               🔔
             </div>
 
-            <h2
-              style={{
-                margin: "0 0 8px",
-                color: "#111827",
-              }}
-            >
-              No Notifications
+            <h2 className="mt-6 text-2xl font-bold text-[var(--text-primary)]">
+              No notifications yet
             </h2>
 
-            <p
-  style={{
-    margin: 0,
-    color: "#6b7280",
-  }}
->
-  You don&apos;t have any notifications yet.
+            <p className="mx-auto mt-3 max-w-md leading-7 text-[var(--text-secondary)]">
+  You&apos;re all caught up. New campus updates
+  and important alerts will appear here.
 </p>
+
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard")}
+              className="mt-7 rounded-2xl bg-[var(--primary)] px-6 py-3 font-bold text-white shadow-[var(--shadow-md)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--primary-hover)]"
+            >
+            </button>
           </section>
         )}
 
-        {/* ====================================== */}
-        {/* NOTIFICATION LIST */}
-        {/* ====================================== */}
+        {/* ======================================
+            NOTIFICATION LIST
+        ====================================== */}
 
         {notifications.length > 0 && (
-          <section
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "14px",
-            }}
-          >
-            {notifications.map(
-              (notification) => (
+          <section className="space-y-5">
+            {notifications.map((notification) => {
+              const isUpdating =
+                updatingId === notification.id;
+
+              return (
                 <article
                   key={notification.id}
-                  style={{
-                    background: "white",
-                    padding: "22px",
-                    borderRadius: "16px",
-                    border: notification.isRead
-                      ? "1px solid #eef0f4"
-                      : "1px solid #bfdbfe",
-                    boxShadow:
-                      "0 4px 20px rgba(0, 0, 0, 0.04)",
-                  }}
+                  className={`glass-subtle group relative overflow-hidden rounded-3xl border p-5 transition-all duration-300 sm:p-7 ${
+                    notification.isRead
+                      ? "border-[var(--border)]"
+                      : "border-[var(--primary)]/30 shadow-[var(--shadow-md)]"
+                  } hover:-translate-y-1 hover:shadow-[var(--shadow-lg)]`}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent:
-                        "space-between",
-                      alignItems: "flex-start",
-                      gap: "20px",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    {/* Notification Content */}
+                  {/* Unread Accent */}
+
+                  {!notification.isRead && (
+                    <div className="absolute left-0 top-0 h-full w-1 bg-[var(--primary)]" />
+                  )}
+
+                  <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+
+                    {/* Icon */}
 
                     <div
-                      style={{
-                        flex: 1,
-                        minWidth: "250px",
-                      }}
+                      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl ${
+                        notification.isRead
+                          ? "bg-[var(--surface-muted)]"
+                          : "bg-[var(--primary-soft)]"
+                      }`}
                     >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "10px",
-                          marginBottom: "8px",
-                        }}
-                      >
-                        {!notification.isRead && (
-                          <span
-                            style={{
-                              width: "9px",
-                              height: "9px",
-                              borderRadius:
-                                "50%",
-                              background:
-                                "#2563eb",
-                              display: "inline-block",
-                            }}
-                          />
-                        )}
+                      {notification.isRead ? "✓" : "🔔"}
+                    </div>
 
-                        <h3
-                          style={{
-                            margin: 0,
-                            fontSize: "18px",
-                            color: "#111827",
-                          }}
-                        >
-                          {notification.title}
-                        </h3>
+                    {/* Content */}
 
-                        {!notification.isRead && (
-                          <span
-                            style={{
-                              padding:
-                                "4px 9px",
-                              borderRadius:
-                                "999px",
-                              background:
-                                "#dbeafe",
-                              color:
-                                "#1d4ed8",
-                              fontSize: "12px",
-                              fontWeight: "600",
-                            }}
-                          >
-                            UNREAD
-                          </span>
-                        )}
+                    <div className="min-w-0 flex-1">
+
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+
+                        <div className="flex flex-wrap items-center gap-2">
+
+                          <h3 className="text-lg font-bold text-[var(--text-primary)] sm:text-xl">
+                            {notification.title}
+                          </h3>
+
+                          {!notification.isRead && (
+                            <span className="rounded-full bg-[var(--primary-soft)] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-[var(--primary)]">
+                              New
+                            </span>
+                          )}
+                        </div>
+
+                        <span className="shrink-0 text-xs font-medium text-[var(--text-muted)]">
+                          {formatDate(notification.createdAt)}
+                        </span>
                       </div>
 
-                      <p
-                        style={{
-                          margin:
-                            "0 0 10px",
-                          color: "#4b5563",
-                          lineHeight: 1.6,
-                        }}
-                      >
+                      <p className="mt-4 whitespace-pre-wrap leading-7 text-[var(--text-secondary)]">
                         {notification.message}
                       </p>
 
-                      <p
-                        style={{
-                          margin: 0,
-                          color: "#9ca3af",
-                          fontSize: "13px",
-                        }}
-                      >
-                        {formatDate(
-                          notification.createdAt
+                      {/* Bottom Actions */}
+
+                      <div className="mt-6 flex flex-col gap-3 border-t border-[var(--border)] pt-5 sm:flex-row sm:items-center sm:justify-between">
+
+                        <div className="flex items-center gap-2 text-xs font-medium text-[var(--text-muted)]">
+                          <span
+                            className={`h-2 w-2 rounded-full ${
+                              notification.isRead
+                                ? "bg-[var(--success)]"
+                                : "bg-[var(--primary)]"
+                            }`}
+                          />
+
+                          {notification.isRead
+                            ? "Read"
+                            : "Waiting for your attention"}
+                        </div>
+
+                        {!notification.isRead ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleMarkAsRead(
+                                notification.id
+                              )
+                            }
+                            disabled={isUpdating}
+                            className="rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-bold text-white shadow-[var(--shadow-sm)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {isUpdating
+                              ? "Updating..."
+                              : "Mark as Read ✓"}
+                          </button>
+                        ) : (
+                          <span className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2 text-xs font-semibold text-[var(--text-secondary)]">
+                            Already read
+                          </span>
                         )}
-                      </p>
+                      </div>
                     </div>
-
-                    {/* Mark as Read */}
-
-                    {!notification.isRead && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleMarkAsRead(
-                            notification.id
-                          )
-                        }
-                        disabled={
-                          updatingId ===
-                          notification.id
-                        }
-                        style={{
-                          border: "none",
-                          background:
-                            updatingId ===
-                            notification.id
-                              ? "#9ca3af"
-                              : "#111827",
-                          color: "white",
-                          padding:
-                            "10px 16px",
-                          borderRadius: "8px",
-                          cursor:
-                            updatingId ===
-                            notification.id
-                              ? "not-allowed"
-                              : "pointer",
-                          fontSize: "14px",
-                          fontWeight: "600",
-                          whiteSpace:
-                            "nowrap",
-                        }}
-                      >
-                        {updatingId ===
-                        notification.id
-                          ? "Updating..."
-                          : "Mark as Read"}
-                      </button>
-                    )}
-
-                    {notification.isRead && (
-                      <span
-                        style={{
-                          padding:
-                            "8px 12px",
-                          borderRadius:
-                            "8px",
-                          background:
-                            "#f3f4f6",
-                          color: "#6b7280",
-                          fontSize: "13px",
-                          fontWeight: "600",
-                        }}
-                      >
-                        Read
-                      </span>
-                    )}
                   </div>
                 </article>
-              )
-            )}
+              );
+            })}
           </section>
         )}
+
+        {/* ======================================
+            FOOTER
+        ====================================== */}
+
+        <footer className="py-8 text-center">
+          <p className="text-xs text-[var(--text-muted)]">
+            Campus Flow AI • Stay informed. Stay connected.
+          </p>
+        </footer>
       </div>
     </main>
   );
