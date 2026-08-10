@@ -24,6 +24,10 @@ export default function NotificationsPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // ============================================
+  // LOAD NOTIFICATIONS
+  // ============================================
+
   useEffect(() => {
     let cancelled = false;
 
@@ -39,7 +43,9 @@ export default function NotificationsPage() {
 
         const data = await response.json();
 
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
 
         if (response.status === 401) {
           router.push("/login");
@@ -56,12 +62,11 @@ export default function NotificationsPage() {
         setNotifications(data.notifications || []);
         setUnreadCount(data.unreadCount || 0);
       } catch (error) {
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
 
-        console.error(
-          "Load Notifications Error:",
-          error
-        );
+        console.error("Load Notifications Error:", error);
 
         setError(
           "Something went wrong while loading notifications."
@@ -79,6 +84,10 @@ export default function NotificationsPage() {
       cancelled = true;
     };
   }, [router]);
+
+  // ============================================
+  // MARK NOTIFICATION AS READ
+  // ============================================
 
   async function handleMarkAsRead(notificationId: number) {
     setUpdatingId(notificationId);
@@ -142,6 +151,10 @@ export default function NotificationsPage() {
     }
   }
 
+  // ============================================
+  // FORMAT DATE
+  // ============================================
+
   function formatDate(dateString: string) {
     return new Date(dateString).toLocaleString("en-IN", {
       dateStyle: "medium",
@@ -149,11 +162,9 @@ export default function NotificationsPage() {
     });
   }
 
-  /*
-   * ============================================
-   * LOADING STATE
-   * ============================================
-   */
+  // ============================================
+  // LOADING
+  // ============================================
 
   if (loading) {
     return (
@@ -169,7 +180,7 @@ export default function NotificationsPage() {
             </h2>
 
             <p className="mt-2 text-sm text-[var(--text-secondary)]">
-              Checking your latest campus updates...
+              Checking for your latest campus updates...
             </p>
           </div>
         </div>
@@ -177,11 +188,9 @@ export default function NotificationsPage() {
     );
   }
 
-  /*
-   * ============================================
-   * MAIN UI
-   * ============================================
-   */
+  // ============================================
+  // MAIN UI
+  // ============================================
 
   return (
     <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
@@ -198,19 +207,19 @@ export default function NotificationsPage() {
               <button
                 type="button"
                 onClick={() => router.push("/dashboard")}
-                className="mb-5 inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2 text-sm font-semibold text-[var(--text-secondary)] transition-all duration-300 hover:-translate-x-0.5 hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
+                className="mb-6 inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2 text-sm font-semibold text-[var(--text-secondary)] transition-all duration-300 hover:-translate-x-0.5 hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
               >
                 ← Dashboard
               </button>
 
               <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--primary-soft)] text-2xl">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--primary-soft)] text-2xl shadow-sm">
                   🔔
                 </div>
 
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--primary)]">
-                    Campus Updates
+                    Campus Center
                   </p>
 
                   <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">
@@ -220,44 +229,21 @@ export default function NotificationsPage() {
               </div>
 
               <p className="mt-4 max-w-2xl leading-7 text-[var(--text-secondary)]">
-                Stay updated with important campus
-                activities, announcements, and alerts.
+                Stay on top of important campus activities,
+                announcements, reminders, and updates.
               </p>
             </div>
 
             {/* Unread Badge */}
 
-            <div className="glass-subtle rounded-2xl border border-[var(--border)] p-5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-                Notification Status
+            <div className="shrink-0 rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-5 text-center backdrop-blur-xl">
+              <div className="text-3xl font-bold text-[var(--primary)]">
+                {unreadCount}
+              </div>
+
+              <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                Unread
               </p>
-
-              <div className="mt-2 flex items-end gap-2">
-                <span className="text-3xl font-bold text-[var(--text-primary)]">
-                  {unreadCount}
-                </span>
-
-                <span className="pb-1 text-sm font-medium text-[var(--text-secondary)]">
-                  unread
-                </span>
-              </div>
-
-              <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[var(--surface-muted)]">
-                <div
-                  className="h-full rounded-full bg-[var(--primary)] transition-all duration-500"
-                  style={{
-                    width:
-                      notifications.length > 0
-                        ? `${Math.min(
-                            (unreadCount /
-                              notifications.length) *
-                              100,
-                            100
-                          )}%`
-                        : "0%",
-                  }}
-                />
-              </div>
             </div>
           </div>
         </header>
@@ -268,8 +254,9 @@ export default function NotificationsPage() {
 
         {error && (
           <div className="mb-5 flex items-start gap-3 rounded-2xl border border-[var(--danger-soft)] bg-[var(--danger-soft)] px-5 py-4 text-sm font-medium text-[var(--danger)]">
-            <span>⚠️</span>
-            <span>{error}</span>
+            <span className="text-lg">⚠️</span>
+
+            <p>{error}</p>
           </div>
         )}
 
@@ -279,37 +266,45 @@ export default function NotificationsPage() {
 
         {success && (
           <div className="mb-5 flex items-start gap-3 rounded-2xl border border-[var(--success-soft)] bg-[var(--success-soft)] px-5 py-4 text-sm font-medium text-[var(--success)]">
-            <span>✓</span>
-            <span>{success}</span>
+            <span className="text-lg">✓</span>
+
+            <p>{success}</p>
           </div>
         )}
 
         {/* ======================================
-            SUMMARY
+            SUMMARY CARD
         ====================================== */}
 
-        <section className="glass mb-6 rounded-3xl p-6 shadow-[var(--shadow-md)] sm:p-7">
+        <section className="glass mb-6 rounded-3xl p-6 shadow-[var(--shadow-md)]">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
 
             <div>
               <div className="flex items-center gap-3">
-                <h2 className="text-2xl font-bold text-[var(--text-primary)]">
-                  Your Notifications
+                <h2 className="text-xl font-bold text-[var(--text-primary)]">
+                  Your Inbox
                 </h2>
 
-                <span className="rounded-full bg-[var(--primary-soft)] px-3 py-1 text-xs font-bold text-[var(--primary)]">
+                <span className="rounded-full bg-[var(--primary-soft)] px-2.5 py-1 text-xs font-bold text-[var(--primary)]">
                   {notifications.length}
                 </span>
               </div>
 
-              <p className="mt-2 text-sm text-[var(--text-secondary)]">
-                All your latest campus notifications in one
-                place.
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                {notifications.length === 0
+                  ? "You&apos;re all caught up."
+                  : unreadCount > 0
+                  ? `You have ${unreadCount} unread ${
+                      unreadCount === 1
+                        ? "notification"
+                        : "notifications"
+                    }.`
+                  : "You&apos;re all caught up. No unread notifications."}
               </p>
             </div>
 
             <div
-              className={`inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 text-sm font-bold ${
+              className={`inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 text-xs font-bold ${
                 unreadCount > 0
                   ? "bg-[var(--primary-soft)] text-[var(--primary)]"
                   : "bg-[var(--surface-muted)] text-[var(--text-secondary)]"
@@ -318,14 +313,14 @@ export default function NotificationsPage() {
               <span
                 className={`h-2 w-2 rounded-full ${
                   unreadCount > 0
-                    ? "animate-pulse bg-[var(--primary)]"
-                    : "bg-[var(--text-muted)]"
+                    ? "bg-[var(--primary)]"
+                    : "bg-[var(--success)]"
                 }`}
               />
 
               {unreadCount > 0
-                ? `${unreadCount} unread`
-                : "All caught up"}
+                ? `${unreadCount} Unread`
+                : "All Read"}
             </div>
           </div>
         </section>
@@ -335,25 +330,26 @@ export default function NotificationsPage() {
         ====================================== */}
 
         {notifications.length === 0 && (
-          <section className="glass rounded-3xl p-10 text-center shadow-[var(--shadow-md)] sm:p-16">
+          <section className="glass rounded-3xl p-8 text-center shadow-[var(--shadow-md)] sm:p-14">
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-[var(--primary-soft)] text-4xl">
               🔔
             </div>
 
             <h2 className="mt-6 text-2xl font-bold text-[var(--text-primary)]">
-              No notifications yet
+              You&apos;re all caught up
             </h2>
 
-            <p className="mx-auto mt-3 max-w-md leading-7 text-[var(--text-secondary)]">
-  You&apos;re all caught up. New campus updates
-  and important alerts will appear here.
-</p>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-[var(--text-secondary)]">
+              New campus updates and important notifications
+              will appear here when they arrive.
+            </p>
 
             <button
               type="button"
               onClick={() => router.push("/dashboard")}
               className="mt-7 rounded-2xl bg-[var(--primary)] px-6 py-3 font-bold text-white shadow-[var(--shadow-md)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--primary-hover)]"
             >
+              Back to Dashboard
             </button>
           </section>
         )}
@@ -363,7 +359,8 @@ export default function NotificationsPage() {
         ====================================== */}
 
         {notifications.length > 0 && (
-          <section className="space-y-5">
+          <section className="space-y-4">
+
             {notifications.map((notification) => {
               const isUpdating =
                 updatingId === notification.id;
@@ -371,19 +368,20 @@ export default function NotificationsPage() {
               return (
                 <article
                   key={notification.id}
-                  className={`glass-subtle group relative overflow-hidden rounded-3xl border p-5 transition-all duration-300 sm:p-7 ${
+                  className={`group glass-subtle relative overflow-hidden rounded-3xl border p-5 transition-all duration-300 sm:p-6 ${
                     notification.isRead
                       ? "border-[var(--border)]"
                       : "border-[var(--primary)]/30 shadow-[var(--shadow-md)]"
                   } hover:-translate-y-1 hover:shadow-[var(--shadow-lg)]`}
                 >
-                  {/* Unread Accent */}
+
+                  {/* Unread indicator */}
 
                   {!notification.isRead && (
                     <div className="absolute left-0 top-0 h-full w-1 bg-[var(--primary)]" />
                   )}
 
-                  <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+                  <div className="flex gap-4">
 
                     {/* Icon */}
 
@@ -394,42 +392,43 @@ export default function NotificationsPage() {
                           : "bg-[var(--primary-soft)]"
                       }`}
                     >
-                      {notification.isRead ? "✓" : "🔔"}
+                      {notification.isRead
+                        ? "✓"
+                        : "🔔"}
                     </div>
 
                     {/* Content */}
 
                     <div className="min-w-0 flex-1">
 
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
 
                         <div className="flex flex-wrap items-center gap-2">
-
-                          <h3 className="text-lg font-bold text-[var(--text-primary)] sm:text-xl">
+                          <h3 className="text-lg font-bold text-[var(--text-primary)]">
                             {notification.title}
                           </h3>
 
                           {!notification.isRead && (
-                            <span className="rounded-full bg-[var(--primary-soft)] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-[var(--primary)]">
+                            <span className="rounded-full bg-[var(--primary-soft)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">
                               New
                             </span>
                           )}
                         </div>
 
-                        <span className="shrink-0 text-xs font-medium text-[var(--text-muted)]">
+                        <span className="shrink-0 text-xs text-[var(--text-muted)]">
                           {formatDate(notification.createdAt)}
                         </span>
                       </div>
 
-                      <p className="mt-4 whitespace-pre-wrap leading-7 text-[var(--text-secondary)]">
+                      <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-[var(--text-secondary)]">
                         {notification.message}
                       </p>
 
-                      {/* Bottom Actions */}
+                      {/* Bottom actions */}
 
-                      <div className="mt-6 flex flex-col gap-3 border-t border-[var(--border)] pt-5 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-4">
 
-                        <div className="flex items-center gap-2 text-xs font-medium text-[var(--text-muted)]">
+                        <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
                           <span
                             className={`h-2 w-2 rounded-full ${
                               notification.isRead
@@ -440,10 +439,10 @@ export default function NotificationsPage() {
 
                           {notification.isRead
                             ? "Read"
-                            : "Waiting for your attention"}
+                            : "Waiting for you"}
                         </div>
 
-                        {!notification.isRead ? (
+                        {!notification.isRead && (
                           <button
                             type="button"
                             onClick={() =>
@@ -452,14 +451,16 @@ export default function NotificationsPage() {
                               )
                             }
                             disabled={isUpdating}
-                            className="rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-bold text-white shadow-[var(--shadow-sm)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+                            className="rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             {isUpdating
                               ? "Updating..."
                               : "Mark as Read ✓"}
                           </button>
-                        ) : (
-                          <span className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2 text-xs font-semibold text-[var(--text-secondary)]">
+                        )}
+
+                        {notification.isRead && (
+                          <span className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2 text-xs font-semibold text-[var(--text-muted)]">
                             Already read
                           </span>
                         )}
