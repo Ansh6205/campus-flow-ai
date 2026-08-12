@@ -443,6 +443,7 @@ export default function AnnouncementsPage() {
       router.push("/login");
       router.refresh();
     } catch (err) {
+      
       console.error("Logout Error:", err);
     }
   }
