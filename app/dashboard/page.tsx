@@ -47,12 +47,12 @@ function Info({
   value: string;
 }) {
   return (
-    <div className="min-w-0 rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">
+    <div className="group min-w-0 rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-sm)]">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
         {title}
       </p>
 
-      <p className="mt-1 truncate text-base font-semibold text-[var(--text-primary)]">
+      <p className="mt-2 truncate text-sm font-semibold text-[var(--text-primary)] sm:text-base">
         {value}
       </p>
     </div>
@@ -75,9 +75,9 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [announcementError, setAnnouncementError] = useState("");
 
-  // ============================================
+  // ============================================================
   // LOAD USER PROFILE
-  // ============================================
+  // ============================================================
 
   useEffect(() => {
     let cancelled = false;
@@ -99,7 +99,7 @@ export default function DashboardPage() {
         }
 
         if (!response.ok) {
-          setError(result.error || "Failed to load profile");
+          setError(result.error || "Failed to load profile.");
           return;
         }
 
@@ -123,9 +123,9 @@ export default function DashboardPage() {
     };
   }, [router]);
 
-  // ============================================
+  // ============================================================
   // LOAD ANNOUNCEMENTS
-  // ============================================
+  // ============================================================
 
   useEffect(() => {
     let cancelled = false;
@@ -148,7 +148,7 @@ export default function DashboardPage() {
 
         if (!response.ok) {
           setAnnouncementError(
-            result.error || "Failed to load announcements"
+            result.error || "Failed to load announcements."
           );
           return;
         }
@@ -176,14 +176,17 @@ export default function DashboardPage() {
     };
   }, [router]);
 
-  // ============================================
+  // ============================================================
   // LOAD EVENTS COUNT
-  // ============================================
+  // ============================================================
 
   useEffect(() => {
     async function loadEvents() {
       try {
-        const response = await fetch("/api/events");
+        const response = await fetch("/api/events", {
+          credentials: "include",
+        });
+
         const result = await response.json();
 
         if (response.ok) {
@@ -197,14 +200,17 @@ export default function DashboardPage() {
     loadEvents();
   }, []);
 
-  // ============================================
+  // ============================================================
   // LOAD COMPLAINTS COUNT
-  // ============================================
+  // ============================================================
 
   useEffect(() => {
     async function loadComplaints() {
       try {
-        const response = await fetch("/api/complaint");
+        const response = await fetch("/api/complaint", {
+          credentials: "include",
+        });
+
         const result = await response.json();
 
         if (response.ok) {
@@ -218,14 +224,17 @@ export default function DashboardPage() {
     loadComplaints();
   }, []);
 
-  // ============================================
+  // ============================================================
   // LOAD NOTIFICATIONS COUNT
-  // ============================================
+  // ============================================================
 
   useEffect(() => {
     async function loadNotifications() {
       try {
-        const response = await fetch("/api/notifications");
+        const response = await fetch("/api/notifications", {
+          credentials: "include",
+        });
+
         const result = await response.json();
 
         if (response.ok) {
@@ -239,9 +248,9 @@ export default function DashboardPage() {
     loadNotifications();
   }, []);
 
-  // ============================================
+  // ============================================================
   // LOGOUT
-  // ============================================
+  // ============================================================
 
   async function handleLogout() {
     try {
@@ -257,9 +266,9 @@ export default function DashboardPage() {
     }
   }
 
-  // ============================================
+  // ============================================================
   // FORMAT DATE
-  // ============================================
+  // ============================================================
 
   function formatDate(dateString: string) {
     return new Date(dateString).toLocaleDateString("en-IN", {
@@ -269,19 +278,19 @@ export default function DashboardPage() {
     });
   }
 
-  // ============================================
-  // LOADING STATE
-  // ============================================
+  // ============================================================
+  // LOADING
+  // ============================================================
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[var(--background)] px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto flex min-h-[70vh] max-w-7xl items-center justify-center">
-          <div className="text-center">
+      <main className="min-h-screen bg-[var(--background)] px-4 py-8 text-[var(--text-primary)] sm:px-6 lg:px-8">
+        <div className="mx-auto flex min-h-[75vh] max-w-7xl items-center justify-center">
+          <div className="glass rounded-3xl px-8 py-7 text-center shadow-[var(--shadow-lg)]">
             <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-[var(--border)] border-t-primary" />
 
-            <p className="mt-4 text-[var(--text-secondary)]">
-              Loading dashboard...
+            <p className="mt-4 text-sm font-medium text-[var(--text-secondary)]">
+              Preparing your dashboard...
             </p>
           </div>
         </div>
@@ -289,29 +298,31 @@ export default function DashboardPage() {
     );
   }
 
-  // ============================================
-  // ERROR STATE
-  // ============================================
+  // ============================================================
+  // ERROR
+  // ============================================================
 
   if (error) {
     return (
       <main className="min-h-screen bg-[var(--background)] px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto flex min-h-[70vh] max-w-7xl items-center justify-center">
-          <div className="w-full max-w-md rounded-3xl border border-danger bg-danger-soft p-8 text-center">
-            <div className="text-4xl">⚠️</div>
+        <div className="mx-auto flex min-h-[75vh] max-w-7xl items-center justify-center">
+          <div className="w-full max-w-md rounded-[28px] border border-danger bg-danger-soft p-8 text-center shadow-[var(--shadow-lg)]">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--background)] text-2xl">
+              ⚠️
+            </div>
 
-            <h2 className="mt-4 text-2xl font-bold text-[var(--text-primary)]">
+            <h2 className="mt-5 text-2xl font-bold text-[var(--text-primary)]">
               Something went wrong
             </h2>
 
-            <p className="mt-3 text-[var(--text-secondary)]">
+            <p className="mt-3 text-sm leading-6 text-[var(--text-secondary)]">
               {error}
             </p>
 
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="mt-6 rounded-xl bg-primary px-5 py-3 font-semibold text-white transition hover:bg-primary-hover"
+              className="mt-6 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-[var(--shadow-md)]"
             >
               Try Again
             </button>
@@ -327,9 +338,9 @@ export default function DashboardPage() {
 
   const { user, profile } = data;
 
-  // ============================================
+  // ============================================================
   // GREETING
-  // ============================================
+  // ============================================================
 
   const currentHour = new Date().getHours();
 
@@ -340,9 +351,9 @@ export default function DashboardPage() {
         ? "Good Afternoon"
         : "Good Evening";
 
-  // ============================================
+  // ============================================================
   // TODAY
-  // ============================================
+  // ============================================================
 
   const today = new Date().toLocaleDateString("en-IN", {
     weekday: "long",
@@ -351,73 +362,89 @@ export default function DashboardPage() {
     year: "numeric",
   });
 
-  // ============================================
+  // ============================================================
   // STATS
-  // ============================================
+  // ============================================================
 
   const stats = [
     {
       title: "Announcements",
       value: announcements.length,
       icon: "📢",
-      color: "bg-primary-soft text-primary",
+      description: "Campus updates",
       route: "/announcements",
+      color: "bg-primary-soft text-primary",
     },
     {
       title: "Events",
       value: eventsCount,
       icon: "📅",
-      color: "bg-accent-soft text-accent",
+      description: "Campus activities",
       route: "/events",
+      color: "bg-accent-soft text-accent",
     },
     {
       title: "Complaints",
       value: complaintsCount,
       icon: "📝",
-      color: "bg-warning-soft text-warning",
+      description: "Submitted requests",
       route: "/complaints",
+      color: "bg-warning-soft text-warning",
     },
     {
       title: "Notifications",
       value: notificationsCount,
       icon: "🔔",
-      color: "bg-success-soft text-success",
+      description: "Your updates",
       route: "/notifications",
+      color: "bg-success-soft text-success",
     },
   ];
 
+  // ============================================================
+  // MAIN UI
+  // ============================================================
+
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[var(--background)] px-4 py-6 sm:px-6 lg:px-8">
+    <main className="min-h-screen overflow-x-hidden bg-[var(--background)] px-4 py-5 text-[var(--text-primary)] sm:px-6 sm:py-7 lg:px-8">
       <div className="mx-auto w-full max-w-7xl space-y-6">
-        {/* ====================================== */}
+
+        {/* ====================================================== */}
         {/* HERO */}
-        {/* ====================================== */}
+        {/* ====================================================== */}
 
-        <section className="relative overflow-hidden rounded-[28px] glass p-6 sm:p-8 lg:p-10">
-          <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary-soft blur-3xl opacity-60" />
+        <section className="relative overflow-hidden rounded-[30px] border border-[var(--border)] bg-[var(--glass-bg)] p-6 shadow-[var(--shadow-lg)] backdrop-blur-2xl sm:p-8 lg:p-10">
+          {/* Decorative glow */}
+          <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-primary-soft opacity-70 blur-3xl" />
 
-          <div className="pointer-events-none absolute -bottom-32 left-1/3 h-56 w-56 rounded-full bg-accent-soft blur-3xl opacity-40" />
+          <div className="pointer-events-none absolute -bottom-32 left-1/3 h-64 w-64 rounded-full bg-accent-soft opacity-50 blur-3xl" />
+
+          <div className="pointer-events-none absolute right-1/3 top-1/2 h-32 w-32 -translate-y-1/2 rounded-full bg-success-soft opacity-30 blur-3xl" />
 
           <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+
+            {/* Hero content */}
             <div className="min-w-0">
-              <div className="inline-flex items-center rounded-full bg-primary-soft px-4 py-2 text-sm font-semibold text-primary">
-                👋 {greeting}
+
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2 text-xs font-semibold text-[var(--text-secondary)] shadow-[var(--shadow-sm)]">
+                <span className="h-2 w-2 rounded-full bg-success" />
+                Campus Flow AI
               </div>
 
-              <h1 className="mt-5 text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl lg:text-5xl">
-                Welcome back,
+              <h1 className="mt-6 text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl lg:text-5xl">
+                {greeting},
                 <span className="mt-1 block break-words text-primary">
                   {user.name}
                 </span>
               </h1>
 
               <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--text-secondary)] sm:text-base">
-                Your campus activity, announcements, events, complaints,
-                notifications and academic information — all in one place.
+                Your campus, organized. Stay on top of announcements,
+                events, complaints, notifications and your academic profile.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-2">
-                <span className="rounded-full bg-success-soft px-3 py-1.5 text-xs font-semibold text-success sm:text-sm">
+                <span className="rounded-full bg-primary-soft px-3 py-1.5 text-xs font-semibold text-primary sm:text-sm">
                   🎓 {user.role}
                 </span>
 
@@ -427,19 +454,20 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {/* Hero actions */}
             <div className="flex w-full shrink-0 flex-col gap-3 sm:w-auto sm:flex-row lg:flex-col">
               <button
                 type="button"
                 onClick={() => router.push("/profile")}
-                className="rounded-xl bg-primary px-6 py-3 font-semibold text-white shadow-[var(--shadow-sm)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-[var(--shadow-md)]"
+                className="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-[var(--shadow-md)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-[var(--shadow-lg)]"
               >
-                Edit Profile
+                View Profile →
               </button>
 
               <button
                 type="button"
                 onClick={handleLogout}
-                className="rounded-xl border border-danger bg-danger-soft px-6 py-3 font-semibold text-danger transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
+                className="rounded-xl border border-danger bg-danger-soft px-6 py-3 text-sm font-bold text-danger transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
               >
                 Logout
               </button>
@@ -447,355 +475,426 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* ====================================== */}
-        {/* CAMPUS OVERVIEW */}
-        {/* ====================================== */}
+        {/* ====================================================== */}
+        {/* OVERVIEW */}
+        {/* ====================================================== */}
 
         <section>
-          <div className="mb-4">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] sm:text-2xl">
-              Campus Overview
-            </h2>
+          <div className="mb-4 flex items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">
+                Overview
+              </p>
 
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">
-              Everything important at a glance.
-            </p>
+              <h2 className="mt-1 text-xl font-bold text-[var(--text-primary)] sm:text-2xl">
+                Your campus at a glance
+              </h2>
+            </div>
+
+            <span className="hidden text-xs text-[var(--text-muted)] sm:block">
+              Live campus data
+            </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
             {stats.map((stat) => (
               <button
                 key={stat.title}
                 type="button"
                 onClick={() => router.push(stat.route)}
-                className="glass-subtle min-w-0 rounded-2xl p-4 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lg)] sm:rounded-3xl sm:p-5"
+                className="group relative min-w-0 overflow-hidden rounded-[24px] border border-[var(--border)] bg-[var(--glass-bg)] p-4 text-left shadow-[var(--shadow-sm)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-lg)] sm:p-5"
               >
-                <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-xl text-lg sm:h-12 sm:w-12 sm:rounded-2xl sm:text-xl ${stat.color}`}
-                >
-                  {stat.icon}
+                <div className="flex items-start justify-between gap-3">
+                  <div
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl text-lg sm:h-12 sm:w-12 sm:rounded-2xl sm:text-xl ${stat.color}`}
+                  >
+                    {stat.icon}
+                  </div>
+
+                  <span className="text-sm text-[var(--text-muted)] transition-transform duration-300 group-hover:translate-x-1">
+                    →
+                  </span>
                 </div>
 
-                <p className="mt-4 truncate text-xs font-medium text-[var(--text-secondary)] sm:mt-5 sm:text-sm">
+                <p className="mt-5 truncate text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)] sm:text-sm">
                   {stat.title}
                 </p>
 
-                <p className="mt-1 text-2xl font-bold text-[var(--text-primary)] sm:text-3xl">
-                  {stat.value}
+                <div className="mt-1 flex items-end justify-between gap-2">
+                  <p className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">
+                    {stat.value}
+                  </p>
+                </div>
+
+                <p className="mt-1 truncate text-xs text-[var(--text-secondary)]">
+                  {stat.description}
                 </p>
               </button>
             ))}
           </div>
         </section>
 
-        {/* ====================================== */}
-        {/* PROFILE SUMMARY */}
-        {/* ====================================== */}
+        {/* ====================================================== */}
+        {/* MAIN CONTENT GRID */}
+        {/* ====================================================== */}
 
-        <section className="overflow-hidden rounded-[28px] glass">
-          <div className="border-b border-[var(--border)] p-5 sm:p-6">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex min-w-0 items-center gap-4">
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-500 to-violet-500 text-2xl font-bold text-white shadow-[var(--shadow-md)] sm:h-20 sm:w-20 sm:text-3xl">
-                  {user.name.charAt(0).toUpperCase()}
+        <div className="grid gap-6 lg:grid-cols-[1.45fr_0.85fr]">
+
+          {/* ==================================================== */}
+          {/* ANNOUNCEMENTS */}
+          {/* ==================================================== */}
+
+          <section className="relative overflow-hidden rounded-[28px] border border-[var(--border)] bg-[var(--glass-bg)] p-5 shadow-[var(--shadow-md)] backdrop-blur-2xl sm:p-6 lg:p-7">
+
+            <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-primary-soft opacity-50 blur-3xl" />
+
+            <div className="relative z-10">
+
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-xl">
+                    📢
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">
+                      Campus Feed
+                    </p>
+
+                    <h2 className="mt-1 text-xl font-bold text-[var(--text-primary)] sm:text-2xl">
+                      Latest Announcements
+                    </h2>
+                  </div>
                 </div>
 
-                <div className="min-w-0">
-                  <h2 className="truncate text-xl font-bold text-[var(--text-primary)] sm:text-2xl">
-                    {user.name}
-                  </h2>
-
-                  <p className="mt-1 truncate text-sm text-[var(--text-secondary)]">
-                    {profile?.department || "Student"} • {user.role}
-                  </p>
-
-                  <p className="mt-1 truncate text-xs text-[var(--text-muted)] sm:text-sm">
-                    {user.email}
-                  </p>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => router.push("/announcements")}
+                  className="shrink-0 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2 text-xs font-bold text-[var(--text-primary)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--glass-bg-hover)] sm:px-4 sm:text-sm"
+                >
+                  View All →
+                </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => router.push("/profile")}
-                className="w-full rounded-xl border border-[var(--border-strong)] bg-[var(--glass-bg)] px-5 py-2.5 text-sm font-semibold text-[var(--text-primary)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--glass-bg-hover)] hover:shadow-[var(--shadow-md)] sm:w-auto"
-              >
-                View Profile →
-              </button>
-            </div>
-          </div>
+              {announcementsLoading && (
+                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-8 text-center">
+                  <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[var(--border)] border-t-primary" />
 
-          <div className="grid gap-3 p-5 sm:grid-cols-2 sm:p-6 lg:grid-cols-3">
-            <Info
-              title="🏫 College"
-              value={profile?.college || "Not Added"}
-            />
-
-            <Info
-              title="💻 Department"
-              value={profile?.department || "Not Added"}
-            />
-
-            <Info
-              title="🎓 Year"
-              value={profile?.year ? String(profile.year) : "Not Added"}
-            />
-
-            <Info
-              title="📘 Division"
-              value={profile?.division || "Not Added"}
-            />
-
-            <Info
-              title="🆔 Roll Number"
-              value={profile?.rollNumber || "Not Added"}
-            />
-
-            <Info
-              title="📱 Phone"
-              value={profile?.phone || "Not Added"}
-            />
-          </div>
-        </section>
-
-        {/* ====================================== */}
-        {/* ANNOUNCEMENTS */}
-        {/* ====================================== */}
-
-        <section className="relative overflow-hidden rounded-[28px] glass p-5 sm:p-6 lg:p-8">
-          <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary-soft blur-3xl opacity-40" />
-
-          <div className="relative z-10">
-            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-xl">
-                  📢
-                </div>
-
-                <div className="min-w-0">
-                  <h2 className="truncate text-xl font-bold text-[var(--text-primary)] sm:text-2xl">
-                    Latest Announcements
-                  </h2>
-
-                  <p className="mt-1 hidden text-sm text-[var(--text-secondary)] sm:block">
-                    Stay updated with the latest campus news and notices.
+                  <p className="mt-3 text-sm text-[var(--text-secondary)]">
+                    Loading announcements...
                   </p>
                 </div>
-              </div>
+              )}
 
-              <button
-                type="button"
-                onClick={() => router.push("/announcements")}
-                className="w-full rounded-xl border border-[var(--border-strong)] bg-[var(--glass-bg)] px-5 py-2.5 text-sm font-semibold text-[var(--text-primary)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--glass-bg-hover)] hover:shadow-[var(--shadow-md)] sm:w-auto"
-              >
-                View All →
-              </button>
-            </div>
+              {!announcementsLoading && announcementError && (
+                <div className="rounded-2xl border border-danger bg-danger-soft p-5">
+                  <div className="flex items-start gap-3">
+                    <span className="text-xl">⚠️</span>
 
-            {announcementsLoading && (
-              <div className="glass-subtle rounded-2xl p-8 text-center">
-                <div className="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-[var(--border)] border-t-primary" />
+                    <div>
+                      <h3 className="font-semibold text-danger">
+                        Unable to load announcements
+                      </h3>
 
-                <p className="mt-3 text-sm text-[var(--text-secondary)]">
-                  Loading announcements...
-                </p>
-              </div>
-            )}
+                      <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                        {announcementError}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-            {!announcementsLoading && announcementError && (
-              <div className="rounded-2xl border border-danger bg-danger-soft p-5">
-                <div className="flex items-start gap-3">
-                  <div className="text-xl">⚠️</div>
+              {!announcementsLoading &&
+                !announcementError &&
+                announcements.length === 0 && (
+                  <div className="rounded-2xl border border-dashed border-[var(--border-strong)] bg-[var(--surface-muted)] p-9 text-center">
+                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--background)] text-2xl">
+                      📭
+                    </div>
 
-                  <div>
-                    <h3 className="font-semibold text-danger">
-                      Unable to load announcements
+                    <h3 className="mt-4 font-semibold text-[var(--text-primary)]">
+                      No announcements yet
                     </h3>
 
-                    <p className="mt-1 text-sm text-[var(--text-secondary)]">
-                      {announcementError}
+                    <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[var(--text-secondary)]">
+                      New campus announcements will appear here.
+                    </p>
+                  </div>
+                )}
+
+              {!announcementsLoading &&
+                !announcementError &&
+                announcements.length > 0 && (
+                  <div className="space-y-3">
+                    {announcements.slice(0, 3).map((announcement, index) => (
+                      <article
+                        key={announcement.id}
+                        className="group rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-md)] sm:p-5"
+                      >
+                        <div className="flex items-start gap-4">
+
+                          <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-lg sm:flex">
+                            📢
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+
+                            <div className="flex flex-wrap items-center gap-2">
+                              {index === 0 && (
+                                <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-primary">
+                                  Latest
+                                </span>
+                              )}
+
+                              <span className="text-xs text-[var(--text-muted)]">
+                                {formatDate(announcement.createdAt)}
+                              </span>
+                            </div>
+
+                            <h3 className="mt-2 text-base font-bold text-[var(--text-primary)] sm:text-lg">
+                              {announcement.title}
+                            </h3>
+
+                            <p className="mt-2 line-clamp-2 whitespace-pre-wrap text-sm leading-6 text-[var(--text-secondary)]">
+                              {announcement.content}
+                            </p>
+
+                            <div className="mt-4 flex items-center gap-2">
+                              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary">
+                                {announcement.createdBy.name
+                                  .charAt(0)
+                                  .toUpperCase()}
+                              </div>
+
+                              <div className="min-w-0">
+                                <p className="truncate text-xs font-semibold text-[var(--text-primary)]">
+                                  {announcement.createdBy.name}
+                                </p>
+
+                                <p className="text-[10px] text-[var(--text-muted)]">
+                                  {announcement.createdBy.role}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <span className="hidden text-sm text-[var(--text-muted)] transition-transform duration-300 group-hover:translate-x-1 sm:block">
+                            →
+                          </span>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+            </div>
+          </section>
+
+          {/* ==================================================== */}
+          {/* PROFILE SNAPSHOT */}
+          {/* ==================================================== */}
+
+          <section className="overflow-hidden rounded-[28px] border border-[var(--border)] bg-[var(--glass-bg)] shadow-[var(--shadow-md)] backdrop-blur-2xl">
+
+            <div className="relative overflow-hidden border-b border-[var(--border)] p-6">
+
+              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-accent-soft opacity-50 blur-3xl" />
+
+              <div className="relative z-10">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-accent">
+                  Profile
+                </p>
+
+                <div className="mt-5 flex items-center gap-4">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-500 to-violet-500 text-2xl font-bold text-white shadow-[var(--shadow-md)]">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+
+                  <div className="min-w-0">
+                    <h2 className="truncate text-lg font-bold text-[var(--text-primary)]">
+                      {user.name}
+                    </h2>
+
+                    <p className="mt-1 truncate text-xs text-[var(--text-secondary)]">
+                      {profile?.department || "Student"} • {user.role}
+                    </p>
+
+                    <p className="mt-1 truncate text-xs text-[var(--text-muted)]">
+                      {user.email}
                     </p>
                   </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => router.push("/profile")}
+                  className="mt-5 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--glass-bg-hover)] hover:shadow-[var(--shadow-sm)]"
+                >
+                  Manage Profile →
+                </button>
               </div>
-            )}
+            </div>
 
-            {!announcementsLoading &&
-              !announcementError &&
-              announcements.length === 0 && (
-                <div className="glass-subtle rounded-2xl p-8 text-center">
-                  <div className="text-4xl">📭</div>
+            <div className="grid gap-3 p-5">
+              <Info
+                title="🏫 College"
+                value={profile?.college || "Not Added"}
+              />
 
-                  <h3 className="mt-3 text-lg font-semibold text-[var(--text-primary)]">
-                    No announcements yet
-                  </h3>
+              <Info
+                title="💻 Department"
+                value={profile?.department || "Not Added"}
+              />
 
-                  <p className="mt-1 text-sm text-[var(--text-secondary)]">
-                    There are no campus announcements available right now.
-                  </p>
-                </div>
-              )}
+              <Info
+                title="🎓 Year"
+                value={
+                  profile?.year
+                    ? String(profile.year)
+                    : "Not Added"
+                }
+              />
 
-            {!announcementsLoading &&
-              !announcementError &&
-              announcements.length > 0 && (
-                <div className="space-y-4">
-                  {announcements.slice(0, 3).map((announcement, index) => (
-                    <article
-                      key={announcement.id}
-                      className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-md)] sm:p-5"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex flex-wrap items-center gap-2">
-                          {index === 0 && (
-                            <span className="rounded-full bg-primary-soft px-2.5 py-1 text-xs font-bold text-primary">
-                              Latest
-                            </span>
-                          )}
+              <Info
+                title="📘 Division"
+                value={profile?.division || "Not Added"}
+              />
+            </div>
+          </section>
+        </div>
 
-                          <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent">
-                            Announcement
-                          </span>
-                        </div>
-
-                        <span className="text-xs text-[var(--text-muted)]">
-                          {formatDate(announcement.createdAt)}
-                        </span>
-                      </div>
-
-                      <h3 className="mt-3 text-lg font-bold text-[var(--text-primary)]">
-                        {announcement.title}
-                      </h3>
-
-                      <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm leading-6 text-[var(--text-secondary)]">
-                        {announcement.content}
-                      </p>
-
-                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-4">
-                        <div className="flex items-center gap-2">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary">
-                            {announcement.createdBy.name
-                              .charAt(0)
-                              .toUpperCase()}
-                          </div>
-
-                          <div>
-                            <p className="text-[10px] text-[var(--text-muted)]">
-                              Posted by
-                            </p>
-
-                            <p className="text-xs font-semibold text-[var(--text-primary)]">
-                              {announcement.createdBy.name}
-                            </p>
-                          </div>
-                        </div>
-
-                        <span className="text-[10px] font-medium text-[var(--text-muted)]">
-                          {announcement.createdBy.role}
-                        </span>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              )}
-          </div>
-        </section>
-
-        {/* ====================================== */}
+        {/* ====================================================== */}
         {/* QUICK ACTIONS */}
-        {/* ====================================== */}
+        {/* ====================================================== */}
 
         <section>
           <div className="mb-4">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] sm:text-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">
+              Shortcuts
+            </p>
+
+            <h2 className="mt-1 text-xl font-bold text-[var(--text-primary)] sm:text-2xl">
               Quick Actions
             </h2>
 
             <p className="mt-1 text-sm text-[var(--text-secondary)]">
-              Jump directly to the things you use most.
+              Get where you need to go faster.
             </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+
             <button
               type="button"
               onClick={() => router.push("/events")}
-              className="glass rounded-2xl p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lg)]"
+              className="group rounded-[24px] border border-[var(--border)] bg-[var(--glass-bg)] p-5 text-left shadow-[var(--shadow-sm)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-lg)]"
             >
-              <div className="text-2xl">📅</div>
+              <div className="flex items-center justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent-soft text-xl">
+                  📅
+                </div>
 
-              <h3 className="mt-4 font-semibold text-[var(--text-primary)]">
+                <span className="text-[var(--text-muted)] transition-transform duration-300 group-hover:translate-x-1">
+                  →
+                </span>
+              </div>
+
+              <h3 className="mt-5 font-bold text-[var(--text-primary)]">
                 Campus Events
               </h3>
 
               <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-                View upcoming campus events and activities.
+                Discover upcoming activities and events.
               </p>
-
-              <span className="mt-4 inline-block text-sm font-semibold text-primary">
-                Explore →
-              </span>
             </button>
 
             <button
               type="button"
               onClick={() => router.push("/announcements")}
-              className="glass rounded-2xl p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lg)]"
+              className="group rounded-[24px] border border-[var(--border)] bg-[var(--glass-bg)] p-5 text-left shadow-[var(--shadow-sm)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-lg)]"
             >
-              <div className="text-2xl">📢</div>
+              <div className="flex items-center justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-soft text-xl">
+                  📢
+                </div>
 
-              <h3 className="mt-4 font-semibold text-[var(--text-primary)]">
-                Notices
+                <span className="text-[var(--text-muted)] transition-transform duration-300 group-hover:translate-x-1">
+                  →
+                </span>
+              </div>
+
+              <h3 className="mt-5 font-bold text-[var(--text-primary)]">
+                Announcements
               </h3>
 
               <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-                Stay updated with the latest campus announcements.
+                Read the latest campus news and notices.
               </p>
-
-              <span className="mt-4 inline-block text-sm font-semibold text-primary">
-                View Notices →
-              </span>
             </button>
 
             <button
               type="button"
               onClick={() => router.push("/complaints")}
-              className="glass rounded-2xl p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lg)]"
+              className="group rounded-[24px] border border-[var(--border)] bg-[var(--glass-bg)] p-5 text-left shadow-[var(--shadow-sm)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-lg)]"
             >
-              <div className="text-2xl">📝</div>
+              <div className="flex items-center justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-warning-soft text-xl">
+                  📝
+                </div>
 
-              <h3 className="mt-4 font-semibold text-[var(--text-primary)]">
+                <span className="text-[var(--text-muted)] transition-transform duration-300 group-hover:translate-x-1">
+                  →
+                </span>
+              </div>
+
+              <h3 className="mt-5 font-bold text-[var(--text-primary)]">
                 Complaints
               </h3>
 
               <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
                 Submit and track campus complaints.
               </p>
-
-              <span className="mt-4 inline-block rounded-lg bg-success-soft px-2.5 py-1 text-xs font-semibold text-success">
-                Available
-              </span>
             </button>
 
             <button
               type="button"
               onClick={() => router.push("/notifications")}
-              className="glass rounded-2xl p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lg)]"
+              className="group rounded-[24px] border border-[var(--border)] bg-[var(--glass-bg)] p-5 text-left shadow-[var(--shadow-sm)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-lg)]"
             >
-              <div className="text-2xl">🔔</div>
+              <div className="flex items-center justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-success-soft text-xl">
+                  🔔
+                </div>
 
-              <h3 className="mt-4 font-semibold text-[var(--text-primary)]">
+                <span className="text-[var(--text-muted)] transition-transform duration-300 group-hover:translate-x-1">
+                  →
+                </span>
+              </div>
+
+              <h3 className="mt-5 font-bold text-[var(--text-primary)]">
                 Notifications
               </h3>
 
               <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-                View your latest notifications.
+                Check your latest campus updates.
               </p>
-
-              <span className="mt-4 inline-block rounded-lg bg-success-soft px-2.5 py-1 text-xs font-semibold text-success">
-                Available
-              </span>
             </button>
+          </div>
+        </section>
+
+        {/* ====================================================== */}
+        {/* FOOTER STATUS */}
+        {/* ====================================================== */}
+
+        <section className="border-t border-[var(--border)] pt-5">
+          <div className="flex flex-col gap-2 text-xs text-[var(--text-muted)] sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              Campus Flow AI • Smart Campus Platform
+            </span>
+
+            <span className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-success" />
+              Dashboard connected
+            </span>
           </div>
         </section>
       </div>
