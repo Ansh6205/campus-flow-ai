@@ -47,7 +47,14 @@ export default function AdminPage() {
   const [usersError, setUsersError] = useState("");
   const [loggingOut, setLoggingOut] = useState(false);
 
-  const [search, setSearch] = useState("");
+const [updatingUserId, setUpdatingUserId] = useState<number | null>(
+  null
+);
+
+const [actionMessage, setActionMessage] = useState("");
+const [actionError, setActionError] = useState("");
+
+const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] =
     useState<EventFilter>("ALL");
 
@@ -180,6 +187,73 @@ export default function AdminPage() {
       setLoggingOut(false);
     }
   }
+
+  // ============================================================
+// UPDATE USER ROLE
+// ============================================================
+
+async function handleRoleChange(
+  userId: number,
+  newRole: "STUDENT" | "FACULTY" | "ADMIN"
+) {
+  if (!admin) return;
+
+  if (userId === admin.id) {
+    setActionError("You cannot change your own role.");
+    setActionMessage("");
+    return;
+  }
+
+  try {
+    setUpdatingUserId(userId);
+    setActionError("");
+    setActionMessage("");
+
+    const response = await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        userId,
+        role: newRole,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      setActionError(
+        result.error || "Failed to update user role."
+      );
+      return;
+    }
+
+    setUsers((currentUsers) =>
+      currentUsers.map((user) =>
+        user.id === userId
+          ? {
+              ...user,
+              role: result.user.role,
+            }
+          : user
+      )
+    );
+
+    setActionMessage(
+      `${result.user.name}'s role was updated to ${newRole}.`
+    );
+  } catch (error) {
+    console.error("Update User Role Error:", error);
+
+    setActionError(
+      "Something went wrong while updating the user's role."
+    );
+  } finally {
+    setUpdatingUserId(null);
+  }
+}
 
   // ============================================================
   // STATISTICS
@@ -987,6 +1061,18 @@ export default function AdminPage() {
 
               {/* SEARCH + FILTER */}
 
+              {(actionMessage || actionError) && (
+  <div
+    className={`mb-5 rounded-2xl border px-4 py-3 text-sm font-semibold ${
+      actionError
+        ? "border-danger/20 bg-danger-soft text-danger"
+        : "border-success/20 bg-success-soft text-success"
+    }`}
+  >
+    {actionError || actionMessage}
+  </div>
+)}
+
               <div className="mb-6 flex flex-col gap-3 lg:flex-row">
                 <div className="relative flex-1">
                   <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg">
@@ -1120,17 +1206,61 @@ export default function AdminPage() {
 
                               {/* ROLE */}
 
-                              <td className="px-5 py-5">
-                                <span
-                                  className={`inline-flex rounded-full px-3 py-1 text-xs font-black ${getRoleClass(
-                                    user.role
-                                  )}`}
-                                >
-                                  {
-                                    user.role
-                                  }
-                                </span>
-                              </td>
+<td className="px-5 py-5">
+  <div className="flex flex-col gap-2">
+    <select
+      value={user.role}
+      disabled={
+        updatingUserId === user.id ||
+        user.id === admin.id
+      }
+      onChange={(e) =>
+        handleRoleChange(
+          user.id,
+          e.target.value as
+            | "STUDENT"
+            | "FACULTY"
+            | "ADMIN"
+        )
+      }
+      className={`
+        w-fit
+        rounded-xl
+        border
+        border-border
+        bg-surface-solid
+        px-3
+        py-2
+        text-xs
+        font-bold
+        text-primary
+        outline-none
+        transition
+        focus:border-primary
+        focus:ring-4
+        focus:ring-primary-soft
+        disabled:cursor-not-allowed
+        disabled:opacity-50
+      `}
+    >
+      <option value="STUDENT">Student</option>
+      <option value="FACULTY">Faculty</option>
+      <option value="ADMIN">Admin</option>
+    </select>
+
+    {user.id === admin.id && (
+      <span className="text-[10px] font-bold text-muted">
+        Current account
+      </span>
+    )}
+
+    {updatingUserId === user.id && (
+      <span className="text-[10px] font-bold text-primary">
+        Updating...
+      </span>
+    )}
+  </div>
+</td>
 
                               {/* DEPARTMENT */}
 
