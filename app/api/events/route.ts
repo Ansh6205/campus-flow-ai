@@ -12,8 +12,11 @@ const createEventSchema = z.object({
   eventDate: z.string().datetime("Invalid event date"),
 });
 
+// ============================================================
 // GET /api/events
 // Students, Faculty, and Admin can view events
+// ============================================================
+
 export async function GET() {
   try {
     const user = await getCurrentUser();
@@ -66,11 +69,18 @@ export async function GET() {
   }
 }
 
+// ============================================================
 // POST /api/events
 // Only Faculty and Admin can create events
+// ============================================================
+
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
+
+    // --------------------------------------------------------
+    // AUTHENTICATION
+    // --------------------------------------------------------
 
     if (!user) {
       return NextResponse.json(
@@ -83,11 +93,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // Only Faculty and Admin can create events
-    if (user.role !== "FACULTY" && user.role !== "ADMIN") {
+    // --------------------------------------------------------
+    // ROLE CHECK
+    // --------------------------------------------------------
+
+    if (
+      user.role !== "FACULTY" &&
+      user.role !== "ADMIN"
+    ) {
       return NextResponse.json(
         {
-          error: "You do not have permission to create events",
+          error:
+            "You do not have permission to create events",
         },
         {
           status: 403,
@@ -95,16 +112,25 @@ export async function POST(request: Request) {
       );
     }
 
-    // Read request body
+    // --------------------------------------------------------
+    // READ REQUEST BODY
+    // --------------------------------------------------------
+
     const body = await request.json();
 
-    // Validate event data
-    const result = createEventSchema.safeParse(body);
+    // --------------------------------------------------------
+    // VALIDATE EVENT DATA
+    // --------------------------------------------------------
+
+    const result =
+      createEventSchema.safeParse(body);
 
     if (!result.success) {
       return NextResponse.json(
         {
-          error: "Invalid event data",
+          error:
+            result.error.issues[0]?.message ||
+            "Invalid event data",
         },
         {
           status: 400,
@@ -119,65 +145,119 @@ export async function POST(request: Request) {
       eventDate,
     } = result.data;
 
-    // Create event
-    const event = await prisma.event.create({
-      data: {
-        title,
-        description,
-        location,
-        eventDate: new Date(eventDate),
-        createdById: user.id,
-      },
-      include: {
-        createdBy: {
-          select: {
-            id: true,
-            name: true,
-            role: true,
+    // --------------------------------------------------------
+    // VALIDATE EVENT DATE
+    // --------------------------------------------------------
+
+    const parsedEventDate =
+      new Date(eventDate);
+
+    if (
+      Number.isNaN(
+        parsedEventDate.getTime()
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error: "Invalid event date",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (parsedEventDate <= new Date()) {
+      return NextResponse.json(
+        {
+          error:
+            "Event date and time must be in the future",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    // --------------------------------------------------------
+    // CREATE EVENT
+    // --------------------------------------------------------
+
+    const event =
+      await prisma.event.create({
+        data: {
+          title,
+          description,
+          location,
+          eventDate: parsedEventDate,
+          createdById: user.id,
+        },
+
+        include: {
+          createdBy: {
+            select: {
+              id: true,
+              name: true,
+              role: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    // ============================================================
-    // CREATE NOTIFICATIONS FOR ALL STUDENTS
-    // ============================================================
+    // ========================================================
+    // NOTIFY ALL STUDENTS
+    // ========================================================
 
-    // Find all student users
-    const students = await prisma.user.findMany({
-      where: {
-        role: "STUDENT",
-      },
-      select: {
-        id: true,
-      },
-    });
+    const students =
+      await prisma.user.findMany({
+        where: {
+          role: "STUDENT",
+        },
 
-    // Create a notification for every student
+        select: {
+          id: true,
+        },
+      });
+
     if (students.length > 0) {
       await prisma.notification.createMany({
         data: students.map((student) => ({
           userId: student.id,
-          title: `New Event: ${event.title}`,
-          message: `A new campus event "${event.title}" has been scheduled at ${event.location}.`,
+
+          title:
+            `New Event: ${event.title}`,
+
+          message:
+            `A new campus event "${event.title}" has been scheduled at ${event.location}.`,
+
           isRead: false,
         })),
       });
     }
 
+    // --------------------------------------------------------
+    // RESPONSE
+    // --------------------------------------------------------
+
     return NextResponse.json(
       {
         message:
           "Event created successfully and students notified",
+
         event,
-        notificationsCreated: students.length,
+
+        notificationsCreated:
+          students.length,
       },
       {
         status: 201,
       }
     );
   } catch (error) {
-    console.error("Create Event Error:", error);
+    console.error(
+      "Create Event Error:",
+      error
+    );
 
     return NextResponse.json(
       {
