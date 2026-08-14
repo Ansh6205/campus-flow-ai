@@ -4,25 +4,54 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 
 const updateEventSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
+  title: z
+    .string()
+    .min(3, "Title must be at least 3 characters"),
+
   description: z
     .string()
     .min(5, "Description must be at least 5 characters"),
-  location: z.string().min(2, "Location is required"),
-  eventDate: z.string().datetime("Invalid event date"),
+
+  location: z
+    .string()
+    .min(2, "Location is required"),
+
+  eventDate: z
+    .string()
+    .datetime("Invalid event date"),
 });
 
+// ============================================================
 // PATCH /api/events/[id]
-// Only Faculty and Admin can edit events
+//
+// FACULTY:
+// Can edit only their own events.
+//
+// ADMIN:
+// Can edit any event.
+//
+// STUDENT:
+// Cannot edit events.
+//
+// After updating:
+// All students receive an "Event Updated" notification.
+// ============================================================
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Get logged-in user
+    // --------------------------------------------------------
+    // GET CURRENT USER
+    // --------------------------------------------------------
+
     const user = await getCurrentUser();
 
-    // Check authentication
+    // --------------------------------------------------------
+    // AUTHENTICATION
+    // --------------------------------------------------------
+
     if (!user) {
       return NextResponse.json(
         {
@@ -34,11 +63,18 @@ export async function PATCH(
       );
     }
 
-    // Only Faculty and Admin can edit events
-    if (user.role !== "FACULTY" && user.role !== "ADMIN") {
+    // --------------------------------------------------------
+    // ROLE CHECK
+    // --------------------------------------------------------
+
+    if (
+      user.role !== "FACULTY" &&
+      user.role !== "ADMIN"
+    ) {
       return NextResponse.json(
         {
-          error: "You do not have permission to edit events",
+          error:
+            "You do not have permission to edit events",
         },
         {
           status: 403,
@@ -46,14 +82,18 @@ export async function PATCH(
       );
     }
 
-    // Get event ID from URL
+    // --------------------------------------------------------
+    // GET EVENT ID
+    // --------------------------------------------------------
+
     const { id } = await params;
 
-    // Convert event ID from string to number
     const eventId = Number(id);
 
-    // Validate event ID
-    if (!Number.isInteger(eventId) || eventId <= 0) {
+    if (
+      !Number.isInteger(eventId) ||
+      eventId <= 0
+    ) {
       return NextResponse.json(
         {
           error: "Invalid event ID",
@@ -64,12 +104,16 @@ export async function PATCH(
       );
     }
 
-    // Check if event exists
-    const existingEvent = await prisma.event.findUnique({
-      where: {
-        id: eventId,
-      },
-    });
+    // --------------------------------------------------------
+    // FIND EXISTING EVENT
+    // --------------------------------------------------------
+
+    const existingEvent =
+      await prisma.event.findUnique({
+        where: {
+          id: eventId,
+        },
+      });
 
     if (!existingEvent) {
       return NextResponse.json(
@@ -82,16 +126,48 @@ export async function PATCH(
       );
     }
 
-    // Read request body
+    // --------------------------------------------------------
+    // OWNERSHIP CHECK
+    //
+    // ADMIN → can edit any event
+    //
+    // FACULTY → can edit only their own event
+    // --------------------------------------------------------
+
+    if (
+      user.role === "FACULTY" &&
+      existingEvent.createdById !== user.id
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "You can only edit events created by you",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
+    // --------------------------------------------------------
+    // READ REQUEST BODY
+    // --------------------------------------------------------
+
     const body = await request.json();
 
-    // Validate input
-    const result = updateEventSchema.safeParse(body);
+    // --------------------------------------------------------
+    // VALIDATE REQUEST
+    // --------------------------------------------------------
+
+    const result =
+      updateEventSchema.safeParse(body);
 
     if (!result.success) {
       return NextResponse.json(
         {
-          error: "Invalid event data",
+          error:
+            result.error.issues[0]?.message ||
+            "Invalid event data",
         },
         {
           status: 400,
@@ -106,43 +182,127 @@ export async function PATCH(
       eventDate,
     } = result.data;
 
-    // Update event
-    const event = await prisma.event.update({
-      where: {
-        id: eventId,
-      },
-      data: {
-        title,
-        description,
-        location,
-        eventDate: new Date(eventDate),
-      },
-      include: {
-        createdBy: {
-          select: {
-            id: true,
-            name: true,
-            role: true,
+    // --------------------------------------------------------
+    // VALIDATE EVENT DATE
+    // --------------------------------------------------------
+
+    const parsedEventDate =
+      new Date(eventDate);
+
+    if (
+      Number.isNaN(
+        parsedEventDate.getTime()
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error: "Invalid event date",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (parsedEventDate <= new Date()) {
+      return NextResponse.json(
+        {
+          error:
+            "Event date and time must be in the future",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    // --------------------------------------------------------
+    // UPDATE EVENT
+    // --------------------------------------------------------
+
+    const event =
+      await prisma.event.update({
+        where: {
+          id: eventId,
+        },
+
+        data: {
+          title,
+          description,
+          location,
+          eventDate: parsedEventDate,
+        },
+
+        include: {
+          createdBy: {
+            select: {
+              id: true,
+              name: true,
+              role: true,
+            },
           },
         },
-      },
-    });
+      });
+
+    // ========================================================
+    // NOTIFY ALL STUDENTS
+    // ========================================================
+
+    const students =
+      await prisma.user.findMany({
+        where: {
+          role: "STUDENT",
+        },
+
+        select: {
+          id: true,
+        },
+      });
+
+    if (students.length > 0) {
+      await prisma.notification.createMany({
+        data: students.map((student) => ({
+          userId: student.id,
+
+          title:
+            `Event Updated: ${event.title}`,
+
+          message:
+            `The event "${event.title}" has been updated. Please check the latest event details.`,
+
+          isRead: false,
+        })),
+      });
+    }
+
+    // --------------------------------------------------------
+    // RESPONSE
+    // --------------------------------------------------------
 
     return NextResponse.json(
       {
-        message: "Event updated successfully",
+        message:
+          "Event updated successfully and students notified",
+
         event,
+
+        notificationsCreated:
+          students.length,
       },
       {
         status: 200,
       }
     );
   } catch (error) {
-    console.error("Update Event Error:", error);
+    console.error(
+      "Update Event Error:",
+      error
+    );
 
     return NextResponse.json(
       {
-        error: "Something went wrong while updating the event",
+        error:
+          "Something went wrong while updating the event",
       },
       {
         status: 500,
@@ -151,17 +311,40 @@ export async function PATCH(
   }
 }
 
+// ============================================================
 // DELETE /api/events/[id]
-// Only Faculty and Admin can delete events
+//
+// FACULTY:
+// Can delete only their own events.
+//
+// ADMIN:
+// Can delete any event.
+//
+// STUDENT:
+// Cannot delete events.
+//
+// Before deletion:
+// Save event information.
+//
+// After deletion:
+// All students receive an "Event Cancelled" notification.
+// ============================================================
+
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Get logged-in user
+    // --------------------------------------------------------
+    // GET CURRENT USER
+    // --------------------------------------------------------
+
     const user = await getCurrentUser();
 
-    // Check authentication
+    // --------------------------------------------------------
+    // AUTHENTICATION
+    // --------------------------------------------------------
+
     if (!user) {
       return NextResponse.json(
         {
@@ -173,11 +356,18 @@ export async function DELETE(
       );
     }
 
-    // Only Faculty and Admin can delete events
-    if (user.role !== "FACULTY" && user.role !== "ADMIN") {
+    // --------------------------------------------------------
+    // ROLE CHECK
+    // --------------------------------------------------------
+
+    if (
+      user.role !== "FACULTY" &&
+      user.role !== "ADMIN"
+    ) {
       return NextResponse.json(
         {
-          error: "You do not have permission to delete events",
+          error:
+            "You do not have permission to delete events",
         },
         {
           status: 403,
@@ -185,14 +375,18 @@ export async function DELETE(
       );
     }
 
-    // Get event ID from URL
+    // --------------------------------------------------------
+    // GET EVENT ID
+    // --------------------------------------------------------
+
     const { id } = await params;
 
-    // Convert event ID from string to number
     const eventId = Number(id);
 
-    // Validate event ID
-    if (!Number.isInteger(eventId) || eventId <= 0) {
+    if (
+      !Number.isInteger(eventId) ||
+      eventId <= 0
+    ) {
       return NextResponse.json(
         {
           error: "Invalid event ID",
@@ -203,12 +397,16 @@ export async function DELETE(
       );
     }
 
-    // Check if event exists
-    const existingEvent = await prisma.event.findUnique({
-      where: {
-        id: eventId,
-      },
-    });
+    // --------------------------------------------------------
+    // FIND EVENT
+    // --------------------------------------------------------
+
+    const existingEvent =
+      await prisma.event.findUnique({
+        where: {
+          id: eventId,
+        },
+      });
 
     if (!existingEvent) {
       return NextResponse.json(
@@ -221,27 +419,110 @@ export async function DELETE(
       );
     }
 
-    // Delete event
+    // --------------------------------------------------------
+    // OWNERSHIP CHECK
+    //
+    // ADMIN → can delete any event
+    //
+    // FACULTY → can delete only their own event
+    // --------------------------------------------------------
+
+    if (
+      user.role === "FACULTY" &&
+      existingEvent.createdById !== user.id
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "You can only delete events created by you",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
+    // ========================================================
+    // SAVE EVENT DETAILS BEFORE DELETING
+    // ========================================================
+
+    const deletedEventTitle =
+      existingEvent.title;
+
+    const deletedEventLocation =
+      existingEvent.location;
+
+    // --------------------------------------------------------
+    // DELETE EVENT
+    // --------------------------------------------------------
+
     await prisma.event.delete({
       where: {
         id: eventId,
       },
     });
 
+    // ========================================================
+    // NOTIFY ALL STUDENTS
+    // ========================================================
+
+    const students =
+      await prisma.user.findMany({
+        where: {
+          role: "STUDENT",
+        },
+
+        select: {
+          id: true,
+        },
+      });
+
+    if (students.length > 0) {
+      await prisma.notification.createMany({
+        data: students.map((student) => ({
+          userId: student.id,
+
+          title:
+            `Event Cancelled: ${deletedEventTitle}`,
+
+          message:
+            `The event "${deletedEventTitle}"${
+              deletedEventLocation
+                ? ` at ${deletedEventLocation}`
+                : ""
+            } has been cancelled.`,
+            
+          isRead: false,
+        })),
+      });
+    }
+
+    // --------------------------------------------------------
+    // RESPONSE
+    // --------------------------------------------------------
+
     return NextResponse.json(
       {
-        message: "Event deleted successfully",
+        message:
+          "Event deleted successfully and students notified",
+
+        notificationsCreated:
+          students.length,
       },
       {
         status: 200,
       }
     );
   } catch (error) {
-    console.error("Delete Event Error:", error);
+    console.error(
+      "Delete Event Error:",
+      error
+    );
 
     return NextResponse.json(
       {
-        error: "Something went wrong while deleting the event",
+        error:
+          "Something went wrong while deleting the event",
       },
       {
         status: 500,
