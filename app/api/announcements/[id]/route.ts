@@ -16,6 +16,19 @@ type RouteContext = {
 
 // ============================================================
 // PATCH - UPDATE ANNOUNCEMENT
+//
+// FACULTY:
+// Can update only their own announcements.
+//
+// ADMIN:
+// Can update any announcement.
+//
+// STUDENT:
+// Cannot update announcements.
+//
+// After update:
+// All students receive an "Announcement Updated"
+// notification.
 // ============================================================
 
 export async function PATCH(
@@ -23,10 +36,16 @@ export async function PATCH(
   context: RouteContext
 ) {
   try {
-    // Get logged-in user
+    // --------------------------------------------------------
+    // GET CURRENT USER
+    // --------------------------------------------------------
+
     const user = await getCurrentUser();
 
-    // Check authentication
+    // --------------------------------------------------------
+    // AUTHENTICATION
+    // --------------------------------------------------------
+
     if (!user) {
       return NextResponse.json(
         {
@@ -38,7 +57,10 @@ export async function PATCH(
       );
     }
 
-    // Only Faculty and Admin can update announcements
+    // --------------------------------------------------------
+    // ROLE CHECK
+    // --------------------------------------------------------
+
     if (
       user.role !== "FACULTY" &&
       user.role !== "ADMIN"
@@ -54,11 +76,14 @@ export async function PATCH(
       );
     }
 
-    // Get announcement ID
+    // --------------------------------------------------------
+    // GET ANNOUNCEMENT ID
+    // --------------------------------------------------------
+
     const { id } = await context.params;
+
     const announcementId = Number(id);
 
-    // Validate announcement ID
     if (
       !Number.isInteger(announcementId) ||
       announcementId <= 0
@@ -73,7 +98,10 @@ export async function PATCH(
       );
     }
 
-    // Find announcement
+    // --------------------------------------------------------
+    // FIND EXISTING ANNOUNCEMENT
+    // --------------------------------------------------------
+
     const existingAnnouncement =
       await prisma.announcement.findUnique({
         where: {
@@ -81,7 +109,6 @@ export async function PATCH(
         },
       });
 
-    // Announcement not found
     if (!existingAnnouncement) {
       return NextResponse.json(
         {
@@ -93,7 +120,14 @@ export async function PATCH(
       );
     }
 
-    // Faculty can only edit their own announcements
+    // --------------------------------------------------------
+    // OWNERSHIP CHECK
+    //
+    // ADMIN → can update any announcement
+    //
+    // FACULTY → only their own announcement
+    // --------------------------------------------------------
+
     if (
       user.role === "FACULTY" &&
       existingAnnouncement.createdById !== user.id
@@ -109,17 +143,25 @@ export async function PATCH(
       );
     }
 
-    // Read request body
+    // --------------------------------------------------------
+    // READ REQUEST BODY
+    // --------------------------------------------------------
+
     const body = await request.json();
 
-    // Validate input
+    // --------------------------------------------------------
+    // VALIDATE INPUT
+    // --------------------------------------------------------
+
     const result =
       announcementSchema.safeParse(body);
 
     if (!result.success) {
       return NextResponse.json(
         {
-          error: "Invalid input",
+          error:
+            result.error.issues[0]?.message ||
+            "Invalid input",
         },
         {
           status: 400,
@@ -127,18 +169,26 @@ export async function PATCH(
       );
     }
 
-    const { title, content } = result.data;
+    const {
+      title,
+      content,
+    } = result.data;
 
-    // Update announcement
+    // --------------------------------------------------------
+    // UPDATE ANNOUNCEMENT
+    // --------------------------------------------------------
+
     const announcement =
       await prisma.announcement.update({
         where: {
           id: announcementId,
         },
+
         data: {
           title,
           content,
         },
+
         include: {
           createdBy: {
             select: {
@@ -150,11 +200,50 @@ export async function PATCH(
         },
       });
 
+    // ========================================================
+    // NOTIFY ALL STUDENTS
+    // ========================================================
+
+    const students =
+      await prisma.user.findMany({
+        where: {
+          role: "STUDENT",
+        },
+
+        select: {
+          id: true,
+        },
+      });
+
+    if (students.length > 0) {
+      await prisma.notification.createMany({
+        data: students.map((student) => ({
+          userId: student.id,
+
+          title:
+            `Announcement Updated: ${announcement.title}`,
+
+          message:
+            `The announcement "${announcement.title}" has been updated. Please check the latest campus information.`,
+
+          isRead: false,
+        })),
+      });
+    }
+
+    // --------------------------------------------------------
+    // RESPONSE
+    // --------------------------------------------------------
+
     return NextResponse.json(
       {
         message:
-          "Announcement updated successfully",
+          "Announcement updated successfully and students notified",
+
         announcement,
+
+        notificationsSent:
+          students.length,
       },
       {
         status: 200,
@@ -180,6 +269,22 @@ export async function PATCH(
 
 // ============================================================
 // DELETE - DELETE ANNOUNCEMENT
+//
+// FACULTY:
+// Can delete only their own announcements.
+//
+// ADMIN:
+// Can delete any announcement.
+//
+// STUDENT:
+// Cannot delete announcements.
+//
+// Before deleting:
+// Save the announcement title.
+//
+// After deleting:
+// All students receive an "Announcement Deleted"
+// notification.
 // ============================================================
 
 export async function DELETE(
@@ -187,10 +292,16 @@ export async function DELETE(
   context: RouteContext
 ) {
   try {
-    // Get logged-in user
+    // --------------------------------------------------------
+    // GET CURRENT USER
+    // --------------------------------------------------------
+
     const user = await getCurrentUser();
 
-    // Check authentication
+    // --------------------------------------------------------
+    // AUTHENTICATION
+    // --------------------------------------------------------
+
     if (!user) {
       return NextResponse.json(
         {
@@ -202,7 +313,10 @@ export async function DELETE(
       );
     }
 
-    // Only Faculty and Admin can delete announcements
+    // --------------------------------------------------------
+    // ROLE CHECK
+    // --------------------------------------------------------
+
     if (
       user.role !== "FACULTY" &&
       user.role !== "ADMIN"
@@ -218,11 +332,14 @@ export async function DELETE(
       );
     }
 
-    // Get announcement ID
+    // --------------------------------------------------------
+    // GET ANNOUNCEMENT ID
+    // --------------------------------------------------------
+
     const { id } = await context.params;
+
     const announcementId = Number(id);
 
-    // Validate announcement ID
     if (
       !Number.isInteger(announcementId) ||
       announcementId <= 0
@@ -237,7 +354,10 @@ export async function DELETE(
       );
     }
 
-    // Find announcement
+    // --------------------------------------------------------
+    // FIND ANNOUNCEMENT
+    // --------------------------------------------------------
+
     const existingAnnouncement =
       await prisma.announcement.findUnique({
         where: {
@@ -245,7 +365,6 @@ export async function DELETE(
         },
       });
 
-    // Announcement not found
     if (!existingAnnouncement) {
       return NextResponse.json(
         {
@@ -257,7 +376,14 @@ export async function DELETE(
       );
     }
 
-    // Faculty can only delete their own announcements
+    // --------------------------------------------------------
+    // OWNERSHIP CHECK
+    //
+    // ADMIN → can delete any announcement
+    //
+    // FACULTY → only their own announcement
+    // --------------------------------------------------------
+
     if (
       user.role === "FACULTY" &&
       existingAnnouncement.createdById !== user.id
@@ -273,17 +399,65 @@ export async function DELETE(
       );
     }
 
-    // Delete announcement
+    // --------------------------------------------------------
+    // SAVE TITLE BEFORE DELETE
+    // --------------------------------------------------------
+
+    const deletedAnnouncementTitle =
+      existingAnnouncement.title;
+
+    // --------------------------------------------------------
+    // DELETE ANNOUNCEMENT
+    // --------------------------------------------------------
+
     await prisma.announcement.delete({
       where: {
         id: announcementId,
       },
     });
 
+    // ========================================================
+    // NOTIFY ALL STUDENTS
+    // ========================================================
+
+    const students =
+      await prisma.user.findMany({
+        where: {
+          role: "STUDENT",
+        },
+
+        select: {
+          id: true,
+        },
+      });
+
+    if (students.length > 0) {
+      await prisma.notification.createMany({
+        data: students.map((student) => ({
+          userId: student.id,
+
+          title:
+            `Announcement Removed: ${deletedAnnouncementTitle}`,
+
+          message:
+            `The announcement "${deletedAnnouncementTitle}" has been removed from the campus updates.`,
+
+          isRead: false,
+        })),
+      });
+    }
+
+    // --------------------------------------------------------
+    // RESPONSE
+    // --------------------------------------------------------
+
     return NextResponse.json(
       {
         message:
-          "Announcement deleted successfully",
+          "Announcement deleted successfully and students notified",
+
+        notificationsSent:
+          students.length,
       },
       {
         status: 200,
