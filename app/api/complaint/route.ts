@@ -79,24 +79,25 @@ export async function GET() {
           }
         : {};
 
-    const complaints = await prisma.complaint.findMany({
-      where,
+    const complaints =
+      await prisma.complaint.findMany({
+        where,
 
-      include: {
-        createdBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
+        include: {
+          createdBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+            },
           },
         },
-      },
 
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
 
     return NextResponse.json(
       {
@@ -107,7 +108,10 @@ export async function GET() {
       }
     );
   } catch (error) {
-    console.error("Get Complaints Error:", error);
+    console.error(
+      "Get Complaints Error:",
+      error
+    );
 
     return NextResponse.json(
       {
@@ -134,7 +138,9 @@ export async function GET() {
 // Faculty and Admin users receive a notification.
 // ============================================================
 
-export async function POST(request: Request) {
+export async function POST(
+  request: Request
+) {
   try {
     const user = await getCurrentUser();
 
@@ -149,11 +155,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // Only students can create complaints
+    // --------------------------------------------------------
+    // ONLY STUDENTS CAN CREATE COMPLAINTS
+    // --------------------------------------------------------
+
     if (user.role !== "STUDENT") {
       return NextResponse.json(
         {
-          error: "Only students can create complaints",
+          error:
+            "Only students can create complaints",
         },
         {
           status: 403,
@@ -161,9 +171,18 @@ export async function POST(request: Request) {
       );
     }
 
+    // --------------------------------------------------------
+    // READ REQUEST BODY
+    // --------------------------------------------------------
+
     const body = await request.json();
 
-    const result = complaintSchema.safeParse(body);
+    // --------------------------------------------------------
+    // VALIDATE INPUT
+    // --------------------------------------------------------
+
+    const result =
+      complaintSchema.safeParse(body);
 
     if (!result.success) {
       return NextResponse.json(
@@ -185,29 +204,36 @@ export async function POST(request: Request) {
       location,
     } = result.data;
 
-    // Create complaint
-    const complaint = await prisma.complaint.create({
-      data: {
-        title,
-        description,
-        category,
-        location: location || null,
-        createdById: user.id,
-      },
+    // --------------------------------------------------------
+    // CREATE COMPLAINT
+    // --------------------------------------------------------
 
-      include: {
-        createdBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
+    const complaint =
+      await prisma.complaint.create({
+        data: {
+          title,
+          description,
+          category,
+          location: location || null,
+          createdById: user.id,
+        },
+
+        include: {
+          createdBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    // Find all Faculty and Admin users
+    // ========================================================
+    // NOTIFY ALL FACULTY AND ADMIN USERS
+    // ========================================================
+
     const facultyAndAdmins =
       await prisma.user.findMany({
         where: {
@@ -215,33 +241,49 @@ export async function POST(request: Request) {
             in: ["FACULTY", "ADMIN"],
           },
         },
+
         select: {
           id: true,
         },
       });
 
-    // Create notifications for Faculty and Admin users
     if (facultyAndAdmins.length > 0) {
       await prisma.notification.createMany({
-        data: facultyAndAdmins.map((recipient) => ({
-          title: "New Complaint Submitted",
-          message: `${user.name} submitted a new complaint: "${complaint.title}"`,
-          userId: recipient.id,
-        })),
+        data: facultyAndAdmins.map(
+          (recipient) => ({
+            title:
+              "New Complaint Submitted",
+
+            message:
+              `${user.name} submitted a new complaint: "${complaint.title}"`,
+
+            userId: recipient.id,
+
+            isRead: false,
+          })
+        ),
       });
     }
 
     return NextResponse.json(
       {
-        message: "Complaint created successfully",
+        message:
+          "Complaint created successfully",
+
         complaint,
+
+        notificationsSent:
+          facultyAndAdmins.length,
       },
       {
         status: 201,
       }
     );
   } catch (error) {
-    console.error("Create Complaint Error:", error);
+    console.error(
+      "Create Complaint Error:",
+      error
+    );
 
     return NextResponse.json(
       {
@@ -269,7 +311,9 @@ export async function POST(request: Request) {
 // the complaint status actually changes.
 // ============================================================
 
-export async function PATCH(request: Request) {
+export async function PATCH(
+  request: Request
+) {
   try {
     const user = await getCurrentUser();
 
@@ -284,7 +328,10 @@ export async function PATCH(request: Request) {
       );
     }
 
-    // Only Faculty and Admin can update complaint status
+    // --------------------------------------------------------
+    // ONLY FACULTY AND ADMIN CAN UPDATE STATUS
+    // --------------------------------------------------------
+
     if (
       user.role !== "FACULTY" &&
       user.role !== "ADMIN"
@@ -300,7 +347,15 @@ export async function PATCH(request: Request) {
       );
     }
 
+    // --------------------------------------------------------
+    // READ REQUEST BODY
+    // --------------------------------------------------------
+
     const body = await request.json();
+
+    // --------------------------------------------------------
+    // VALIDATE INPUT
+    // --------------------------------------------------------
 
     const result =
       updateComplaintSchema.safeParse(body);
@@ -323,7 +378,10 @@ export async function PATCH(request: Request) {
       status,
     } = result.data;
 
-    // Check if complaint exists
+    // --------------------------------------------------------
+    // FIND EXISTING COMPLAINT
+    // --------------------------------------------------------
+
     const existingComplaint =
       await prisma.complaint.findUnique({
         where: {
@@ -342,11 +400,17 @@ export async function PATCH(request: Request) {
       );
     }
 
-    // Check whether the status actually changed
+    // --------------------------------------------------------
+    // CHECK WHETHER STATUS ACTUALLY CHANGED
+    // --------------------------------------------------------
+
     const statusChanged =
       existingComplaint.status !== status;
 
-    // Update complaint status
+    // --------------------------------------------------------
+    // UPDATE COMPLAINT STATUS
+    // --------------------------------------------------------
+
     const updatedComplaint =
       await prisma.complaint.update({
         where: {
@@ -369,17 +433,77 @@ export async function PATCH(request: Request) {
         },
       });
 
-    // Create notification only when the complaint
-    // status actually changes
+    // ========================================================
+    // CREATE STUDENT NOTIFICATION
+    // ONLY WHEN STATUS ACTUALLY CHANGES
+    // ========================================================
+
     if (statusChanged) {
+      let notificationTitle =
+        "Complaint Status Updated";
+
+      let notificationMessage =
+        `Your complaint "${updatedComplaint.title}" status has been updated.`;
+
+      // ------------------------------------------------------
+      // PENDING
+      // ------------------------------------------------------
+
+      if (updatedComplaint.status === "PENDING") {
+        notificationTitle =
+          "Complaint Pending";
+
+        notificationMessage =
+          `Your complaint "${updatedComplaint.title}" is pending review.`;
+      }
+
+      // ------------------------------------------------------
+      // IN PROGRESS
+      // ------------------------------------------------------
+
+      else if (
+        updatedComplaint.status ===
+        "IN_PROGRESS"
+      ) {
+        notificationTitle =
+          "Complaint In Progress";
+
+        notificationMessage =
+          `Your complaint "${updatedComplaint.title}" is now being worked on.`;
+      }
+
+      // ------------------------------------------------------
+      // RESOLVED
+      // ------------------------------------------------------
+
+      else if (
+        updatedComplaint.status ===
+        "RESOLVED"
+      ) {
+        notificationTitle =
+          "Complaint Resolved";
+
+        notificationMessage =
+          `Your complaint "${updatedComplaint.title}" has been resolved.`;
+      }
+
       await prisma.notification.create({
         data: {
-          title: "Complaint Status Updated",
-          message: `Your complaint "${updatedComplaint.title}" is now ${updatedComplaint.status}.`,
-          userId: updatedComplaint.createdById,
+          title: notificationTitle,
+
+          message: notificationMessage,
+
+          userId:
+            updatedComplaint.createdById,
+
+          isRead: false,
         },
       });
     }
+
+    // --------------------------------------------------------
+    // RESPONSE
+    // --------------------------------------------------------
 
     return NextResponse.json(
       {
@@ -387,6 +511,9 @@ export async function PATCH(request: Request) {
           "Complaint status updated successfully",
 
         complaint: updatedComplaint,
+
+        notificationSent:
+          statusChanged,
       },
       {
         status: 200,
